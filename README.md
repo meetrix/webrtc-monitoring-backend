@@ -23,6 +23,10 @@ docker-compose up
 
 # Run (development mode) the API on port 9100
 npm start
+
+# Check whther the api is running
+
+http://localhost:9100/v1/spec
 ```
 
 To build the project in VS Code press `cmd + shift + b`. You can also run tasks using the command pallet (`cmd + shift + p`) and select `Tasks: Run Task` > `npm: start` to run `npm start` for you.

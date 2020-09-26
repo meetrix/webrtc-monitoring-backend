@@ -1,30 +1,30 @@
 /* eslint-disable @typescript-eslint/camelcase */
-import crypto from "crypto";
-import jwt from "jsonwebtoken";
-import passport from "passport";
-import validator from "validator";
-import nodemailer from "nodemailer";
-import { Response, Request, NextFunction } from "express";
-import { IVerifyOptions } from "passport-local";
+import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
+import passport from 'passport';
+import validator from 'validator';
+import nodemailer from 'nodemailer';
+import { Response, Request, NextFunction } from 'express';
+import { IVerifyOptions } from 'passport-local';
 
-import { UserDocument, User } from "../../../models/User";
+import { UserDocument, User } from '../../../models/User';
 import {
     SESSION_SECRET,
     SENDGRID_USER,
     SENDGRID_PASSWORD
-} from "../../../config/secrets";
+} from '../../../config/secrets';
 import {
     JWT_EXPIRATION,
     UNSUBSCRIBE_LANDING,
     RECOVERY_LANDING,
     SENDER_EMAIL
-} from "../../../config/settings";
-import { formatError } from "../../../util/error";
+} from '../../../config/settings';
+import { formatError } from '../../../util/error';
 import {
     passwordResetTemplate,
     passwordChangedConfirmationTemplate
-} from "../../../resources/emails";
-import { SUCCESSFUL_RESPONSE } from "../../../util/success";
+} from '../../../resources/emails';
+import { SUCCESSFUL_RESPONSE } from '../../../util/success';
 
 const signToken = (user: UserDocument): string => {
     return jwt.sign(
@@ -64,11 +64,11 @@ export const register = async (
     try {
         const validationErrors = [];
         if (!validator.isEmail(req.body.email)) {
-            validationErrors.push("Please enter a valid email address");
+            validationErrors.push('Please enter a valid email address');
         }
         if (!validator.isLength(req.body.password, { min: 8 })) {
             validationErrors.push(
-                "Password must be at least 8 characters long"
+                'Password must be at least 8 characters long'
             );
         }
         if (validationErrors.length) {
@@ -80,7 +80,7 @@ export const register = async (
         });
         const existing = await User.findOne({ email: req.body.email });
         if (existing) {
-            res.status(422).json(formatError("Account already exists"));
+            res.status(422).json(formatError('Account already exists'));
             return;
         }
 
@@ -105,14 +105,14 @@ export const login = async (
 ): Promise<void> => {
     try {
         if (!req.body.email || !req.body.password) {
-            res.status(403).json(formatError("Invalid credentials"));
+            res.status(403).json(formatError('Invalid credentials'));
             return;
         }
         req.body.email = validator.normalizeEmail(req.body.email, {
             gmail_remove_dots: false
         });
         passport.authenticate(
-            "local",
+            'local',
             (
                 err: Error,
                 user: UserDocument,
@@ -136,7 +136,7 @@ export const forgot = async (
 ): Promise<void> => {
     try {
         if (!req.body.email) {
-            res.status(422).json(formatError("Invalid data"));
+            res.status(422).json(formatError('Invalid data'));
             return;
         }
         req.body.email = validator.normalizeEmail(req.body.email, {
@@ -145,16 +145,16 @@ export const forgot = async (
 
         const user = await User.findOne({ email: req.body.email });
         if (!user) {
-            res.status(404).json(formatError("Email not found"));
+            res.status(404).json(formatError('Email not found'));
             return;
         }
-        const token = crypto.randomBytes(16).toString("hex");
+        const token = crypto.randomBytes(16).toString('hex');
         user.passwordResetToken = token;
         user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // ms
         await user.save();
 
         const transporter = nodemailer.createTransport({
-            service: "SendGrid",
+            service: 'SendGrid',
             auth: {
                 user: SENDGRID_USER,
                 pass: SENDGRID_PASSWORD
@@ -164,7 +164,7 @@ export const forgot = async (
         const mailOptions = {
             to: req.body.email,
             from: SENDER_EMAIL,
-            subject: "Node API starter - Password reset",
+            subject: 'Node API starter - Password reset',
             html: passwordResetTemplate(
                 `${RECOVERY_LANDING}/reset/${token}`,
                 UNSUBSCRIBE_LANDING
@@ -186,14 +186,14 @@ export const reset = async (
         const validationErrors = [];
         if (!validator.isLength(req.body.password, { min: 8 })) {
             validationErrors.push(
-                "Password must be at least 8 characters long"
+                'Password must be at least 8 characters long'
             );
         }
         if (req.body.password !== req.body.confirm) {
-            validationErrors.push("Passwords do not match");
+            validationErrors.push('Passwords do not match');
         }
         if (!validator.isHexadecimal(req.params.token)) {
-            validationErrors.push("Invalid token");
+            validationErrors.push('Invalid token');
         }
         if (validationErrors.length) {
             res.status(422).json(formatError(...validationErrors));
@@ -203,10 +203,10 @@ export const reset = async (
         const user = await User.findOne({
             passwordResetToken: req.params.token
         })
-            .where("passwordResetExpires")
+            .where('passwordResetExpires')
             .gt(Date.now());
         if (!user) {
-            res.status(422).json(formatError("Invalid token"));
+            res.status(422).json(formatError('Invalid token'));
             return;
         }
 
@@ -216,7 +216,7 @@ export const reset = async (
         await user.save();
 
         const transporter = nodemailer.createTransport({
-            service: "SendGrid",
+            service: 'SendGrid',
             auth: {
                 user: SENDGRID_USER,
                 pass: SENDGRID_PASSWORD
@@ -226,7 +226,7 @@ export const reset = async (
         const mailOptions = {
             to: user.email,
             from: SENDER_EMAIL,
-            subject: "Node API starter - Password successfully changed",
+            subject: 'Node API starter - Password successfully changed',
             html: passwordChangedConfirmationTemplate(UNSUBSCRIBE_LANDING)
         };
         await transporter.sendMail(mailOptions);
@@ -274,11 +274,11 @@ export const password = async (
         const validationErrors = [];
         if (!validator.isLength(req.body.password, { min: 8 })) {
             validationErrors.push(
-                "Password must be at least 8 characters long"
+                'Password must be at least 8 characters long'
             );
         }
         if (req.body.password !== req.body.confirm) {
-            validationErrors.push("Passwords do not match");
+            validationErrors.push('Passwords do not match');
         }
         if (validationErrors.length) {
             res.status(422).json(formatError(...validationErrors));

@@ -1,8 +1,8 @@
-import crypto from "crypto";
-import bcrypt from "bcrypt";
-import mongoose from "mongoose";
-import UUID from "uuid/v4";
-import { USER_ROLES } from "../config/settings";
+import crypto from 'crypto';
+import bcrypt from 'bcrypt';
+import mongoose from 'mongoose';
+import UUID from 'uuid/v4';
+import { USER_ROLES } from '../config/settings';
 
 export interface Profile {
     name?: string;
@@ -46,7 +46,7 @@ const userSchema = new mongoose.Schema(
         password: String,
         passwordResetToken: String,
         passwordResetExpires: Date,
-        role: { type: String, default: "user", enum: USER_ROLES },
+        role: { type: String, default: 'user', enum: USER_ROLES },
 
         facebook: String,
         tokens: Array,
@@ -62,9 +62,9 @@ const userSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-userSchema.pre("save", async function(next: Function): Promise<void> {
+userSchema.pre('save', async function(next: Function): Promise<void> {
     const user = this as UserDocument;
-    if (!user.isModified("password")) return next();
+    if (!user.isModified('password')) return next();
     try {
         const salt = await bcrypt.genSalt(10);
         user.password = await bcrypt.hash(user.password, salt);
@@ -83,9 +83,9 @@ userSchema.methods = {
             return `https://gravatar.com/avatar/?s=${size}&d=retro`;
         }
         const md5 = crypto
-            .createHash("md5")
+            .createHash('md5')
             .update(this.email)
-            .digest("hex");
+            .digest('hex');
         return `https://gravatar.com/avatar/${md5}?s=${size}&d=retro`;
     },
     format: function(): UserAPIFormat {
@@ -107,4 +107,4 @@ userSchema.methods = {
     }
 };
 
-export const User = mongoose.model<UserDocument>("User", userSchema);
+export const User = mongoose.model<UserDocument>('User', userSchema);

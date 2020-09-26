@@ -1,7 +1,7 @@
-import crypto from "crypto";
-import jwt from "jsonwebtoken";
-import { User } from "models/User";
-import { SESSION_SECRET } from "config/secrets";
+import crypto from 'crypto';
+import jwt from 'jsonwebtoken';
+import { User } from 'models/User';
+import { SESSION_SECRET } from 'config/secrets';
 
 interface JWTData {
     id: string;
@@ -23,7 +23,7 @@ export interface RegisterUserOptions {
     email?: string;
     password?: string;
 }
-export const GENERIC_UPLOAD_USER_ID = "GENERIC_UPLOAD_USER_ID";
+export const GENERIC_UPLOAD_USER_ID = 'GENERIC_UPLOAD_USER_ID';
 export const signToken = (data: JWTData): string => {
     return jwt.sign(
         {
@@ -40,15 +40,15 @@ export const signToken = (data: JWTData): string => {
 
 export const registerValidUser = async ({
     randomize = false,
-    id = "GENERIC_USER_ID",
-    role = "user",
-    jwtExpiration = "5s",
-    email = "valid@email.com",
-    password = "valid_password"
+    id = 'GENERIC_USER_ID',
+    role = 'user',
+    jwtExpiration = '5s',
+    email = 'valid@email.com',
+    password = 'valid_password'
 }: RegisterUserOptions): Promise<string> => {
     const user = {
         email: randomize
-            ? `${crypto.randomBytes(16).toString("hex")}@valid.com`
+            ? `${crypto.randomBytes(16).toString('hex')}@valid.com`
             : email,
         password: password,
         id: id,

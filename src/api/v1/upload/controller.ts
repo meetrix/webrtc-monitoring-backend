@@ -1,15 +1,15 @@
-import crypto from "crypto";
-import S3 from "aws-sdk/clients/s3";
-import { Request, Response, NextFunction } from "express";
+import crypto from 'crypto';
+import S3 from 'aws-sdk/clients/s3';
+import { Request, Response, NextFunction } from 'express';
 
 import {
     AWS_ACCESS_KEY_SECRET,
     AWS_ACCESS_KEY_ID
-} from "../../../config/secrets";
+} from '../../../config/secrets';
 import {
     S3_CONTENT_BUCKET,
     S3_CONTENT_LINK_EXPIRATION
-} from "../../../config/settings";
+} from '../../../config/settings';
 
 const s3 = new S3({
     credentials: {
@@ -40,9 +40,9 @@ export const upload = async (
     try {
         const s3Requests = (req.files as File[]).map(async file => {
             const hash = crypto
-                .createHash("md5")
+                .createHash('md5')
                 .update(file.buffer)
-                .digest("hex");
+                .digest('hex');
             const key = `${req.user.sub}/${hash}`;
             await s3
                 .putObject({
@@ -54,7 +54,7 @@ export const upload = async (
                 .promise();
 
             return {
-                url: s3.getSignedUrl("getObject", {
+                url: s3.getSignedUrl('getObject', {
                     Bucket: S3_CONTENT_BUCKET,
                     Key: key,
                     Expires: S3_CONTENT_LINK_EXPIRATION

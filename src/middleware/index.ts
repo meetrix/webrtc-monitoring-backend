@@ -1,10 +1,10 @@
-import jwt from "jsonwebtoken";
-import { RequestHandler, NextFunction, Request, Response } from "express";
+import jwt from 'jsonwebtoken';
+import { RequestHandler, NextFunction, Request, Response } from 'express';
 
-import logger from "../util/logger";
-import { SESSION_SECRET } from "../config/secrets";
-import { USER_ROLES } from "../config/settings";
-import { formatError } from "../util/error";
+import logger from '../util/logger';
+import { SESSION_SECRET } from '../config/secrets';
+import { USER_ROLES } from '../config/settings';
+import { formatError } from '../util/error';
 
 export const handleErrors = (
     error: Error,
@@ -14,7 +14,7 @@ export const handleErrors = (
     _next: NextFunction
 ): void => {
     logger.error(error.stack);
-    res.status(500).json(formatError("Server Error"));
+    res.status(500).json(formatError('Server Error'));
 };
 
 export const handleMissing = (_req: Request, res: Response): void => {
@@ -31,7 +31,7 @@ export const isAuthenticated = (
             res.sendStatus(401);
             return;
         }
-        const token = req.headers.authorization.split("Bearer ")[1];
+        const token = req.headers.authorization.split('Bearer ')[1];
         req.user = jwt.verify(token, SESSION_SECRET) as Express.User;
         next();
     } catch (error) {
@@ -47,7 +47,7 @@ export const hasPermission = (level: string): RequestHandler => {
                 res.sendStatus(401);
                 return;
             }
-            const token = req.headers.authorization.split("Bearer ")[1];
+            const token = req.headers.authorization.split('Bearer ')[1];
             req.user = jwt.verify(token, SESSION_SECRET) as Express.User;
             if (
                 USER_ROLES.indexOf(req.user.role) >= USER_ROLES.indexOf(level)

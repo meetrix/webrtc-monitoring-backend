@@ -1,14 +1,14 @@
-import { Logger, createLogger, format, transports } from "winston";
-import { PRODUCTION, NODE_ENV, TEST } from "../config/settings";
+import { Logger, createLogger, format, transports } from 'winston';
+import { PRODUCTION, NODE_ENV, TEST } from '../config/settings';
 
 const logLevel = (): string => {
     switch (NODE_ENV) {
         case PRODUCTION:
-            return "info";
+            return 'info';
         case TEST:
-            return "no_logging";
+            return 'no_logging';
         default:
-            return "debug";
+            return 'debug';
     }
 };
 
@@ -17,7 +17,7 @@ const logger: Logger = createLogger({
         // Use these two instead for JSON format
         // format.timestamp(),
         // format.json()
-        format.timestamp({ format: "YYYY-MM-DD HH:mm:ss.SSS" }),
+        format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
         format.printf((info): string => {
             return `[${info.timestamp}] [${info.level.toUpperCase()}] ${
                 info.message
