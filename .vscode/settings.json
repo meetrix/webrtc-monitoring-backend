@@ -1,0 +1,19 @@
+{
+    "eslint.validate": [
+        "javascript",
+        "typescript"
+    ],
+    "eslint.format.enable": true,
+    "search.exclude": {
+        "**/node_modules": true,
+        "**/dist": true,
+        "**/coverge": true
+    },
+    "typescript.referencesCodeLens.enabled": true,
+    "typescript.tsdk": "node_modules/typescript/lib",
+    "typescript.preferences.importModuleSpecifier": "relative",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.fixAll.eslint": true
+    }
+}
