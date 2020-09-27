@@ -4,11 +4,12 @@ import swaggerJSDoc from 'swagger-jsdoc';
 
 const options = {
     definition: {
-        openapi: '3.0.0',
+        swagger: '2.0',
         info: {
             title: 'ScreenApp',
             version: '1.0.0',
         },
+        basePath: '/v1',
     },
     apis: ['./src/api/v1/**/*.ts'],
 };
