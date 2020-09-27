@@ -1,6 +1,7 @@
 # ScreenApp Auth Backend
 
-Bootstrapped from [feredean/node-api-starter](https://github.com/feredean/node-api-starter)
+Bootstrapped from [feredean/node-api-starter](https://github.com/feredean/node-api-starter).
+Please refer the original project for additional information.
 
 ## Getting started
 
@@ -33,6 +34,10 @@ To build the project in VS Code press `cmd + shift + b`. You can also run tasks 
 
 Finally, navigate to [http://localhost:9100/v1/hello](http://localhost:9100/v1/hello) and you now have access to your API
 
+## OpenAPI Spec
+
+Api spec is written with [openAPI 2.0](https://editor.swagger.io)
+
 ## Environment variables
 
 For how environment variables are imported and exported have a look in [src/config/secrets](src/config/secrets.ts). Here you can also change the `requiredSecrets` or the way `mongoURI` is constructed if for example you wish to use username/password when connecting to mongo in the development environment.
@@ -57,193 +62,7 @@ For how environment variables are imported and exported have a look in [src/conf
 | AWS_ACCESS_KEY_ID     | AWS Access key ID                                                                                                                     |
 | AWS_ACCESS_KEY_SECRET | AWS Access key secret                                                                                                                 |
 |                       | This will be used to create a REGEX that will block origins that don't match                                                          |
-| CORS_REGEX            | use `localhost:\d{4}$` for development and `domain\.tld$` for production                                                              |
-
-## Deployment
-
-The example in this project is built around the existence of a kubernetes cluster. You can easily change to your infrastructure of choice by changing the deploy step in `.circleci/config.yml` to pull the docker image wherever you need it.
-
-```yaml
-# pull the image from docker hub and deploy it to the k8s cluster
-deploy:
-  docker:
-    - image: feredean/circleci-kops:0.1.0
-  environment:
-    IMAGE_NAME: feredean/node-api-starter
-    KOPS_STATE_STORE: s3://k8s-explabs-io-state-store
-  steps:
-    - run:
-        name: Deploy to k8s cluster
-        command: |
-          # Ensure AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are set in the project's env vars
-          kops export kubecfg --name k8s.explabs.io
-          kubectl set image deploy/node-api-starter node-api-starter=$IMAGE_NAME:$CIRCLE_SHA1
-```
-
-## Prerequisites
-
-### Kubernetes
-
-Depending on your cloud provider of choice you can fairly quickly set up a managed, production-ready environment for deploying containerized applications.
-
-- Google's [GKE](https://cloud.google.com/kubernetes-engine/)
-- Amazon's [EKS](https://aws.amazon.com/eks/)
-- Microsoft's [AKS](https://azure.microsoft.com/en-in/services/kubernetes-service/)
-
-This project is deployed on a cluster set up with [kops](https://github.com/kubernetes/kops) on [aws spot instances](https://aws.amazon.com/ec2/spot/). If there is interest I plan on going more in depth on this subject and provide a walk-through.
-
-### MongoDB
-
-If you're like me and don't want the headache and uncertainty of managing your own production database take a look at [mongodb's atlas](https://www.mongodb.com/cloud/atlas). If you feel up to the task there are some kubernetes projects like [KubeDB](https://kubedb.com/) that can be of use.
-
-## Deploying to Kubernetes
-
-First you need to have an `.env.prod` file that has all the secrets that will be used in production. A `node-starter` secret needs to be created, it is used by the API deployment.
-
-```zsh
-kubectl create secret generic node-starter --from-env-file=.env.prod
-```
-
-Notice that in `.kubernetes/deployment.yaml` the environment is loaded from the node-starter secret
-
-```yaml
-envFrom:
-  - secretRef:
-      name: node-starter
-```
-
-Finally you need to create the kubernetes deployment, service and optionally the horizontal pod autoscaler that can later be paired with the [cluster autoscaler](https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler). To do this simply run the following:
-
-```zsh
-kubectl create -f .kubernetes/deployment.yaml
-```
-
-If somehow a deadly bug has managed to make its way past the test suite and got deployed to production where it's wreaking havoc you need to run following command:
-
-```zsh
-kubectl rollout undo deployment <your deployment name>
-```
-
-This will instantly roll back the deployment to the previous one.
-
-## CircleCI
-
-To integrate with CircleCI:
-
-1. Go to [CircleCI](https://circleci.com/) and create an account
-1. Link your project
-1. Add the needed environment variables to run the test
-
-   ```zsh
-   # Used to connect to the kubernetes cluster
-   AWS_ACCESS_KEY_ID
-   AWS_SECRET_ACCESS_KEY
-
-   # Used for publishing the image
-   DOCKERHUB_PASS
-   DOCKERHUB_USERNAME
-   ```
-
-1. Make master branch a protected branch require `ci/circleci: test` check before merging from feature branches. Once a PR is merged into master CircleCI will automatically build, test and deploy the new version of the API.
-
-Congratulations! You how have an API set up and ready to embrace the CD workflow!
-
-# Project structure
-
-| Name                   | Description                                                                                            |
-| ---------------------- | ------------------------------------------------------------------------------------------------------ |
-| **.circleci**          | Contains CircleCI settings for continuous deployment                                                   |
-| **.kubernetes**        | Contains kubernetes configuration for running the app on a cluster (auto-scaling included)             |
-| **.vscode**            | Contains VS Code specific settings                                                                     |
-| **dist**               | Contains the distributable (or output) from your TypeScript build. This is the code you ship           |
-| **node_modules**       | Contains all your npm dependencies                                                                     |
-| **src**                | Contains your source code that will be compiled to the dist dir                                        |
-| **src/api**            | Contains all the API versions each with it's own controllers for the configured routes                 |
-| **src/config**         | Contains all the configuration needed to setup the API (express, routes and passport)                  |
-| **src/models**         | Models define Mongoose schemas that will be used in storing and retrieving data from MongoDB           |
-| **src/types**          | Holds .d.ts files not found on DefinitelyTyped                                                         |
-| **src/utils**          | Contains API wide snippets (Logger, Error Formatter)                                                   |
-| **src**/server.ts      | Entry point to your express app                                                                        |
-| **test**               | Contains your tests. Separate from source because there is a different build process                   |
-| **test**/tsconfig.json | Config settings for compiling the tests                                                                |
-| .env                   | All the env variables needed to run the app. Gitignored, will be loaded by dotenv                      |
-| .env.example           | All the env variables needed to run the app. An example list of the keys that must exist in .env files |
-| .env.prod              | All the env variables needed to run the app in production. Gitignored, will be used in the deployment  |
-| .eslintignore          | Config settings for paths to exclude from linting                                                      |
-| .eslintrc              | Config settings for ESLint code style checking                                                         |
-| .nvmrc                 | A file containing the node version used in the project automatically loaded by nvm                     |
-| Dockerfile             | Used to build the docker image in the `dockerize` job in `.circleci/config.yml`                        |
-| jest.config.js         | Used to configure Jest running tests written in TypeScript                                             |
-| package.json           | File that contains npm dependencies as well as build scripts                                           |
-| tsconfig.json          | Config settings for compiling server code written in TypeScript                                        |
-
-# Build scripts
-
-[npm scripts](https://docs.npmjs.com/misc/scripts) can be found in `package.json` in the `scripts` section. They can call each other which means it's very easy to compose complex builds out of simple individual build scripts.
-
-| Npm Script                    | Description                                                                                                                                                                                                                       |
-| ----------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `start`                       | Runs `tsc -w` (continuously watches `.ts` files and re-compiles when a change is made) and `nodemon dist/server.js` (runs node with nodemon so the process restarts when a change is made) concurrently. Use this for development |
-| `test`                        | Runs tests using Jest test runner verbosely and generate a coverage report                                                                                                                                                        |
-| `test:watch`                  | Runs tests in watch mode                                                                                                                                                                                                          |
-| `test:debugger`               | Waits for a debugger to get attached and then runs tests                                                                                                                                                                          |
-| `test:debugger:watch`         | Waits for a debugger to get attached and runs tests in watch mode                                                                                                                                                                 |
-| `build`                       | Full build. Runs `build-ts` and `lint` build tasks                                                                                                                                                                                |
-| `build-ts`                    | Compiles all source `.ts` files to `.js` files in the `dist` folder                                                                                                                                                               |
-| `lint`                        | Runs ESLint on project files                                                                                                                                                                                                      |
-| `check-deps` <img width=120/> | Audits and upgrades (inside package.json run npm install to apply) dependencies to their latest stable version                                                                                                                    |
-
-# Import path quirks
-
-To change the way VSCode does auto import simply search for `typescript import module` in settings and change it to `relative` for the workspace.
-
-![VSCode relative imports](https://user-images.githubusercontent.com/3910622/66314780-3429f880-e91d-11e9-8714-c6a79ced7030.png)
-
-You need to do this because
-
-> module names are considered resource identifiers, and are mapped to the output as they appear in the source
-
-As a result the import paths will be copied over to the compiled js require paths. The compiled code will not work since the tsconfig options are not applied to the output. The Typescript compiler does not want to become a build tool. Normally in frontend projects this is taken care of by build tools such as webpack. There are packages that offer solutions, more on this [here](https://github.com/microsoft/TypeScript/issues/10866).
-
-If you really want to use absolute paths you can find a working example of this project using a different approach at this [commit](https://github.com/feredean/node-api-starter/tree/443fc222c7254e280d41063fa093d0129d68fd9a#import-path-workaround). I decided to drop it going forward since imports are usually added via autocompletion. The visual improvements from
-
-```ts
-import { UserDocument, User } from "../../../models/User";
-import {
-  SESSION_SECRET,
-  SENDGRID_USER,
-  SENDGRID_PASSWORD
-} from "../../../config/secrets";
-import {
-  JWT_EXPIRATION,
-  UNSUBSCRIBE_LANDING,
-  RECOVERY_LANDING,
-  SENDER_EMAIL
-} from "../../../config/settings";
-import { formatError } from "../../../util/error";
-import {
-  passwordResetTemplate,
-  passwordChangedConfirmationTemplate
-} from "../../../resources/emails";
-import { SUCCESSFUL_RESPONSE } from "../../../util/success";
-```
-
-to
-
-```ts
-import { User, UserDocument } from "models/User";
-import {
-  SESSION_SECRET,
-  SENDGRID_USER,
-  SENDGRID_PASSWORD
-} from "config/secrets";
-import { JWT_EXPIRATION, UNSUBSCRIBE_LANDING } from "config/settings";
-import { formatError } from "util/error";
-import * as emailTemplates from "resources/emails";
-import { SUCCESSFUL_RESPONSE } from "util/success";
-```
-
-do not justify the complexity that comes with adding absolute path support.
+| CORS_REGEX            | use `localhost:\d{4}$` for development and `domain\.tld$` for production                                                              |  |
 
 # Debugging
 
@@ -360,19 +179,3 @@ This section is a list of resources for building an API that can be useful in ce
 - [Kong](https://github.com/Kong/kong) is a cloud-native, fast, scalable, and distributed Microservice Abstraction Layer (also known as an API Gateway, API Middleware or in some cases Service Mesh). It boasts a lot of cool [features](https://github.com/Kong/kong#features) and of course works with [kubernetes](https://github.com/Kong/kubernetes-ingress-controller)
 - RESTful API Modeling Language ([RAML](https://raml.org/)) makes it easy to manage the whole API lifecycle from design to sharing. It's concise - you only write what you need to define - and reusable. It is machine readable API design that is actually human friendly.
 - Brought to you by Heroku, [12factor](https://12factor.net/) is a methodology for building software-as-a-service applications
-
-# Related projects
-
-I highly recommend taking a look at both Sahat's [Hackathon Starter](https://github.com/sahat/hackathon-starter) and Microsoft's [TypeScript Node Starter](https://github.com/microsoft/TypeScript-Node-Starter). Both have been great help and a source of inspiration for setting up this project.
-
-# License
-
-The MIT License (MIT)
-
-Copyright (c) 2019 Tiberiu Feredean
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
