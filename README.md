@@ -1,7 +1,8 @@
 # ScreenApp Auth Backend
 
 Bootstrapped from [feredean/node-api-starter](https://github.com/feredean/node-api-starter).
-Please refer the original project for additional information.
+Which is bootstrapped from [sahat/hackathon-starter](https://github.com/sahat/hackathon-starter).
+Please refer the original projects for additional information.
 
 ## Getting started
 
@@ -37,6 +38,18 @@ Finally, navigate to [http://localhost:9100/v1/hello](http://localhost:9100/v1/h
 ## OpenAPI Spec
 
 Api spec is written with [openAPI 2.0](https://editor.swagger.io)
+
+## Auth 2.0
+
+1. [Google auth](https://developers.google.com/identity/sign-in/web/sign-in)
+
+## Show mongodb collections
+
+Go to [http://localhost:8081/](http://localhost:8081/)
+
+## Next Steps
+
+1. We have to bring in social logins from `Hackathon starter` to this project
 
 ## Environment variables
 

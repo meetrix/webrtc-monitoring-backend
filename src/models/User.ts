@@ -14,6 +14,7 @@ export interface Profile {
 export interface AuthToken {
     accessToken: string;
     kind: string;
+    refreshToken: string;
 }
 export interface UserAPIFormat {
     id: string;
@@ -32,6 +33,8 @@ export type UserDocument = mongoose.Document & {
     profile: Profile;
 
     facebook: string;
+    linkedin: string;
+    google: string;
     tokens: AuthToken[];
 
     authenticate: (candidatePassword: string) => Promise<boolean>;
@@ -49,6 +52,8 @@ const userSchema = new mongoose.Schema(
         role: { type: String, default: 'user', enum: USER_ROLES },
 
         facebook: String,
+        linkedin: String,
+        google: String,
         tokens: Array,
 
         profile: {
@@ -62,7 +67,7 @@ const userSchema = new mongoose.Schema(
     { timestamps: true }
 );
 
-userSchema.pre('save', async function(next: Function): Promise<void> {
+userSchema.pre('save', async function (next: Function): Promise<void> {
     const user = this as UserDocument;
     if (!user.isModified('password')) return next();
     try {
@@ -75,10 +80,10 @@ userSchema.pre('save', async function(next: Function): Promise<void> {
 });
 
 userSchema.methods = {
-    authenticate: async function(candidatePassword: string): Promise<boolean> {
+    authenticate: async function (candidatePassword: string): Promise<boolean> {
         return bcrypt.compare(candidatePassword, this.password);
     },
-    gravatar: function(size: number = 200): string {
+    gravatar: function (size: number = 200): string {
         if (!this.email) {
             return `https://gravatar.com/avatar/?s=${size}&d=retro`;
         }
@@ -88,7 +93,7 @@ userSchema.methods = {
             .digest('hex');
         return `https://gravatar.com/avatar/${md5}?s=${size}&d=retro`;
     },
-    format: function(): UserAPIFormat {
+    format: function (): UserAPIFormat {
         const result = {
             id: this.id,
             email: this.email,
