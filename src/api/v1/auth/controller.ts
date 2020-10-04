@@ -9,7 +9,7 @@ export const authCallback = (req: any, res: Response, next: NextFunction): void 
             throw 'User not found';
         }
         const user = req.user as UserDocument;
-        res.redirect(`${AUTH_LANDING}?token${signToken(user)}`);
+        res.redirect(`${AUTH_LANDING}?token=${signToken(user)}`);
     } catch (error) {
         next(error);
     }
