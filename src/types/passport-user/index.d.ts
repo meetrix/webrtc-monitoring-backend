@@ -1,4 +1,6 @@
-export {};
+import { Profile } from 'passport';
+import { Request as ExpressRequest } from 'express';
+import { UserDocument } from '../../models/User';
 
 declare global {
     namespace Express {
@@ -10,4 +12,17 @@ declare global {
             exp: number;
         }
     }
+    namespace Passport {
+        interface ExtendedProfile extends Profile {
+            _json: {
+                name: string;
+                email: string;
+                picture: string;
+            };
+        }
+    }
+}
+
+export interface Req extends ExpressRequest {
+    user?: UserDocument
 }
