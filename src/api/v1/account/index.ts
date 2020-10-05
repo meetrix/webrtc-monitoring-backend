@@ -88,6 +88,41 @@ router.post('/login', login);
 router.post('/register', register);
 router.post('/forgot', forgot);
 router.post('/reset/:token', reset);
+
+/**
+ * @swagger
+ *
+ * /account/profile:
+ *    get:
+ *     description: Register as a user
+ *     produces:
+ *       - application/json
+ *     security:
+ *       - bearerAuth: []
+ *     responses:
+ *       200:
+ *          description: Registered
+ *          schema:
+ *              type: object
+ *              properties:
+ *                  id:
+ *                      type: string
+ *                  email:
+ *                      type: string
+ *                  role:
+ *                      type: string
+ *                  avatar:
+ *                      type: string
+ *                  profile:
+ *                      type: object
+ *                      properties:
+ *                          name:
+ *                              type: string
+ *                          picture:
+ *                              type: string
+ *       401:
+ *          description: Unauthorized
+ */
 router.get('/profile', isAuthenticated, getProfile);
 router.post('/profile', isAuthenticated, postProfile);
 router.post('/password', isAuthenticated, password);
