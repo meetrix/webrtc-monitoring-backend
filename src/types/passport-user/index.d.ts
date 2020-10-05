@@ -22,7 +22,3 @@ declare global {
         }
     }
 }
-
-export interface Req extends ExpressRequest {
-    user?: UserDocument
-}
