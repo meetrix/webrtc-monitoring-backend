@@ -1,3 +1,194 @@
+
+export const mailConfirmationTemplate = (
+    signToken: string,
+): string => {
+    return `
+    <!DOCTYPE html>
+    <html lang="en">
+      <head>
+        <meta charset="utf-8" />
+        <!-- <link rel="icon" href="%PUBLIC_URL%/favicon.ico" /> -->
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#000000" />
+        <title>Email template</title>
+        <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@200;300&display=swap" rel="stylesheet">
+        <style>
+            body {
+                padding: 0;
+                margin: 0;
+                
+                }
+            h1   {color: blue;}
+            .main {
+                padding: 0;
+                margin: 0;
+                background-image:url('./img/emailverify_background.png');
+                background-position: center;
+                background-repeat: no-repeat;
+                background-size: cover;
+                height: 100vh;
+                text-align: center;
+                display: flex;
+                justify-content: center;
+    
+            }
+            .card {
+                width: 50%;
+                height: 90%;
+                background-color: #ffffff;
+                position: absolute;
+                /* padding-top: 3rem; */
+                padding-left: 6rem;
+                flex-direction: column;
+                top: 2em;
+                bottom: 0;
+                display: flex;
+                justify-content: center;
+                border-radius: 1%;
+            }
+            .headerText {
+               display: flex;
+               flex-direction: row;
+               justify-content: flex-start;
+               text-align: left;
+               margin-top: -6em;
+               /* padding: 3em; */
+            }
+            .headerText1 {
+                color: #DA4453;  
+                font-size: 1.5em;
+                font-family: Arimo;
+                text-align: center;
+                font-weight: bolder;
+            }
+            .headerText2 {
+                color: #3E3E3E;
+                font-size: 1.5em;
+                font-family: Arimo;
+                text-align: center;
+                font-weight: bolder;
+            }
+            .paragraph {
+                display: contents;
+                justify-content: left;
+                align-items: flex-start;
+                text-align: left;
+                color: #3E3E3E;
+                font-weight: 600;
+                font-family: 'Poppins', sans-serif;
+                font-size: 0.8rem;
+                line-height: 1.9;
+    
+            }
+            .buttonMain {
+                display: flex;
+                justify-content: left;
+                align-items: flex-start;
+                text-align: left;
+                width: 15rem;
+                height: 20;
+                border-radius: 25%;
+            }
+            .redButton {
+                background-color: #e25152;
+                color: #ffffff;
+                font-family: 'Poppins', sans-serif;
+                border: none;
+                border-radius: 37px;
+                outline: none;
+                letter-spacing: 2.5px;
+                font-size: 15px;
+                padding: 15px 40px;
+                margin-bottom: 2em;
+    
+            }
+            .redButton:hover{
+                background-color:rgb(196, 51, 51);
+            }
+            .support{
+                color: #DA4453;
+            }
+            .support:hover{
+                color:rgb(196, 51, 51);
+            }
+            .link{
+                color: #797979;
+                text-align: left;
+                align-items: flex-start;
+                display: flex;
+            }
+            .paraText{
+                margin-top: 2em;
+                margin-bottom: 2em;
+            }
+            .bottomParaText{
+                margin-top: 2em;
+                margin-bottom: 3em;
+            }
+            .cardMain{
+                margin-top: 80px;
+            }
+            </style>
+      </head>
+    
+      <body>
+    <div class="main">
+       <div class="card">
+           <div class="cardMain">
+        <div class="headerText">
+            <div class="headerText1">SCREEN</div>
+            <div class="headerText2">APP</div>
+        </div>
+        <div class="paragraph">
+           <p class="paraText">
+            Hi, <br/>
+            Thanks for signing up for Screenapp.io<br/>
+            Click the button below to activate your account and complete the signup <br/>
+            process.
+           </p>
+        </div>
+    
+    
+    
+        <div class="buttonMain">
+            <button type="button" class="redButton">VERIFY NOW</button>
+         </div>
+    
+    
+    
+        <div class="paragraph">
+            <p>
+                If the button above does not work, click this link to active your account
+            </p>
+         </div>
+         <div class="paragraph">
+            <a href="https://screenapp.io/verification-email/code/${signToken}(user)" class="link">https://screenapp.io/verification-email/code/${signToken}(user) </a>
+         </div>
+         <div class="paragraph">
+            <p class="bottomParaText">
+                Thanks, <br/>The Screenapp Team
+            </p>
+         </div>
+    
+         <div class="paragraph">
+            <p>
+                Need help? Contact our <a href="#" class="support"> support team</a>
+            </p>
+         </div>
+         </div>
+       </div>
+    </div>
+      </body>
+      </html>
+    
+     
+`;
+};
+
+
+
+
+
 export const passwordResetTemplate = (
     url: string,
     unsubscribe: string
@@ -247,6 +438,8 @@ export const passwordResetTemplate = (
 </html>
 `;
 };
+
+
 
 export const passwordChangedConfirmationTemplate = (
     unsubscribe: string

@@ -19,9 +19,11 @@ import { formatError } from '../../../util/error';
 import {
     passwordResetTemplate,
     passwordChangedConfirmationTemplate,
-} from '../../../resources/emails';
+    mailConfirmationTemplate,
+} from '../../../resources/emailTemplates';
 import { SUCCESSFUL_RESPONSE } from '../../../util/success';
 import { signToken } from '../../../util/auth';
+import { token } from 'morgan';
 
 
 export const refresh = async (
@@ -78,8 +80,6 @@ export const register = async (
         await user.save();
         require('dotenv').config();
 
-        // const hbs = require('nodemailer-handlebars');
-
         const transporter = nodemailer.createTransport({
             service: 'gmail',
             host: 'smtp.gmail.com',
@@ -90,31 +90,23 @@ export const register = async (
                 pass: process.env.SMTPPASSWORD,
             },
         });
-        // transporter.use(
-        //     'compile',
-        //     hbs({
-        //         viewEngine: 'express-handlebars',
-        //         viewPath: '/templates/',
-        //     })
-        // );
+        // const emailToken = user.tokens;
+        // const tokenUrl = `http://localohst:9100/confirmation/${emailToken}`;
+
         const mailOptions = {
-            from: 'screenapp.io@gmail.com',
-            to: 'manoranjana@meetrix.io',
+            from: '"ScreenApp.IO  - Meetrix Technology" <screenapp.io@gmail.com>',
+            to: user.email,
             cc: '',
-            subject: 'Welcome to ScreenApp - Confirm Your Email Address',
-            text:
-                'Your account has been created. Please verify your email address.',
-            template: 'emailConfirmationTemplate',
-            context: {
-                name: 'ScreenApp Mail Services',
-            }, // send extra values to template
+            subject: 'Confirm Your Email Address',
+            html: mailConfirmationTemplate(UNSUBSCRIBE_LANDING),
+            
         };
 
         transporter.sendMail(mailOptions, (err, data) => {
             if (err) {
                 return log('Error occurs');
             }
-            return log('Email sent!!!');
+            return log('Email sent to the user successfully.');
         });
 
         res.status(201).json({ token: signToken(user) });
