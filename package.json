@@ -20,6 +20,7 @@
         "check-deps": "npm audit && ncu"
     },
     "dependencies": {
+        "@types/express-handlebars": "^3.1.0",
         "@types/swagger-ui-express": "^4.1.2",
         "aws-sdk": "2.668.0",
         "bcrypt": "5.0.0",
@@ -35,6 +36,8 @@
         "morgan": "1.10.0",
         "multer": "1.4.2",
         "nodemailer": "6.4.6",
+        "nodemailer-express-handlebars": "^4.0.0",
+        "nodemailer-handlebars": "^1.0.1",
         "passport": "0.4.1",
         "passport-facebook": "3.0.0",
         "passport-google-oauth": "^2.0.0",
@@ -59,7 +62,7 @@
         "@types/morgan": "1.9.1",
         "@types/multer": "1.4.4",
         "@types/nodemailer": "6.4.0",
-        "@types/passport": "1.0.4",
+        "@types/express-handlebars": "3.1.0",
         "@types/passport-facebook": "2.1.10",
         "@types/passport-google-oauth": "^1.0.41",
         "@types/passport-linkedin-oauth2": "^1.5.1",
