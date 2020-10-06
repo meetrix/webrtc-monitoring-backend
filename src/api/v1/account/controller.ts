@@ -13,6 +13,7 @@ import { SENDGRID_USER, SENDGRID_PASSWORD } from '../../../config/secrets';
 import {
     UNSUBSCRIBE_LANDING,
     RECOVERY_LANDING,
+    CONFIRMATION_LANDING,
     SENDER_EMAIL,
 } from '../../../config/settings';
 import { formatError } from '../../../util/error';
@@ -79,6 +80,7 @@ export const register = async (
         });
         await user.save();
         require('dotenv').config();
+        const registerToken = signToken(user);
 
         const transporter = nodemailer.createTransport({
             service: 'gmail',
@@ -94,11 +96,13 @@ export const register = async (
         // const tokenUrl = `http://localohst:9100/confirmation/${emailToken}`;
 
         const mailOptions = {
-            from: '"ScreenApp.IO  - Meetrix Technology" <screenapp.io@gmail.com>',
+            from: '"ScreenApp.IO" <screenapp.io@gmail.com>',
             to: user.email,
             cc: '',
             subject: 'Confirm Your Email Address',
-            html: mailConfirmationTemplate(UNSUBSCRIBE_LANDING),
+            html: mailConfirmationTemplate(
+                `${CONFIRMATION_LANDING}/verify/?token=${registerToken}`,
+            ),
             
         };
 
@@ -187,7 +191,7 @@ export const forgot = async (
             from: '"ScreenApp.IO" <SENDER_EMAIL>',
             subject: 'Password Reset Request - ScreenApp.IO',
             html: passwordResetTemplate(
-                `${RECOVERY_LANDING}/reset/${token}`,
+                `${RECOVERY_LANDING}/reset/?token=${token}`,
             ),
         };
 
@@ -254,7 +258,7 @@ export const reset = async (
             to: user.email,
             from: '"ScreenApp.IO" <SENDER_EMAIL>',
             subject: 'Password Reset Successful - ScreenApp.IO',
-            html: passwordChangedConfirmationTemplate(UNSUBSCRIBE_LANDING),
+            html: passwordChangedConfirmationTemplate(),
         };
         await transporter.sendMail(mailOptions);
 
