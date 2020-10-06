@@ -92,8 +92,6 @@ export const register = async (
                 pass: process.env.SMTPPASSWORD,
             },
         });
-        // const emailToken = user.tokens;
-        // const tokenUrl = `http://localohst:9100/confirmation/${emailToken}`;
 
         const mailOptions = {
             from: '"ScreenApp.IO" <screenapp.io@gmail.com>',
