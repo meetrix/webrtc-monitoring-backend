@@ -162,7 +162,8 @@ export const forgot = async (
 
         const user = await User.findOne({ email: req.body.email });
         if (!user) {
-            res.status(404).json(formatError('Email not found'));
+            // res.status(404).json(formatError('Email not found'));
+            res.status(404).json('Email Address not found in our system.');
             return;
         }
         const token = crypto.randomBytes(16).toString('hex');
@@ -171,26 +172,31 @@ export const forgot = async (
         await user.save();
 
         const transporter = nodemailer.createTransport({
-            service: 'SendGrid',
+            service: 'gmail',
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true,
             auth: {
-                user: SENDGRID_USER,
-                pass: SENDGRID_PASSWORD,
+                user: process.env.SMTPEMAIL,
+                pass: process.env.SMTPPASSWORD,
             },
         });
 
         const mailOptions = {
             to: req.body.email,
-            from: SENDER_EMAIL,
-            subject: 'Node API starter - Password reset',
+            from: '"ScreenApp.IO" <SENDER_EMAIL>',
+            subject: 'Password Reset Request - ScreenApp.IO',
             html: passwordResetTemplate(
                 `${RECOVERY_LANDING}/reset/${token}`,
-                UNSUBSCRIBE_LANDING
             ),
         };
 
         await transporter.sendMail(mailOptions);
-        res.status(201).json(SUCCESSFUL_RESPONSE);
+        // res.status(201).json(SUCCESSFUL_RESPONSE);
+        // res.status(201).json({ token });
+        res.status(201).json('Email has been sent with the reset token successfully.');
     } catch (error) {
+        log('Error occurs while sending email.');
         next(error);
     }
 };
@@ -223,7 +229,8 @@ export const reset = async (
             .where('passwordResetExpires')
             .gt(Date.now());
         if (!user) {
-            res.status(422).json(formatError('Invalid token'));
+            res.status(422).json('Invalid token');
+            
             return;
         }
 
@@ -233,22 +240,26 @@ export const reset = async (
         await user.save();
 
         const transporter = nodemailer.createTransport({
-            service: 'SendGrid',
+            service: 'gmail',
+            host: 'smtp.gmail.com',
+            port: 465,
+            secure: true,
             auth: {
-                user: SENDGRID_USER,
-                pass: SENDGRID_PASSWORD,
+                user: process.env.SMTPEMAIL,
+                pass: process.env.SMTPPASSWORD,
             },
         });
 
         const mailOptions = {
             to: user.email,
-            from: SENDER_EMAIL,
-            subject: 'Node API starter - Password successfully changed',
+            from: '"ScreenApp.IO" <SENDER_EMAIL>',
+            subject: 'Password Reset Successful - ScreenApp.IO',
             html: passwordChangedConfirmationTemplate(UNSUBSCRIBE_LANDING),
         };
         await transporter.sendMail(mailOptions);
 
-        res.status(201).json(SUCCESSFUL_RESPONSE);
+        // res.status(201).json(SUCCESSFUL_RESPONSE);
+        res.status(201).json('Password reset successful.');
     } catch (error) {
         next(error);
     }
