@@ -44,13 +44,13 @@ export const feedback = async (
 
         
         const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            host: 'smtp.gmail.com',
+            service: 'aws',
+            host: 'email-smtp.us-east-2.amazonaws.com',
             port: 465,
             secure: true,
             auth: {
-                user: process.env.SMTPEMAIL,
-                pass: process.env.SMTPPASSWORD,
+                user: process.env.AWS_SESUSER,
+                pass: process.env.AWS_SESPASSWORD,
             },
         });
         
@@ -58,7 +58,7 @@ export const feedback = async (
         const mailOptions = {
             from: '"ScreenApp.IO Messenger" <screenapp.io@gmail.com>',
             to: 'hello@meetrix.io',
-            cc: '',
+            cc: 'manoranjana@meetrix.io',
             subject: `ScreenApp Client Feedback [# ${clientId}]`,
             html: `
             

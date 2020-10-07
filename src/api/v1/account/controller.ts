@@ -83,13 +83,13 @@ export const register = async (
         const registerToken = signToken(user);
 
         const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            host: 'smtp.gmail.com',
+            service: 'aws',
+            host: 'email-smtp.us-east-2.amazonaws.com',
             port: 465,
             secure: true,
             auth: {
-                user: process.env.SMTPEMAIL,
-                pass: process.env.SMTPPASSWORD,
+                user: process.env.AWS_SESUSER,
+                pass: process.env.AWS_SESPASSWORD,
             },
         });
 
@@ -176,13 +176,13 @@ export const forgot = async (
         await user.save();
 
         const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            host: 'smtp.gmail.com',
+            service: 'aws',
+            host: 'email-smtp.us-east-2.amazonaws.com',
             port: 465,
             secure: true,
             auth: {
-                user: process.env.SMTPEMAIL,
-                pass: process.env.SMTPPASSWORD,
+                user: process.env.AWS_SESUSER,
+                pass: process.env.AWS_SESPASSWORD,
             },
         });
 
@@ -244,13 +244,13 @@ export const reset = async (
         await user.save();
 
         const transporter = nodemailer.createTransport({
-            service: 'gmail',
-            host: 'smtp.gmail.com',
+            service: 'aws',
+            host: 'email-smtp.us-east-2.amazonaws.com',
             port: 465,
             secure: true,
             auth: {
-                user: process.env.SMTPEMAIL,
-                pass: process.env.SMTPPASSWORD,
+                user: process.env.AWS_SESUSER,
+                pass: process.env.AWS_SESPASSWORD,
             },
         });
 
