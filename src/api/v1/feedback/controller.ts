@@ -16,7 +16,7 @@ export const feedback = async (
     try {
         const validationErrors = [];
         if (!validator.isEmail(req.body.email)) {
-            validationErrors.push('Please enter a valid email address');
+            validationErrors.push('Please enter a valid email address.');
         }
 
         if (validationErrors.length) {
@@ -447,10 +447,10 @@ export const feedback = async (
         };
 
         await transporter.sendMail(mailOptions);
-        res.status(200).json('Feedback successfully submitted.');
+        res.status(201).json('Feedback successfully submitted. We will contact you via email shortly.');
 
     } catch (error) {
         next(error);
-        res.status(400).json('Feedback submission failed.');
+        res.status(422).json('Feedback submission failed. Please try again.');
     }
 };

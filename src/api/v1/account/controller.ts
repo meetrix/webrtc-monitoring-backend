@@ -51,11 +51,11 @@ export const register = async (
     try {
         const validationErrors = [];
         if (!validator.isEmail(req.body.email)) {
-            validationErrors.push('Please enter a valid email address');
+            validationErrors.push('Please enter a valid email address.');
         }
         if (!validator.isLength(req.body.password, { min: 8 })) {
             validationErrors.push(
-                'Password must be at least 8 characters long'
+                'Password must be at least 8 characters long.'
             );
         }
         if (validationErrors.length) {
@@ -67,7 +67,7 @@ export const register = async (
         });
         const existing = await User.findOne({ email: req.body.email });
         if (existing) {
-            res.status(422).json(formatError('Account already exists'));
+            res.status(422).json(formatError('Account already exists.'));
             return;
         }
 
@@ -111,7 +111,8 @@ export const register = async (
             return log('Email sent to the user successfully.');
         });
 
-        res.status(201).json({ token: signToken(user) });
+        // res.status(201).json({ token: signToken(user) });
+        res.status(201).json('Confirmation email has been sent successfully. Please check your inbox to proceed.');
     } catch (error) {
         next(error);
     }
@@ -124,7 +125,7 @@ export const login = async (
 ): Promise<void> => {
     try {
         if (!req.body.email || !req.body.password) {
-            res.status(403).json(formatError('Invalid credentials'));
+            res.status(403).json(formatError('Username or Password incorrect. Please check and try again.'));
             return;
         }
         req.body.email = validator.normalizeEmail(req.body.email, {
@@ -148,6 +149,7 @@ export const login = async (
         next(error);
     }
 };
+
 export const forgot = async (
     req: Request,
     res: Response,
@@ -196,7 +198,7 @@ export const forgot = async (
         await transporter.sendMail(mailOptions);
         // res.status(201).json(SUCCESSFUL_RESPONSE);
         // res.status(201).json({ token });
-        res.status(201).json('Email has been sent with the reset token successfully.');
+        res.status(201).json('Password reset link has been sent to your mail successfully. It will be valid for next 60 minutes.');
     } catch (error) {
         log('Error occurs while sending email.');
         next(error);
@@ -211,14 +213,14 @@ export const reset = async (
         const validationErrors = [];
         if (!validator.isLength(req.body.password, { min: 8 })) {
             validationErrors.push(
-                'Password must be at least 8 characters long'
+                'Password must be at least 8 characters long.'
             );
         }
         if (req.body.password !== req.body.confirm) {
-            validationErrors.push('Passwords do not match');
+            validationErrors.push('Passwords do not match. Please check and enter the same password.');
         }
         if (!validator.isHexadecimal(req.params.token)) {
-            validationErrors.push('Invalid token');
+            validationErrors.push('Token expired or something went wrong. Please try again.');
         }
         if (validationErrors.length) {
             res.status(422).json(formatError(...validationErrors));
@@ -231,7 +233,7 @@ export const reset = async (
             .where('passwordResetExpires')
             .gt(Date.now());
         if (!user) {
-            res.status(422).json('Invalid token');
+            res.status(422).json('Your reset link might be expired. Please try again.');
             
             return;
         }
@@ -261,7 +263,7 @@ export const reset = async (
         await transporter.sendMail(mailOptions);
 
         // res.status(201).json(SUCCESSFUL_RESPONSE);
-        res.status(201).json('Password reset successful.');
+        res.status(201).json('Password reset successful. Sign in back to access your account.');
     } catch (error) {
         next(error);
     }
