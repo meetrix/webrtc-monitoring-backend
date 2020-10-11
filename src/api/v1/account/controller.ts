@@ -5,16 +5,14 @@ import validator from 'validator';
 import nodemailer from 'nodemailer';
 import { Response, Request, NextFunction } from 'express';
 import { IVerifyOptions } from 'passport-local';
+import { getMailOptions, getTransporter } from '../../../util/mail';
 
 const log = console.log;
 
 import { UserDocument, User } from '../../../models/User';
-import { SENDGRID_USER, SENDGRID_PASSWORD } from '../../../config/secrets';
 import {
-    UNSUBSCRIBE_LANDING,
     RECOVERY_LANDING,
     CONFIRMATION_LANDING,
-    SENDER_EMAIL,
 } from '../../../config/settings';
 import { formatError } from '../../../util/error';
 import {
@@ -24,7 +22,6 @@ import {
 } from '../../../resources/emailTemplates';
 import { SUCCESSFUL_RESPONSE } from '../../../util/success';
 import { signToken } from '../../../util/auth';
-import { token } from 'morgan';
 
 
 export const refresh = async (
@@ -82,16 +79,7 @@ export const register = async (
         require('dotenv').config();
         const registerToken = signToken(user);
 
-        const transporter = nodemailer.createTransport({
-            service: 'aws',
-            host: 'email-smtp.us-east-2.amazonaws.com',
-            port: 465,
-            secure: true,
-            auth: {
-                user: process.env.AWS_SESUSER,
-                pass: process.env.AWS_SESPASSWORD,
-            },
-        });
+        const transporter = getTransporter();
 
         const mailOptions = {
             from: '"ScreenApp.IO" <screenapp.io@gmail.com>',
@@ -101,8 +89,13 @@ export const register = async (
             html: mailConfirmationTemplate(
                 `${CONFIRMATION_LANDING}/verify/?token=${registerToken}`,
             ),
-            
+
         };
+        getMailOptions({
+            subject: 'Confirm Your Email Address',
+            template: 'emailConfirmation',
+            context: {}
+        });
 
         transporter.sendMail(mailOptions, (err, data) => {
             if (err) {
@@ -160,11 +153,12 @@ export const forgot = async (
             res.status(422).json(formatError('Invalid data'));
             return;
         }
-        req.body.email = validator.normalizeEmail(req.body.email, {
+        let { email } = req.body;
+        email = validator.normalizeEmail(email, {
             gmail_remove_dots: false,
         });
 
-        const user = await User.findOne({ email: req.body.email });
+        const user = await User.findOne({ email });
         if (!user) {
             // res.status(404).json(formatError('Email not found'));
             res.status(404).json('Email Address not found in our system.');
@@ -234,7 +228,7 @@ export const reset = async (
             .gt(Date.now());
         if (!user) {
             res.status(422).json('Your reset link might be expired. Please try again.');
-            
+
             return;
         }
 
