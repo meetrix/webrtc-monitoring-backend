@@ -12,7 +12,7 @@ const log = console.log;
 import { UserDocument, User } from '../../../models/User';
 import {
     RECOVERY_LANDING,
-    CONFIRMATION_LANDING,
+    CONFIRMATION_LANDING, SENDER_EMAIL
 } from '../../../config/settings';
 import { formatError } from '../../../util/error';
 import {
@@ -23,7 +23,7 @@ import {
 import { SUCCESSFUL_RESPONSE } from '../../../util/success';
 import { signToken } from '../../../util/auth';
 
-
+// Refresh
 export const refresh = async (
     req: Request,
     res: Response,
@@ -40,6 +40,8 @@ export const refresh = async (
         next(error);
     }
 };
+
+// Register
 export const register = async (
     req: Request,
     res: Response,
@@ -81,22 +83,15 @@ export const register = async (
 
         const transporter = getTransporter();
 
-        const mailOptions = {
-            from: '"ScreenApp.IO" <screenapp.io@gmail.com>',
-            to: user.email,
-            cc: '',
-            subject: 'Confirm Your Email Address',
-            html: mailConfirmationTemplate(
-                `${CONFIRMATION_LANDING}/verify/?token=${registerToken}`,
-            ),
-
-        };
-        getMailOptions({
-            subject: 'Confirm Your Email Address',
-            template: 'emailConfirmation',
-            context: {}
+        const mailOptions = getMailOptions({
+            subject: 'Confirm Your Email Address - ScreenApp.IO',
+            to: `<${user.email}>`,
+            template: 'emailVerification',
+            context: {
+                registerToken,
+            }
         });
-
+        
         transporter.sendMail(mailOptions, (err, data) => {
             if (err) {
                 return log('Error occurs');
@@ -111,6 +106,7 @@ export const register = async (
     }
 };
 
+// Login
 export const login = async (
     req: Request,
     res: Response,
@@ -143,6 +139,7 @@ export const login = async (
     }
 };
 
+// Forgot Password (Password Reset)
 export const forgot = async (
     req: Request,
     res: Response,
@@ -168,28 +165,24 @@ export const forgot = async (
         user.passwordResetToken = token;
         user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // ms
         await user.save();
-
-        const transporter = nodemailer.createTransport({
-            service: 'aws',
-            host: 'email-smtp.us-east-2.amazonaws.com',
-            port: 465,
-            secure: true,
-            auth: {
-                user: process.env.AWS_SESUSER,
-                pass: process.env.AWS_SESPASSWORD,
-            },
+    
+        const transporter = getTransporter();
+        
+        const mailOptions = getMailOptions({
+            subject: 'Reset Your Password - ScreenApp.IO',
+            to: `<${user.email}>`,
+            template: 'passwordReset',
+            context: {
+                token
+            }
         });
 
-        const mailOptions = {
-            to: req.body.email,
-            from: '"ScreenApp.IO" <SENDER_EMAIL>',
-            subject: 'Password Reset Request - ScreenApp.IO',
-            html: passwordResetTemplate(
-                `${RECOVERY_LANDING}/reset/?token=${token}`,
-            ),
-        };
-
-        await transporter.sendMail(mailOptions);
+        transporter.sendMail(mailOptions, (err, data) => {
+            if (err) {
+                return log('Error occurs');
+            }
+            return log('Email sent to the user successfully.');
+        });
         // res.status(201).json(SUCCESSFUL_RESPONSE);
         // res.status(201).json({ token });
         res.status(201).json('Password reset link has been sent to your mail successfully. It will be valid for next 60 minutes.');
@@ -198,6 +191,8 @@ export const forgot = async (
         next(error);
     }
 };
+
+// Password Reset Confirmation
 export const reset = async (
     req: Request,
     res: Response,
@@ -237,23 +232,17 @@ export const reset = async (
         user.passwordResetExpires = undefined;
         await user.save();
 
-        const transporter = nodemailer.createTransport({
-            service: 'aws',
-            host: 'email-smtp.us-east-2.amazonaws.com',
-            port: 465,
-            secure: true,
-            auth: {
-                user: process.env.AWS_SESUSER,
-                pass: process.env.AWS_SESPASSWORD,
-            },
+        const transporter = getTransporter();
+        
+        const mailOptions = getMailOptions({
+            subject: 'Password Reset Successful - ScreenApp.IO',
+            to: `<${user.email}>`,
+            template: 'passwordResetConfrimation',
+            context: {
+                
+            }
         });
 
-        const mailOptions = {
-            to: user.email,
-            from: '"ScreenApp.IO" <SENDER_EMAIL>',
-            subject: 'Password Reset Successful - ScreenApp.IO',
-            html: passwordChangedConfirmationTemplate(),
-        };
         await transporter.sendMail(mailOptions);
 
         // res.status(201).json(SUCCESSFUL_RESPONSE);
@@ -262,6 +251,8 @@ export const reset = async (
         next(error);
     }
 };
+
+// Post Profile
 export const postProfile = async (
     req: Request,
     res: Response,
@@ -279,6 +270,8 @@ export const postProfile = async (
         next(error);
     }
 };
+
+// Get Profile
 export const getProfile = async (
     req: Request,
     res: Response,
@@ -291,6 +284,8 @@ export const getProfile = async (
         next(error);
     }
 };
+
+// Change Password
 export const password = async (
     req: Request,
     res: Response,
@@ -318,6 +313,8 @@ export const password = async (
         next(error);
     }
 };
+
+// Delete Account
 export const deleteAccount = async (
     req: Request,
     res: Response,

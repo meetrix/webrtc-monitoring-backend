@@ -34,12 +34,16 @@ export const feedback = async (
             return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
         };
         const clientId = randValueHex(8);
+        const timestamp = Date();
+        //console.log(timestamp);
+
 
         const feedbackDocument = new Feedback({
             clientId,
             name,
             email,
             feedback,
+            timestamp,
         });
 
         feedbackDocument.save();
@@ -57,6 +61,7 @@ export const feedback = async (
                     name,
                     email,
                     feedback,
+                    timestamp,
                 }
             }
         });
