@@ -9,7 +9,8 @@ import {
     getProfile,
     postProfile,
     deleteAccount,
-    password
+    password,
+    verify,
 } from './controller';
 import { isAuthenticated } from '../../../middleware';
 
@@ -17,6 +18,11 @@ const router = express.Router();
 
 // Sliding session - also used to refresh jwt payload (such as role change)
 router.get('/jwt/refresh', isAuthenticated, refresh);
+
+// Verify user account via email
+router.get('/verify', verify);
+
+
 
 /**
  * @swagger

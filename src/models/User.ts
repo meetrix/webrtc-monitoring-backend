@@ -29,6 +29,8 @@ export type UserDocument = mongoose.Document & {
     password: string;
     passwordResetToken: string;
     passwordResetExpires: Date;
+    emailToken: string;
+    isVerified: boolean;
     role: string;
     profile: Profile;
 
@@ -49,6 +51,8 @@ const userSchema = new mongoose.Schema(
         password: String,
         passwordResetToken: String,
         passwordResetExpires: Date,
+        emailToken: String,
+        isVerified: Boolean,
         role: { type: String, default: 'user', enum: USER_ROLES },
 
         facebook: String,
@@ -98,10 +102,12 @@ userSchema.methods = {
             id: this.id,
             email: this.email,
             role: this.role,
+            emailToken: this.emailToken,
+            isVerified: this.isVerified,
             avatar: this.gravatar(),
             profile: {
                 name: this.profile.name,
-                gender: this.profile.gender,
+                gender: this.profile.gnder,
                 location: this.profile.location,
                 website: this.profile.website,
                 picture: this.profile.picture

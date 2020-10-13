@@ -69,18 +69,27 @@ export const register = async (
             res.status(422).json(formatError('Account already exists.'));
             return;
         }
+        
+        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
+        function randValueHex(len: number) {
+            return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
+        };
+        const emailToken = randValueHex(128);
 
         const user = new User({
             email: req.body.email,
             password: req.body.password,
             profile: {
                 name: req.body.name,
+            
             },
+            emailToken,
+            isVerified : false,
         });
         await user.save();
         require('dotenv').config();
-        const registerToken = signToken(user);
-
+        
+       
         const transporter = getTransporter();
 
         const mailOptions = getMailOptions({
@@ -88,7 +97,7 @@ export const register = async (
             to: `<${user.email}>`,
             template: 'emailVerification',
             context: {
-                registerToken,
+                emailToken,
             }
         });
         
@@ -101,7 +110,43 @@ export const register = async (
 
         // res.status(201).json({ token: signToken(user) });
         res.status(201).json('Confirmation email has been sent successfully. Please check your inbox to proceed.');
+        return res.redirect('http://localhost:8080');
     } catch (error) {
+        next(error);
+    }
+};
+
+
+export const verify = async (req, res, next) => {
+    try {
+        const user = await User.findOne({ emailToken: req.body.emailToken });
+        if (!user) {
+            res.status(422).json('Token is invalid. Please try again.');
+            }
+            user.emailToken = null;
+            user.isVerified = true,
+            await user.save();
+
+            const transporter = getTransporter();
+        
+        const mailOptions = getMailOptions({
+            subject: 'Account Verifed - ScreenApp.IO',
+            to: `<${user.email}>`,
+            template: 'emailVerificationConfirmation',
+            context: {
+            
+            }
+        });
+
+        transporter.sendMail(mailOptions, (err, data) => {
+            if (err) {
+                return log('Error occurs');
+            }
+            return log('Email sent to the user successfully.');
+        });
+        res.redirect(`http://localhost:8080/#/dashboard?token=${user.emailToken}`);
+    } catch (error) {
+        log('Error occurs while sending email.');
         next(error);
     }
 };
