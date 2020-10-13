@@ -116,21 +116,22 @@ export const register = async (
     }
 };
 
-
+// User account verification & auto signin at first attempt
 export const verify = async (req, res, next) => {
     try {
-        const user = await User.findOne({ emailToken: req.body.emailToken });
+
+        const user = await User.findOne({ emailToken: req.query.token });
         if (!user) {
-            res.status(422).json('Token is invalid. Please try again.');
+            res.status(422).json('Token is invalid or expired. Please try again.');
             }
             user.emailToken = null;
             user.isVerified = true,
             await user.save();
 
-            const transporter = getTransporter();
+        const transporter = getTransporter();
         
         const mailOptions = getMailOptions({
-            subject: 'Account Verifed - ScreenApp.IO',
+            subject: 'Account Successfully Verifed - ScreenApp.IO',
             to: `<${user.email}>`,
             template: 'emailVerificationConfirmation',
             context: {
@@ -144,7 +145,11 @@ export const verify = async (req, res, next) => {
             }
             return log('Email sent to the user successfully.');
         });
-        res.redirect(`http://localhost:8080/#/dashboard?token=${user.emailToken}`);
+
+        res.redirect(`http://localhost:8080/#/dashboard?token=${signToken(user)}`);
+        user.emailSigninToken = signToken(user),
+        await user.save();
+        
     } catch (error) {
         log('Error occurs while sending email.');
         next(error);
