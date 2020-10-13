@@ -22,6 +22,7 @@ export interface UserAPIFormat {
     role: string;
     profile?: Profile;
     avatar: string;
+    emailToken: string;
 }
 export type UserDocument = mongoose.Document & {
     id: string;
@@ -52,7 +53,7 @@ const userSchema = new mongoose.Schema(
         password: String,
         passwordResetToken: String,
         passwordResetExpires: Date,
-        emailToken: String,
+        emailToken: { type: String },
         isVerified: Boolean,
         emailSigninToken: String,
         role: { type: String, default: 'user', enum: USER_ROLES },

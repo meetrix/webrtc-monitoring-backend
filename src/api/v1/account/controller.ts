@@ -10,16 +10,7 @@ import { getMailOptions, getTransporter } from '../../../util/mail';
 const log = console.log;
 
 import { UserDocument, User } from '../../../models/User';
-import {
-    RECOVERY_LANDING,
-    CONFIRMATION_LANDING, SENDER_EMAIL
-} from '../../../config/settings';
 import { formatError } from '../../../util/error';
-import {
-    passwordResetTemplate,
-    passwordChangedConfirmationTemplate,
-    mailConfirmationTemplate,
-} from '../../../resources/emailTemplates';
 import { SUCCESSFUL_RESPONSE } from '../../../util/success';
 import { signToken } from '../../../util/auth';
 
@@ -117,10 +108,14 @@ export const register = async (
 };
 
 // User account verification & auto signin at first attempt
-export const verify = async (req, res, next) => {
+export const verify = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
     try {
 
-        const user = await User.findOne({ emailToken: req.query.token });
+        const user = await User.findOne({ emailToken: req.query.emailToken });
         if (!user) {
             res.status(422).json('Token is invalid or expired. Please try again.');
             }
