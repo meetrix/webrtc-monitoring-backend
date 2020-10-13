@@ -10,6 +10,10 @@ import { getMailOptions, getTransporter } from '../../../util/mail';
 const log = console.log;
 
 import { UserDocument, User } from '../../../models/User';
+import {
+    RECOVERY_LANDING,
+    CONFIRMATION_LANDING, SENDER_EMAIL
+} from '../../../config/settings';
 import { formatError } from '../../../util/error';
 import { SUCCESSFUL_RESPONSE } from '../../../util/success';
 import { signToken } from '../../../util/auth';
@@ -115,11 +119,11 @@ export const verify = async (
 ): Promise<void> => {
     try {
 
-        const user = await User.findOne({ emailToken: req.query.emailToken });
+        const user = await User.findOne({ emailToken: req.query.token });
         if (!user) {
             res.status(422).json('Token is invalid or expired. Please try again.');
             }
-            user.emailToken = null;
+            user.emailToken = null; 
             user.isVerified = true,
             await user.save();
 

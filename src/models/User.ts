@@ -53,7 +53,7 @@ const userSchema = new mongoose.Schema(
         password: String,
         passwordResetToken: String,
         passwordResetExpires: Date,
-        emailToken: { type: String },
+        emailToken: String,
         isVerified: Boolean,
         emailSigninToken: String,
         role: { type: String, default: 'user', enum: USER_ROLES },
