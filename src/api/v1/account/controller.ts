@@ -65,7 +65,7 @@ export const register = async (
             return;
         }
         
-       
+       // we create a random string to send as the token for email verification
         const randValueHex = (len: number): string => {
             return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
         };
@@ -146,6 +146,8 @@ export const verify = async (
         });
 
         res.redirect(`http://localhost:8080/#/dashboard?token=${signToken(user)}`);
+        
+        // A new email signin token issued to get user details to verify at signin
         user.emailSigninToken = signToken(user),
         await user.save();
         

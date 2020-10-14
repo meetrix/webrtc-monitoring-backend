@@ -29,10 +29,13 @@ export const feedback = async (
             gmail_remove_dots: true
         });
 
+       // Here we generate a random value of 8 charcaters as a clientID
         const randValueHex = (len: number): string => {
             return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
         };
         const clientId = randValueHex(8);
+
+        // Here we get the time of feedback writing
         const timestamp = Date();
 
         const feedbackDocument = new Feedback({
@@ -44,7 +47,6 @@ export const feedback = async (
         });
 
         feedbackDocument.save();
-
 
         const transporter = getTransporter();
 
