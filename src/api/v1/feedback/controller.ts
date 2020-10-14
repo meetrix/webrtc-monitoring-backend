@@ -29,14 +29,14 @@ export const feedback = async (
             gmail_remove_dots: true
         });
 
-        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-        function randValueHex(len: number) {
+       // Here we generate a random value of 8 charcaters as a clientID
+        const randValueHex = (len: number): string => {
             return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
         };
         const clientId = randValueHex(8);
-        const timestamp = Date();
-        //console.log(timestamp);
 
+        // Here we get the time of feedback writing
+        const timestamp = Date();
 
         const feedbackDocument = new Feedback({
             clientId,
