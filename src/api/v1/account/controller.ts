@@ -65,8 +65,8 @@ export const register = async (
             return;
         }
         
-        // eslint-disable-next-line @typescript-eslint/explicit-function-return-type
-        function randValueHex(len: number) {
+       
+        const randValueHex = (len: number): string => {
             return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
         };
         const emailToken = randValueHex(128);
