@@ -3,8 +3,6 @@ import { feedback } from './controller';
 
 const router = express.Router();
 
-router.post('/', feedback);
-
 /**
  * @swagger
  *
@@ -33,9 +31,10 @@ router.post('/', feedback);
  *     responses:
  *       200:
  *          description: Feedback sending successful.
- * 
+ *
  *       400:
  *          description: Feedback sending unsuccessful.
  */
+router.post('/', feedback);
 
 export const feedbackRouter = router;
