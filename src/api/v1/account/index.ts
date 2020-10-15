@@ -86,7 +86,74 @@ router.post('/login', login);
  *          description: Account already exists
  */
 router.post('/register', register);
+
+
+/**
+ * @swagger
+ *
+ * /account/forgot:
+ *     post:
+ *      description: forgot
+ *      produces:
+ *       - application/json
+ *      parameters:
+ *        - name: "forgotpassword"
+ *          description: "Forgot Password Body"
+ *          in: body
+ *          required: true
+ *          schema:
+ *              type: object
+ *              properties:
+ *                  email:
+ *                      type: string
+ *                      example: "beta@meetrix.io"
+ * 
+ *      responses:
+ *          201:
+ *              description: Email has been sent with the reset token successfully.
+ *          404:
+ *              description: Email Address not found in our system.
+ * 
+ *          
+ *
+ */
 router.post('/forgot', forgot);
+
+/**
+ * @swagger
+ *
+ * /account/reset:
+ *     post:
+ *      description: reset
+ *      produces:
+ *       - application/json
+ *      parameters:
+ *        - name: "passwordreset"
+ *          description: "Password Reset Body"
+ *          in: body
+ *          required: true
+ *          schema:
+ *              type: object
+ *              properties:
+ *                  passwordResetToken:
+ *                      type: string
+ *                      example: "ba392a31e38c1464b60dbba611fb2275"
+ *                  password:
+ *                      type: string
+ *                      example: "MP123@meet"
+ *                  
+ * 
+ *      responses:
+ *          201:
+ *              description: Password reset successful.
+ *          422:
+ *              description: Password reset failed or Invalid token.
+ *          404:
+ *              description: Internal resource not found.
+ * 
+ *          
+ *
+ */
 router.post('/reset/:token', reset);
 
 /**
