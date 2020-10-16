@@ -12,6 +12,7 @@ export const RECOVERY_LANDING =
     'https://screenapp.io/auth';
 export const AUTH_LANDING = process.env['AUTH_LANDING'];
 export const USER_ROLES = ['user', 'admin', 'owner'];
+export const USER_PACKAGES = ['FREE_LOGGEDIN', 'STANDARD', 'PREMIUM'];
 export const S3_CONTENT_BUCKET = 'starter-content';
 export const RECEIVER_EMAIL = process.env['RECEIVER_EMAIL'] || 'manoranjana@meetrix.io';
 export const SENDER_EMAIL = process.env['SENDER_EMAIL'] || 'hello@screenapp.io';

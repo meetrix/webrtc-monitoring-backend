@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import mongoose from 'mongoose';
 import UUID from 'uuid/v4';
-import { USER_ROLES } from '../config/settings';
+import { USER_PACKAGES, USER_ROLES } from '../config/settings';
 
 export interface Profile {
     name?: string;
@@ -20,6 +20,7 @@ export interface UserAPIFormat {
     id: string;
     email: string;
     role: string;
+    package: string;
     profile?: Profile;
     avatar: string;
     emailToken: string;
@@ -34,6 +35,7 @@ export type UserDocument = mongoose.Document & {
     isVerified: boolean;
     emailSigninToken: string;
     role: string;
+    package: string;
     profile: Profile;
 
     facebook: string;
@@ -57,6 +59,7 @@ const userSchema = new mongoose.Schema(
         isVerified: Boolean,
         emailSigninToken: String,
         role: { type: String, default: 'user', enum: USER_ROLES },
+        package: { type: String, default: 'FREE_LOGGEDIN', enum: USER_PACKAGES },
 
         facebook: String,
         linkedin: String,
@@ -105,6 +108,7 @@ userSchema.methods = {
             id: this.id,
             email: this.email,
             role: this.role,
+            package: this.package,
             emailToken: this.emailToken,
             isVerified: this.isVerified,
             emailSigninToken: this.emailSigninToken,
