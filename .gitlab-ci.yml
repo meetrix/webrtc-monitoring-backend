@@ -10,13 +10,13 @@ staging_build:
     - chmod 644 ~/.ssh/known_hosts
   script:
     - export DOCKER_HOST=ssh://$SSH_USER@$SSH_HOST
-    - docker-compose -f docker-compose.yml -f docker-compose.staging.yml --env-file $ENVFILE build
+    - docker-compose -f docker-compose.yml --env-file $ENVFILE build
   only:
     - master
 
 staging_deploy:
   stage: deploy
-  image: ubuntu:18.04
+  image: meetrix/docker-compose-sshd
   before_script:
     - eval $(ssh-agent -s)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
