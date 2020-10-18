@@ -1,6 +1,5 @@
 FROM node:12.16
 
-ENV NODE_ENV=production
 ENV PORT=9100
 RUN npm install -g typescript
 WORKDIR /usr/src/app
