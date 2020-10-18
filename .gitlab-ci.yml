@@ -26,7 +26,7 @@ staging_deploy:
     - chmod 644 ~/.ssh/known_hosts
   script:
     - export DOCKER_HOST=ssh://$SSH_USER@$SSH_HOST
-    - ssh $SSH_USER@$SSH_HOST "mkdir -p /var/log/scrennapp"
+    - ssh $SSH_USER@$SSH_HOST "sudo mkdir -p /var/log/scrennapp && sudo chmod 777 -R /var/log/scrennapp"
     - ssh $SSH_USER@$SSH_HOST "kill -9 \$(ps aux | grep 'logs -f screenapp-mongodb' | grep 'docker' | awk '{print \$2}') &"
     - docker-compose -f docker-compose.yml --env-file $ENVFILE up --no-deps -d mongo
     - ssh $SSH_USER@$SSH_HOST "docker logs -f screenapp-mongodb >> /var/log/scrennapp/mongo.log 2>&1 &"
