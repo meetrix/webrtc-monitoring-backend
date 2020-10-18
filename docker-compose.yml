@@ -2,10 +2,12 @@ version: "3"
 services:
   mongo:
     image: mongo:4.0
+    container_name: screenapp-mongodb
     ports:
       - "27017:27017"
   mongo-express:
     image: mongo-express
+    container_name: screenapp-mongo-express
     restart: always
     ports:
       - 8081:8081
@@ -14,7 +16,7 @@ services:
   server:
     build:
       context: ./
-    container_name: screenapp-backend
+    container_name: screenapp-auth-backend
     ports:
       - 9100:9100
     environment:
@@ -40,5 +42,7 @@ services:
       SENDER_EMAIL: ${SENDER_EMAIL}
       CORS_REGEX: ${CORS_REGEX}
       AUTH_LANDING: ${AUTH_LANDING}
+    volumes:
+      - /usr/src/app/node_modules
     depends_on:
       - mongo
