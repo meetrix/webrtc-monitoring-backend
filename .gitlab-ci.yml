@@ -26,14 +26,15 @@ staging_deploy:
     - chmod 644 ~/.ssh/known_hosts
   script:
     - export DOCKER_HOST=ssh://$SSH_USER@$SSH_HOST
-    - ssh $SSH_USER@$SSH_HOST "kill -9 \$(ps aux | grep 'logs -f screenapp-auth-backend_mongo' | grep 'docker' | awk '{print \$2}') &"
-    - docker-compose -f docker-compose.yml -f docker-compose.yml --env-file $ENVFILE up --no-deps -d mongo
-    - ssh $SSH_USER@$SSH_HOST "docker logs -f screenapp-auth-backend_mongo >> /opt/jitsi-ci/logs/mongo.log 2>&1 &"
-    - ssh $SSH_USER@$SSH_HOST "kill -9 \$(ps aux | grep 'logs -f screenapp-auth-backend_mongo-express' | grep 'docker' | awk '{print \$2}') &"
-    - docker-compose -f docker-compose.yml -f docker-compose.yml --env-file $ENVFILE up --no-deps -d mongo-express
-    - ssh $SSH_USER@$SSH_HOST "docker logs -f screenapp-auth-backend_mongoexpress >> /opt/jitsi-ci/logs/mongo-express.log 2>&1 &"
-    - ssh $SSH_USER@$SSH_HOST "kill -9 \$(ps aux | grep 'logs -f screenapp-auth-backend_server' | grep 'docker' | awk '{print \$2}') &"
-    - docker-compose -f docker-compose.yml -f docker-compose.yml --env-file $ENVFILE up --no-deps -d server
-    - ssh $SSH_USER@$SSH_HOST "docker logs -f screenapp-auth-backend_server >> /opt/jitsi-ci/logs/server.log 2>&1 &"
+    - ssh $SSH_USER@$SSH_HOST "mkdir -p /var/log/scrennapp"
+    - ssh $SSH_USER@$SSH_HOST "kill -9 \$(ps aux | grep 'logs -f screenapp-mongodb' | grep 'docker' | awk '{print \$2}') &"
+    - docker-compose -f docker-compose.yml --env-file $ENVFILE up --no-deps -d mongo
+    - ssh $SSH_USER@$SSH_HOST "docker logs -f screenapp-mongodb >> /var/log/scrennapp/mongo.log 2>&1 &"
+    - ssh $SSH_USER@$SSH_HOST "kill -9 \$(ps aux | grep 'logs -f screenapp-mongo-express' | grep 'docker' | awk '{print \$2}') &"
+    - docker-compose -f docker-compose.yml --env-file $ENVFILE up --no-deps -d mongo-express
+    - ssh $SSH_USER@$SSH_HOST "docker logs -f screenapp-mongo-express >> /var/log/scrennapp/mongo-express.log 2>&1 &"
+    - ssh $SSH_USER@$SSH_HOST "kill -9 \$(ps aux | grep 'logs -f screenapp-auth-backend' | grep 'docker' | awk '{print \$2}') &"
+    - docker-compose -f docker-compose.yml --env-file $ENVFILE up --no-deps -d server
+    - ssh $SSH_USER@$SSH_HOST "docker logs -f screenapp-auth-backend >> /var/log/scrennapp/server.log 2>&1 &"
   only:
     - master
