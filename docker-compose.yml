@@ -2,10 +2,50 @@ version: "3"
 services:
   mongo:
     image: mongo:4.0
+    container_name: screenapp-mongodb
     ports:
       - "27017:27017"
   mongo-express:
     image: mongo-express
+    container_name: screenapp-mongo-express
     restart: always
     ports:
       - 8081:8081
+    environment:
+      ME_CONFIG_BASICAUTH_USERNAME: ${ME_CONFIG_BASICAUTH_USERNAME}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${ME_CONFIG_BASICAUTH_PASSWORD}    
+    depends_on:
+      - mongo
+  server:
+    build:
+      context: ./
+    container_name: screenapp-auth-backend
+    ports:
+      - 9100:9100
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      SESSION_SECRET: ${SESSION_SECRET}
+      MONGO_DATABASE: ${MONGO_DATABASE}
+      MONGO_USERNAME: ${MONGO_USERNAME}
+      MONGO_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_HOST: ${MONGO_HOST}
+      MONGO_PORT: ${MONGO_PORT}
+      FACEBOOK_ID: ${FACEBOOK_ID}
+      FACEBOOK_SECRET: ${FACEBOOK_SECRET}
+      GOOGLE_ID: ${GOOGLE_ID}
+      GOOGLE_SECRET: ${GOOGLE_SECRET}
+      LINKEDIN_API_KEY: ${LINKEDIN_API_KEY}
+      LINKEDIN_SECRET: ${LINKEDIN_SECRET}
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_ACCESS_KEY_SECRET: ${AWS_ACCESS_KEY_SECRET}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      RECEIVER_EMAIL: ${RECEIVER_EMAIL}
+      SENDER_EMAIL: ${SENDER_EMAIL}
+      CORS_REGEX: ${CORS_REGEX}
+      AUTH_LANDING: ${AUTH_LANDING}
+    volumes:
+      - /usr/src/app/node_modules
+    depends_on:
+      - mongo

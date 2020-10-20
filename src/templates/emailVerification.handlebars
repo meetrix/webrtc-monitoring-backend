@@ -190,7 +190,7 @@
                                             <tr>
                                                 <td align="center" style="border-radius: 40px" bgcolor="#e04959"
                                                     hover="background-color: rgb(196, 51, 51);">
-                                                    <a href="http://localhost:9100/v1/account/verify/?token={{emailToken}}"
+                                                    <a href="{{AUTH_BASE_URL}}/v1/account/verify/?token={{emailToken}}"
                                                         target="_blank" style="
                                     font-size: 15px;
                                     font-family: Poppins, sans-serif;
@@ -243,9 +243,9 @@
                       line-height: 25px;
                     ">
                                                     <p style="font-size:14px;">
-                                                        <a href="http://localhost:9100/v1/account/verify/?token={{emailToken}}"
+                                                        <a href="{{AUTH_BASE_URL}}/v1/account/verify/?token={{emailToken}}"
                                                             target="_blank"
-                                                            style="color: #e04959">http://localhost:9100/v1/account/verify/?token={{emailToken}}</a>
+                                                            style="color: #e04959">{{AUTH_BASE_URL}}/v1/account/verify/?token={{emailToken}}</a>
                                                     </p>
                                                     <hr style="opacity: 0.2" />
                                                 </td>
@@ -306,7 +306,7 @@
                                                     </h2>
                                                     <p style="margin: 0">
                                                         Contact our
-                                                        <a href="https://screenapp.io/#/" target="_blank"
+                                                        <a href="{{AUTH_LANDING}}" target="_blank"
                                                             style="color: #e04959">support team</a>
                                                     </p>
                                                 </td>

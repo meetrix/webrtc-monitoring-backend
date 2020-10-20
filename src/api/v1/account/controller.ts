@@ -6,7 +6,9 @@ import nodemailer from 'nodemailer';
 import { Response, Request, NextFunction } from 'express';
 import { IVerifyOptions } from 'passport-local';
 import { getMailOptions, getTransporter } from '../../../util/mail';
-
+import {
+    AUTH_LANDING, AUTH_BASE_URL
+} from '../../../config/settings';
 const log = console.log;
 
 import { UserDocument, User } from '../../../models/User';
@@ -93,6 +95,8 @@ export const register = async (
             template: 'emailVerification',
             context: {
                 emailToken,
+                AUTH_BASE_URL,
+                AUTH_LANDING
             }
         });
         
@@ -134,6 +138,8 @@ export const verify = async (
             to: `<${user.email}>`,
             template: 'emailVerificationConfirmation',
             context: {
+                AUTH_BASE_URL,
+                AUTH_LANDING
             
             }
         });
@@ -145,8 +151,8 @@ export const verify = async (
             return log('Email sent to the user successfully.');
         });
 
-        res.redirect(`http://localhost:8080/#/dashboard?token=${signToken(user)}`);
-        
+        res.redirect(`${AUTH_LANDING}/#/dashboard?token=${signToken(user)}`);
+
         // A new email signin token issued to get user details to verify at signin
         user.emailSigninToken = signToken(user),
         await user.save();
@@ -224,7 +230,9 @@ export const forgot = async (
             to: `<${user.email}>`,
             template: 'passwordReset',
             context: {
-                token
+                token,
+                AUTH_BASE_URL,
+                AUTH_LANDING
             }
         });
 
@@ -290,7 +298,8 @@ export const reset = async (
             to: `<${user.email}>`,
             template: 'passwordResetConfrimation',
             context: {
-                
+                AUTH_BASE_URL,
+                AUTH_LANDING
             }
         });
 

@@ -1,13 +1,13 @@
 import dotenv from 'dotenv';
 import fs from 'fs';
-import { NODE_ENV, TEST, PRODUCTION } from './settings';
+import { NODE_ENV, PRODUCTION } from './settings';
 import logger from '../util/logger';
 
 if (!fs.existsSync('.env')) {
     logger.info('No .env file found, looking for variables in environment.');
 }
 
-if (NODE_ENV !== TEST) dotenv.config();
+dotenv.config();
 
 const requiredSecrets = [
     'SESSION_SECRET',
@@ -24,9 +24,6 @@ const requiredSecrets = [
 
     'FACEBOOK_ID',
     'FACEBOOK_SECRET',
-
-    'SENDGRID_USER',
-    'SENDGRID_PASSWORD',
 
     'AWS_ACCESS_KEY_ID',
     'AWS_ACCESS_KEY_SECRET',
@@ -61,8 +58,6 @@ export const LINKEDIN_SECRET = process.env['LINKEDIN_SECRET'];
 
 export const GOOGLE_ID = process.env['GOOGLE_ID'];
 export const GOOGLE_SECRET = process.env['GOOGLE_SECRET'];
-export const SENDGRID_USER = process.env['SENDGRID_USER'];
-export const SENDGRID_PASSWORD = process.env['SENDGRID_PASSWORD'];
 export const AWS_ACCESS_KEY_ID = process.env['AWS_ACCESS_KEY_ID'];
 export const AWS_ACCESS_KEY_SECRET = process.env['AWS_ACCESS_KEY_SECRET'];
 export const SMTP_HOST = process.env['SMTP_HOST'];

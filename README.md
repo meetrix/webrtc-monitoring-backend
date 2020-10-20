@@ -21,7 +21,7 @@ cat .env.example > .env
 
 # Run MongoDB with docker
 
-docker-compose up
+docker-compose up mongo-express
 
 # Run (development mode) the API on port 9100
 npm start
