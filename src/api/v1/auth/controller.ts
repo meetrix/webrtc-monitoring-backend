@@ -9,7 +9,7 @@ export const authCallback = async (req: any, res: Response, next: NextFunction):
             throw 'User not found';
         }
         const user = req.user as UserDocument;
-        res.redirect(`${AUTH_LANDING}?token=${signToken(user)}`);
+        res.redirect(`${AUTH_LANDING}/#/dashboard?token=${signToken(user)}`);
         user.isVerified = true,
             await user.save();
 

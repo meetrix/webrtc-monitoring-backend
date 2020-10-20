@@ -109,7 +109,7 @@ export const register = async (
 
         // res.status(201).json({ token: signToken(user) });
         res.status(201).json('Confirmation email has been sent successfully. Please check your inbox to proceed.');
-        return res.redirect('http://localhost:8080');
+        // return res.redirect('http://localhost:8080');
     } catch (error) {
         next(error);
     }
