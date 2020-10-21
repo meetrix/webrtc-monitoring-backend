@@ -2,7 +2,7 @@ import crypto from 'crypto';
 import bcrypt from 'bcrypt';
 import mongoose from 'mongoose';
 import UUID from 'uuid/v4';
-import { USER_PACKAGES, USER_ROLES } from '../config/settings';
+import { USER_ROLES } from '../config/settings';
 
 export interface Profile {
     name?: string;
@@ -20,10 +20,8 @@ export interface UserAPIFormat {
     id: string;
     email: string;
     role: string;
-    package: string;
     profile?: Profile;
     avatar: string;
-    emailToken: string;
 }
 export type UserDocument = mongoose.Document & {
     id: string;
@@ -31,11 +29,7 @@ export type UserDocument = mongoose.Document & {
     password: string;
     passwordResetToken: string;
     passwordResetExpires: Date;
-    emailToken: string;
-    isVerified: boolean;
-    emailSigninToken: string;
     role: string;
-    package: string;
     profile: Profile;
 
     facebook: string;
@@ -55,11 +49,7 @@ const userSchema = new mongoose.Schema(
         password: String,
         passwordResetToken: String,
         passwordResetExpires: Date,
-        emailToken: String,
-        isVerified: Boolean,
-        emailSigninToken: String,
         role: { type: String, default: 'user', enum: USER_ROLES },
-        package: { type: String, default: 'FREE_LOGGEDIN', enum: USER_PACKAGES },
 
         facebook: String,
         linkedin: String,
@@ -108,14 +98,10 @@ userSchema.methods = {
             id: this.id,
             email: this.email,
             role: this.role,
-            package: this.package,
-            emailToken: this.emailToken,
-            isVerified: this.isVerified,
-            emailSigninToken: this.emailSigninToken,
             avatar: this.gravatar(),
             profile: {
                 name: this.profile.name,
-                gender: this.profile.gnder,
+                gender: this.profile.gender,
                 location: this.profile.location,
                 website: this.profile.website,
                 picture: this.profile.picture
