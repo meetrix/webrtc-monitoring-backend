@@ -65,7 +65,10 @@
         "@types/morgan": "1.9.1",
         "@types/multer": "1.4.4",
         "@types/nodemailer": "6.4.0",
+<<<<<<< HEAD
+=======
         "@types/passport": "^1.0.4",
+>>>>>>> master
         "@types/passport-facebook": "2.1.10",
         "@types/passport-google-oauth": "^1.0.41",
         "@types/passport-linkedin-oauth2": "^1.5.1",

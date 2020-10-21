@@ -6,7 +6,9 @@ import nodemailer from 'nodemailer';
 import { Response, Request, NextFunction } from 'express';
 import { IVerifyOptions } from 'passport-local';
 import { getMailOptions, getTransporter } from '../../../util/mail';
-
+import {
+    AUTH_LANDING, AUTH_BASE_URL
+} from '../../../config/settings';
 const log = console.log;
 
 import { UserDocument, User } from '../../../models/User';
@@ -15,11 +17,6 @@ import {
     CONFIRMATION_LANDING, SENDER_EMAIL
 } from '../../../config/settings';
 import { formatError } from '../../../util/error';
-import {
-    passwordResetTemplate,
-    passwordChangedConfirmationTemplate,
-    mailConfirmationTemplate,
-} from '../../../resources/emailTemplates';
 import { SUCCESSFUL_RESPONSE } from '../../../util/success';
 import { signToken } from '../../../util/auth';
 
@@ -69,18 +66,27 @@ export const register = async (
             res.status(422).json(formatError('Account already exists.'));
             return;
         }
+        
+       // we create a random string to send as the token for email verification
+        const randValueHex = (len: number): string => {
+            return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
+        };
+        const emailToken = randValueHex(128);
 
         const user = new User({
             email: req.body.email,
             password: req.body.password,
             profile: {
                 name: req.body.name,
+            
             },
+            emailToken,
+            isVerified : false,
         });
         await user.save();
         require('dotenv').config();
-        const registerToken = signToken(user);
-
+        
+       
         const transporter = getTransporter();
 
         const mailOptions = getMailOptions({
@@ -88,7 +94,9 @@ export const register = async (
             to: `<${user.email}>`,
             template: 'emailVerification',
             context: {
-                registerToken,
+                emailToken,
+                AUTH_BASE_URL,
+                AUTH_LANDING
             }
         });
         
@@ -101,7 +109,56 @@ export const register = async (
 
         // res.status(201).json({ token: signToken(user) });
         res.status(201).json('Confirmation email has been sent successfully. Please check your inbox to proceed.');
+        // return res.redirect('http://localhost:8080');
     } catch (error) {
+        next(error);
+    }
+};
+
+// User account verification & auto signin at first attempt
+export const verify = async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+): Promise<void> => {
+    try {
+
+        const user = await User.findOne({ emailToken: req.query.token });
+        if (!user) {
+            res.status(422).json('Token is invalid or expired. Please try again.');
+            }
+            user.emailToken = null; 
+            user.isVerified = true,
+            await user.save();
+
+        const transporter = getTransporter();
+        
+        const mailOptions = getMailOptions({
+            subject: 'Account Successfully Verifed - ScreenApp.IO',
+            to: `<${user.email}>`,
+            template: 'emailVerificationConfirmation',
+            context: {
+                AUTH_BASE_URL,
+                AUTH_LANDING
+            
+            }
+        });
+
+        transporter.sendMail(mailOptions, (err, data) => {
+            if (err) {
+                return log('Error occurs');
+            }
+            return log('Email sent to the user successfully.');
+        });
+
+        res.redirect(`${AUTH_LANDING}/#/dashboard?token=${signToken(user)}`);
+
+        // A new email signin token issued to get user details to verify at signin
+        user.emailSigninToken = signToken(user),
+        await user.save();
+        
+    } catch (error) {
+        log('Error occurs while sending email.');
         next(error);
     }
 };
@@ -173,7 +230,9 @@ export const forgot = async (
             to: `<${user.email}>`,
             template: 'passwordReset',
             context: {
-                token
+                token,
+                AUTH_BASE_URL,
+                AUTH_LANDING
             }
         });
 
@@ -239,7 +298,8 @@ export const reset = async (
             to: `<${user.email}>`,
             template: 'passwordResetConfrimation',
             context: {
-                
+                AUTH_BASE_URL,
+                AUTH_LANDING
             }
         });
 
