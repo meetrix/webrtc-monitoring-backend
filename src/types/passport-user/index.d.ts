@@ -7,7 +7,6 @@ declare global {
         interface User {
             email: string;
             role: string;
-            package: string;
             sub: string;
             iat: number;
             exp: number;
