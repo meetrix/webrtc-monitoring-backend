@@ -1,7 +1,7 @@
 declare module "nodemailer-express-handlebars" {
 
-    function nodemailerExpressHandlebars(data: any): any;
+  function nodemailerExpressHandlebars(data: any): any;
 
-    module nodemailerExpressHandlebars { }
-    export = nodemailerExpressHandlebars;
+  module nodemailerExpressHandlebars { }
+  export = nodemailerExpressHandlebars;
 }
