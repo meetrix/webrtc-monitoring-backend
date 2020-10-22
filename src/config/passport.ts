@@ -11,52 +11,52 @@ import { GOOGLE_ID, GOOGLE_SECRET, FACEBOOK_ID, FACEBOOK_SECRET, LINKEDIN_API_KE
 const LocalStrategy = passportLocal.Strategy;
 
 passport.serializeUser((user: { id: string }, done) => {
-    done(null, user.id);
+  done(null, user.id);
 });
 
 passport.deserializeUser((id, done) => {
-    User.findById(id, (err, user) => {
-        done(err, user);
-    });
+  User.findById(id, (err, user) => {
+    done(err, user);
+  });
 });
 
 const findUserOrCreateUser = async (profile: Passport.ExtendedProfile, accessToken: string, refreshToken: string): Promise<UserDocument> => {
-    try {
-        const { provider, id } = profile;
-        const { name, email, picture } = profile._json;
-        // 1. Lets see whether there are accounts for the any of the emails
-        let user = await User.findOne({ email });
-        logger.info(`Found registered user with email: ${email}`);
+  try {
+    const { provider, id } = profile;
+    const { name, email, picture } = profile._json;
+    // 1. Lets see whether there are accounts for the any of the emails
+    let user = await User.findOne({ email });
+    logger.info(`Found registered user with email: ${email}`);
 
-        if (user) return user;
+    if (user) return user;
 
-        // 2. If we could not find any account with email, lets see whether there is an account with provider id
-        user = await User.findOne({ [provider]: id });
-        logger.info(`Found registered user with ${provider} id: ${id}`);
+    // 2. If we could not find any account with email, lets see whether there is an account with provider id
+    user = await User.findOne({ [provider]: id });
+    logger.info(`Found registered user with ${provider} id: ${id}`);
 
-        if (user) return user;
+    if (user) return user;
 
-        // 3. If we cannot find a user at all, we should create one
-        logger.info('User not found. Creating a new user');
-        user = new User({
-            email,
-            [provider]: id,
-            profile: {
-                name,
-                picture,
-            },
-        });
-        user.tokens.push({
-            kind: provider,
-            accessToken,
-            refreshToken,
-        });
-        await user.save();
-        return user;
+    // 3. If we cannot find a user at all, we should create one
+    logger.info('User not found. Creating a new user');
+    user = new User({
+      email,
+      [provider]: id,
+      profile: {
+        name,
+        picture,
+      },
+    });
+    user.tokens.push({
+      kind: provider,
+      accessToken,
+      refreshToken,
+    });
+    await user.save();
+    return user;
 
-    } catch (error) {
-        throw error;
-    }
+  } catch (error) {
+    throw error;
+  }
 
 };
 
@@ -64,49 +64,49 @@ const findUserOrCreateUser = async (profile: Passport.ExtendedProfile, accessTok
  * Sign in using Email and Password.
  */
 passport.use(
-    new LocalStrategy(
-        {
-            usernameField: 'email',
-            passwordField: 'password',
-        },
-        async (email, password, done): Promise<void> => {
-            try {
-                const user = await User.findOne({ email: email.toLowerCase() });
-                if (!user) {
-                    return done(null, false, {
-                        message: 'Email not registered',
-                    });
-                }
-
-                if (!(await user.authenticate(password))) {
-                    return done(null, false, {
-                        message: 'Invalid credentials',
-                    });
-                }
-
-                done(null, user);
-            } catch (error) {
-                return done(error);
-            }
+  new LocalStrategy(
+    {
+      usernameField: 'email',
+      passwordField: 'password',
+    },
+    async (email, password, done): Promise<void> => {
+      try {
+        const user = await User.findOne({ email: email.toLowerCase() });
+        if (!user) {
+          return done(null, false, {
+            message: 'Email not registered',
+          });
         }
-    )
+
+        if (!(await user.authenticate(password))) {
+          return done(null, false, {
+            message: 'Invalid credentials',
+          });
+        }
+
+        done(null, user);
+      } catch (error) {
+        return done(error);
+      }
+    }
+  )
 );
 
 const googleStrategyConfig = new GoogleAuthStratergy(
-    {
-        clientID: GOOGLE_ID,
-        clientSecret: GOOGLE_SECRET,
-        callbackURL: '/v1/auth/google/callback',
-    },
-    async (accessToken, refreshToken, profile, done) => {
-        try {
-            // return done(null);
-            const user = await findUserOrCreateUser(profile, accessToken, refreshToken);
-            return done(null, user);
-        } catch (error) {
-            done(error);
-        }
+  {
+    clientID: GOOGLE_ID,
+    clientSecret: GOOGLE_SECRET,
+    callbackURL: '/v1/auth/google/callback',
+  },
+  async (accessToken, refreshToken, profile, done) => {
+    try {
+      // return done(null);
+      const user = await findUserOrCreateUser(profile, accessToken, refreshToken);
+      return done(null, user);
+    } catch (error) {
+      done(error);
     }
+  }
 );
 
 passport.use('google', googleStrategyConfig);
@@ -130,60 +130,60 @@ passport.use('google', googleStrategyConfig);
  * Sign in with Facebook.
  */
 passport.use(
-    new FacebookStrategy(
-        {
-            clientID: FACEBOOK_ID,
-            clientSecret: FACEBOOK_SECRET,
-            callbackURL: '/v1/auth/facebook/callback',
-            profileFields: ['name', 'email', 'link', 'locale', 'timezone'],
-            passReqToCallback: true,
-        },
-        async (
-            req: any,
-            accessToken: string,
-            refreshToken: string,
-            profile: Passport.ExtendedProfile,
-            done: Function
-        ): Promise<void> => {
-            try {
-                const user = await findUserOrCreateUser(profile, accessToken, refreshToken);
-                return done(null, user);
-            } catch (error) {
-                done(error);
-            }
-        }
-    )
+  new FacebookStrategy(
+    {
+      clientID: FACEBOOK_ID,
+      clientSecret: FACEBOOK_SECRET,
+      callbackURL: '/v1/auth/facebook/callback',
+      profileFields: ['name', 'email', 'link', 'locale', 'timezone'],
+      passReqToCallback: true,
+    },
+    async (
+      req: any,
+      accessToken: string,
+      refreshToken: string,
+      profile: Passport.ExtendedProfile,
+      done: Function
+    ): Promise<void> => {
+      try {
+        const user = await findUserOrCreateUser(profile, accessToken, refreshToken);
+        return done(null, user);
+      } catch (error) {
+        done(error);
+      }
+    }
+  )
 );
 
 /**
  * Sign in with LinkedIn.
  */
 passport.use(
-    new LinkedInStrategy(
-        {
-            clientID: LINKEDIN_API_KEY,
-            clientSecret: LINKEDIN_SECRET,
-            callbackURL: '/v1/auth/linkedin/callback',
-            profileFields: ['name', 'email', 'link', 'locale', 'timezone'],
-            passReqToCallback: true,
-        },
-        async (
-            req: any,
-            accessToken: string,
-            refreshToken: string,
-            profile: Passport.ExtendedProfile,
-            done: Function
-        ): Promise<void> => {
-            try {
-                const user = await findUserOrCreateUser(profile, accessToken, refreshToken);
-                return done(null, user);
-            } catch (error) {
-                done(error);
-            }
-        }
-    )
+  new LinkedInStrategy(
+    {
+      clientID: LINKEDIN_API_KEY,
+      clientSecret: LINKEDIN_SECRET,
+      callbackURL: '/v1/auth/linkedin/callback',
+      profileFields: ['name', 'email', 'link', 'locale', 'timezone'],
+      passReqToCallback: true,
+    },
+    async (
+      req: any,
+      accessToken: string,
+      refreshToken: string,
+      profile: Passport.ExtendedProfile,
+      done: Function
+    ): Promise<void> => {
+      try {
+        const user = await findUserOrCreateUser(profile, accessToken, refreshToken);
+        return done(null, user);
+      } catch (error) {
+        done(error);
+      }
+    }
+  )
 );
 
 export const setupPassport = (app: Express): void => {
-    app.use(passport.initialize());
+  app.use(passport.initialize());
 };
