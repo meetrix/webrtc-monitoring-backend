@@ -8,9 +8,9 @@ export const JWT_EXPIRATION = '7d';
 export const APP_PORT = 9100;
 export const UNSUBSCRIBE_LANDING = '';
 export const CONFIRMATION_LANDING =
-    'https://screenapp.io/auth';
+  'https://screenapp.io/auth';
 export const RECOVERY_LANDING =
-    'https://screenapp.io/auth';
+  'https://screenapp.io/auth';
 export const AUTH_LANDING = process.env['AUTH_LANDING'];
 export const USER_ROLES = ['user', 'admin', 'owner'];
 export const S3_CONTENT_BUCKET = 'starter-content';

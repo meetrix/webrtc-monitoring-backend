@@ -1,15 +1,15 @@
 import express from 'express';
 
 import {
-    refresh,
-    login,
-    register,
-    forgot,
-    reset,
-    getProfile,
-    postProfile,
-    deleteAccount,
-    password
+  refresh,
+  login,
+  register,
+  forgot,
+  reset,
+  getProfile,
+  postProfile,
+  deleteAccount,
+  password
 } from './controller';
 import { isAuthenticated } from '../../../middleware';
 
@@ -107,14 +107,14 @@ router.post('/register', register);
  *                  email:
  *                      type: string
  *                      example: "beta@meetrix.io"
- * 
+ *
  *      responses:
  *          201:
  *              description: Email has been sent with the reset token successfully.
  *          404:
  *              description: Email Address not found in our system.
- * 
- *          
+ *
+ *
  *
  */
 router.post('/forgot', forgot);
@@ -141,8 +141,8 @@ router.post('/forgot', forgot);
  *                  password:
  *                      type: string
  *                      example: "MP123@meet"
- *                  
- * 
+ *
+ *
  *      responses:
  *          201:
  *              description: Password reset successful.
@@ -150,8 +150,8 @@ router.post('/forgot', forgot);
  *              description: Password reset failed or Invalid token.
  *          404:
  *              description: Internal resource not found.
- * 
- *          
+ *
+ *
  *
  */
 router.post('/reset/:token', reset);
