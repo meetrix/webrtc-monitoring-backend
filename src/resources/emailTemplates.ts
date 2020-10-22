@@ -1,8 +1,8 @@
 
 export const mailConfirmationTemplate = (
-    url: string,
+  url: string,
 ): string => {
-    return `
+  return `
     <!DOCTYPE html>
     <html>
       <head>
@@ -24,7 +24,7 @@ export const mailConfirmationTemplate = (
                 url(https://fonts.gstatic.com/s/lato/v11/qIIYRU-oROkIk8vfvxw6QvesZW2xOQ-xsNqO47m55DA.woff)
                   format("woff");
             }
-    
+
             @font-face {
               font-family: "Lato";
               font-style: normal;
@@ -33,7 +33,7 @@ export const mailConfirmationTemplate = (
                 url(https://fonts.gstatic.com/s/lato/v11/qdgUG4U09HnJwhYI-uK18wLUuEpTyoUstqEm5AMlJo4.woff)
                   format("woff");
             }
-    
+
             @font-face {
               font-family: "Lato";
               font-style: italic;
@@ -42,7 +42,7 @@ export const mailConfirmationTemplate = (
                 url(https://fonts.gstatic.com/s/lato/v11/RYyZNoeFgb0l7W3Vu1aSWOvvDin1pK8aKteLpeZ5c0A.woff)
                   format("woff");
             }
-    
+
             @font-face {
               font-family: "Lato";
               font-style: italic;
@@ -52,7 +52,7 @@ export const mailConfirmationTemplate = (
                   format("woff");
             }
           }
-    
+
           /* CLIENT-SPECIFIC STYLES */
           body,
           table,
@@ -61,17 +61,17 @@ export const mailConfirmationTemplate = (
             -webkit-text-size-adjust: 100%;
             -ms-text-size-adjust: 100%;
           }
-    
+
           table,
           td {
             mso-table-lspace: 0pt;
             mso-table-rspace: 0pt;
           }
-    
+
           img {
             -ms-interpolation-mode: bicubic;
           }
-    
+
           /* RESET STYLES */
           img {
             border: 0;
@@ -80,18 +80,18 @@ export const mailConfirmationTemplate = (
             outline: none;
             text-decoration: none;
           }
-    
+
           table {
             border-collapse: collapse !important;
           }
-    
+
           body {
             height: 100% !important;
             margin: 0 !important;
             padding: 0 !important;
             width: 100% !important;
           }
-    
+
           /* iOS BLUE LINKS */
           a[x-apple-data-detectors] {
             color: inherit !important;
@@ -101,7 +101,7 @@ export const mailConfirmationTemplate = (
             font-weight: inherit !important;
             line-height: inherit !important;
           }
-    
+
           /* MOBILE STYLES */
           @media screen and (max-width: 600px) {
             h1 {
@@ -109,14 +109,14 @@ export const mailConfirmationTemplate = (
               line-height: 32px !important;
             }
           }
-    
+
           /* ANDROID CENTER FIX */
           div[style*="margin: 16px 0;"] {
             margin: 0 !important;
           }
         </style>
       </head>
-    
+
       <body
         style="
           background-color: #f4f4f4;
@@ -316,7 +316,7 @@ export const mailConfirmationTemplate = (
                     <hr style="opacity: 0.2" />
                   </td>
                 </tr>
-    
+
                 <tr>
                   <td
                     bgcolor="#ffffff"
@@ -447,9 +447,9 @@ export const mailConfirmationTemplate = (
         </table>
       </body>
     </html>
-    
-    
-     
+
+
+
 `;
 };
 
@@ -458,10 +458,10 @@ export const mailConfirmationTemplate = (
 
 
 export const passwordResetTemplate = (
-    url: string,
-    
+  url: string,
+
 ): string => {
-    return `
+  return `
     <!DOCTYPE html>
     <html>
       <head>
@@ -483,7 +483,7 @@ export const passwordResetTemplate = (
                 url(https://fonts.gstatic.com/s/lato/v11/qIIYRU-oROkIk8vfvxw6QvesZW2xOQ-xsNqO47m55DA.woff)
                   format("woff");
             }
-    
+
             @font-face {
               font-family: "Lato";
               font-style: normal;
@@ -492,7 +492,7 @@ export const passwordResetTemplate = (
                 url(https://fonts.gstatic.com/s/lato/v11/qdgUG4U09HnJwhYI-uK18wLUuEpTyoUstqEm5AMlJo4.woff)
                   format("woff");
             }
-    
+
             @font-face {
               font-family: "Lato";
               font-style: italic;
@@ -501,7 +501,7 @@ export const passwordResetTemplate = (
                 url(https://fonts.gstatic.com/s/lato/v11/RYyZNoeFgb0l7W3Vu1aSWOvvDin1pK8aKteLpeZ5c0A.woff)
                   format("woff");
             }
-    
+
             @font-face {
               font-family: "Lato";
               font-style: italic;
@@ -511,7 +511,7 @@ export const passwordResetTemplate = (
                   format("woff");
             }
           }
-    
+
           /* CLIENT-SPECIFIC STYLES */
           body,
           table,
@@ -520,17 +520,17 @@ export const passwordResetTemplate = (
             -webkit-text-size-adjust: 100%;
             -ms-text-size-adjust: 100%;
           }
-    
+
           table,
           td {
             mso-table-lspace: 0pt;
             mso-table-rspace: 0pt;
           }
-    
+
           img {
             -ms-interpolation-mode: bicubic;
           }
-    
+
           /* RESET STYLES */
           img {
             border: 0;
@@ -539,18 +539,18 @@ export const passwordResetTemplate = (
             outline: none;
             text-decoration: none;
           }
-    
+
           table {
             border-collapse: collapse !important;
           }
-    
+
           body {
             height: 100% !important;
             margin: 0 !important;
             padding: 0 !important;
             width: 100% !important;
           }
-    
+
           /* iOS BLUE LINKS */
           a[x-apple-data-detectors] {
             color: inherit !important;
@@ -560,7 +560,7 @@ export const passwordResetTemplate = (
             font-weight: inherit !important;
             line-height: inherit !important;
           }
-    
+
           /* MOBILE STYLES */
           @media screen and (max-width: 600px) {
             h1 {
@@ -568,14 +568,14 @@ export const passwordResetTemplate = (
               line-height: 32px !important;
             }
           }
-    
+
           /* ANDROID CENTER FIX */
           div[style*="margin: 16px 0;"] {
             margin: 0 !important;
           }
         </style>
       </head>
-    
+
       <body
         style="
           background-color: #f4f4f4;
@@ -773,7 +773,7 @@ export const passwordResetTemplate = (
                     <hr style="opacity: 0.2" />
                   </td>
                 </tr>
-    
+
                 <tr>
                   <td
                     bgcolor="#ffffff"
@@ -789,7 +789,7 @@ export const passwordResetTemplate = (
                   >
                     <p style="margin: 0">
                       If you think you received this email by mistake, feel free to ignore it.
-    
+
                     </p>
                   </td>
                 </tr>
@@ -904,7 +904,7 @@ export const passwordResetTemplate = (
         </table>
       </body>
     </html>
-    
+
 `;
 };
 
@@ -912,7 +912,7 @@ export const passwordResetTemplate = (
 
 export const passwordChangedConfirmationTemplate = (
 ): string => {
-    return `
+  return `
     <!DOCTYPE html>
     <html>
       <head>
@@ -934,7 +934,7 @@ export const passwordChangedConfirmationTemplate = (
                 url(https://fonts.gstatic.com/s/lato/v11/qIIYRU-oROkIk8vfvxw6QvesZW2xOQ-xsNqO47m55DA.woff)
                   format("woff");
             }
-    
+
             @font-face {
               font-family: "Lato";
               font-style: normal;
@@ -943,7 +943,7 @@ export const passwordChangedConfirmationTemplate = (
                 url(https://fonts.gstatic.com/s/lato/v11/qdgUG4U09HnJwhYI-uK18wLUuEpTyoUstqEm5AMlJo4.woff)
                   format("woff");
             }
-    
+
             @font-face {
               font-family: "Lato";
               font-style: italic;
@@ -952,7 +952,7 @@ export const passwordChangedConfirmationTemplate = (
                 url(https://fonts.gstatic.com/s/lato/v11/RYyZNoeFgb0l7W3Vu1aSWOvvDin1pK8aKteLpeZ5c0A.woff)
                   format("woff");
             }
-    
+
             @font-face {
               font-family: "Lato";
               font-style: italic;
@@ -962,7 +962,7 @@ export const passwordChangedConfirmationTemplate = (
                   format("woff");
             }
           }
-    
+
           /* CLIENT-SPECIFIC STYLES */
           body,
           table,
@@ -971,17 +971,17 @@ export const passwordChangedConfirmationTemplate = (
             -webkit-text-size-adjust: 100%;
             -ms-text-size-adjust: 100%;
           }
-    
+
           table,
           td {
             mso-table-lspace: 0pt;
             mso-table-rspace: 0pt;
           }
-    
+
           img {
             -ms-interpolation-mode: bicubic;
           }
-    
+
           /* RESET STYLES */
           img {
             border: 0;
@@ -990,18 +990,18 @@ export const passwordChangedConfirmationTemplate = (
             outline: none;
             text-decoration: none;
           }
-    
+
           table {
             border-collapse: collapse !important;
           }
-    
+
           body {
             height: 100% !important;
             margin: 0 !important;
             padding: 0 !important;
             width: 100% !important;
           }
-    
+
           /* iOS BLUE LINKS */
           a[x-apple-data-detectors] {
             color: inherit !important;
@@ -1011,7 +1011,7 @@ export const passwordChangedConfirmationTemplate = (
             font-weight: inherit !important;
             line-height: inherit !important;
           }
-    
+
           /* MOBILE STYLES */
           @media screen and (max-width: 600px) {
             h1 {
@@ -1019,14 +1019,14 @@ export const passwordChangedConfirmationTemplate = (
               line-height: 32px !important;
             }
           }
-    
+
           /* ANDROID CENTER FIX */
           div[style*="margin: 16px 0;"] {
             margin: 0 !important;
           }
         </style>
       </head>
-    
+
       <body
         style="
           background-color: #f4f4f4;
@@ -1141,7 +1141,7 @@ export const passwordChangedConfirmationTemplate = (
                     </p>
                   </td>
                 </tr>
-    
+
                 <tr>
                   <td
                     bgcolor="#ffffff"
@@ -1274,16 +1274,16 @@ export const passwordChangedConfirmationTemplate = (
         </table>
       </body>
     </html>
-    
+
 
     `;
 };
 
 
 export const emailVerifiedTemplate = (
-    ): string => {
-        return `
-  
+): string => {
+  return `
+
         <!DOCTYPE html>
 <html>
   <head>
@@ -1559,11 +1559,11 @@ You can now login to your account and enjoy the screenapp features.
               </td>
             </tr>
             <!-- COPY -->
-           
-            <!-- COPY -->
-             
 
-           
+            <!-- COPY -->
+
+
+
 
             <tr>
               <td
@@ -1695,7 +1695,7 @@ You can now login to your account and enjoy the screenapp features.
     </table>
   </body>
 </html>
-    
+
         `;
-    };
-    
+};
+

@@ -1,15 +1,17 @@
 import express from 'express';
 
 import {
-    refresh,
-    login,
-    register,
-    forgot,
-    reset,
-    getProfile,
-    postProfile,
-    deleteAccount,
-    password
+  refresh,
+  login,
+  register,
+  forgot,
+  reset,
+  getProfile,
+  postProfile,
+  deleteAccount,
+  password,
+  verify,
+  resetPassword,
 } from './controller';
 import { isAuthenticated } from '../../../middleware';
 
@@ -18,17 +20,23 @@ const router = express.Router();
 // Sliding session - also used to refresh jwt payload (such as role change)
 router.get('/jwt/refresh', isAuthenticated, refresh);
 
+// Verify user account via email
+router.get('/verify', verify);
+
+router.get('/resetpassword', resetPassword);
+
+
 /**
  * @swagger
  *
  * /account/login:
  *     post:
- *      description: login
+ *      description: Login as registered user (Manual)
  *      produces:
  *       - application/json
  *      parameters:
  *        - name: "login"
- *          description: "Login body"
+ *          description: Enter registered email address and correct password. (Login body)
  *          in: body
  *          required: true
  *          schema:
@@ -41,14 +49,62 @@ router.get('/jwt/refresh', isAuthenticated, refresh);
  *                      type: string
  *                      example: test1234
  *      responses:
- *          201:
- *              description: "Login successful"
- *              schema:
- *                  type: object
- *                  properties:
- *                      token:
- *                          type: string
- *
+ *        200:
+ *           description: "Successful Signin"
+ *           schema:
+ *               type: object
+ *               properties:
+ *                   success:
+ *                       type: string
+ *                       example: true
+ *                   data:
+ *                       type: string
+ *                       example: SignToken(user)
+ *                   message:
+ *                       type: string
+ *                       example: Login successful. Redirecting...
+ *        401:
+ *           description: "Email & Password Not Matching"
+ *           schema:
+ *               type: object
+ *               properties:
+ *                   success:
+ *                       type: string
+ *                       example: false
+ *                   data:
+ *                       type: string
+ *                       example: null
+ *                   message:
+ *                       type: string
+ *                       example: Username or Password incorrect. Please check and try again.
+ *        500:
+ *          description: Unsuccessful Signin
+ *          schema:
+ *              type: object
+ *              properties:
+ *                  success:
+ *                      type: string
+ *                      example: false
+ *                  data:
+ *                      type: string
+ *                      example: null
+ *                  message:
+ *                      type: string
+ *                      example: Something went wrong. Please try again later.
+ *        404:
+ *          description: Unavailable Account
+ *          schema:
+ *              type: object
+ *              properties:
+ *                  success:
+ *                      type: string
+ *                      example: false
+ *                  data:
+ *                      type: string
+ *                      example: null
+ *                  message:
+ *                      type: string
+ *                      example: Email address not found in our system.
  */
 router.post('/login', login);
 
@@ -57,12 +113,12 @@ router.post('/login', login);
  *
  * /account/register:
  *    post:
- *     description: Register as a user
+ *     description: Register as a new user (Manual)
  *     produces:
  *       - application/json
  *     parameters:
  *       - name: "register"
- *         description: email for used registration.
+ *         description: Enter email address & password to register. (Registration body)
  *         in: body
  *         required: true
  *         schema:
@@ -75,15 +131,48 @@ router.post('/login', login);
  *                      type: string
  *                      example: test1234
  *     responses:
- *       201:
- *          description: Registered
+ *       200:
+ *          description: Successful Registration (Account should be verifed by email confirmation)
  *          schema:
  *              type: object
  *              properties:
- *                  token:
+ *                  success:
  *                      type: string
+ *                      example: true
+ *                  data:
+ *                      type: string
+ *                      example: emailToken
+ *                  message:
+ *                      type: string
+ *                      example: Confirmation email has been sent successfully. Please check your inbox to proceed.
+ *       500:
+ *          description: Unsuccessful Registration
+ *          schema:
+ *              type: object
+ *              properties:
+ *                  success:
+ *                      type: string
+ *                      example: false
+ *                  data:
+ *                      type: string
+ *                      example: null
+ *                  message:
+ *                      type: string
+ *                      example: Registration Failed. Please try again later.
  *       422:
- *          description: Account already exists
+ *          description: Existing Account (User)
+ *          schema:
+ *              type: object
+ *              properties:
+ *                  success:
+ *                      type: string
+ *                      example: false
+ *                  data:
+ *                      type: string
+ *                      example: null
+ *                  message:
+ *                      type: string
+ *                      example:  Account already exists.
  */
 router.post('/register', register);
 
@@ -107,14 +196,14 @@ router.post('/register', register);
  *                  email:
  *                      type: string
  *                      example: "beta@meetrix.io"
- * 
+ *
  *      responses:
  *          201:
  *              description: Email has been sent with the reset token successfully.
  *          404:
  *              description: Email Address not found in our system.
- * 
- *          
+ *
+ *
  *
  */
 router.post('/forgot', forgot);
@@ -135,14 +224,14 @@ router.post('/forgot', forgot);
  *          schema:
  *              type: object
  *              properties:
- *                  passwordResetToken:
- *                      type: string
- *                      example: "ba392a31e38c1464b60dbba611fb2275"
- *                  password:
+ *                  new password:
  *                      type: string
  *                      example: "MP123@meet"
- *                  
- * 
+ *                  confirm password:
+ *                      type: string
+ *                      example: "MP123@meet"
+ *
+ *
  *      responses:
  *          201:
  *              description: Password reset successful.
@@ -150,8 +239,8 @@ router.post('/forgot', forgot);
  *              description: Password reset failed or Invalid token.
  *          404:
  *              description: Internal resource not found.
- * 
- *          
+ *
+ *
  *
  */
 router.post('/reset/:token', reset);
