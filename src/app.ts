@@ -11,10 +11,10 @@ mongoose.set('useCreateIndex', true);
 mongoose.set('useUnifiedTopology', true);
 
 mongoose.connect(MONGO_URI).catch((err): void => {
-  logger.error(
-    'MongoDB connection error. Please make sure MongoDB is running. ' + err
-  );
-  process.exit(1);
+    logger.error(
+        'MongoDB connection error. Please make sure MongoDB is running. ' + err
+    );
+    process.exit(1);
 });
 
 const app = express();
