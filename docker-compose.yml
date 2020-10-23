@@ -13,7 +13,7 @@ services:
       - 8081:8081
     environment:
       ME_CONFIG_BASICAUTH_USERNAME: ${ME_CONFIG_BASICAUTH_USERNAME}
-      ME_CONFIG_BASICAUTH_PASSWORD: ${ME_CONFIG_BASICAUTH_PASSWORD}    
+      ME_CONFIG_BASICAUTH_PASSWORD: ${ME_CONFIG_BASICAUTH_PASSWORD}
     depends_on:
       - mongo
   server:
@@ -45,6 +45,7 @@ services:
       SENDER_EMAIL: ${SENDER_EMAIL}
       CORS_REGEX: ${CORS_REGEX}
       AUTH_LANDING: ${AUTH_LANDING}
+      API_BASE_URL: ${API_BASE_URL}
     volumes:
       - /usr/src/app/node_modules
     depends_on:
