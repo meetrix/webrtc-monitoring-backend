@@ -198,13 +198,62 @@ router.post('/register', register);
  *                      example: "beta@meetrix.io"
  *
  *      responses:
- *          201:
- *              description: Email has been sent with the reset token successfully.
- *          404:
- *              description: Email Address not found in our system.
- *
- *
- *
+ *        200:
+ *           description: "Successful Reset Link Request"
+ *           schema:
+ *               type: object
+ *               properties:
+ *                   success:
+ *                       type: string
+ *                       example: true
+ *                   data:
+ *                       type: string
+ *                       example: token
+ *                   message:
+ *                       type: string
+ *                       example: Password reset link has been sent to your mail successfully. It will be valid for next 60 minutes.
+ *        401:
+ *           description: "Invalid Data"
+ *           schema:
+ *               type: object
+ *               properties:
+ *                   success:
+ *                       type: string
+ *                       example: false
+ *                   data:
+ *                       type: string
+ *                       example: null
+ *                   message:
+ *                       type: string
+ *                       example: Invalid data. Please try again.
+ *        500:
+ *          description: Unsuccessful Reset Link Request
+ *          schema:
+ *              type: object
+ *              properties:
+ *                  success:
+ *                      type: string
+ *                      example: false
+ *                  data:
+ *                      type: string
+ *                      example: null
+ *                  message:
+ *                      type: string
+ *                      example: Something went wrong. Please try again later.
+ *        404:
+ *          description: Unavailable Account
+ *          schema:
+ *              type: object
+ *              properties:
+ *                  success:
+ *                      type: string
+ *                      example: false
+ *                  data:
+ *                      type: string
+ *                      example: null
+ *                  message:
+ *                      type: string
+ *                      example: Email address not found in our system.
  */
 router.post('/forgot', forgot);
 
@@ -233,15 +282,35 @@ router.post('/forgot', forgot);
  *
  *
  *      responses:
- *          201:
- *              description: Password reset successful.
- *          422:
- *              description: Password reset failed or Invalid token.
- *          404:
- *              description: Internal resource not found.
- *
- *
- *
+ *        200:
+ *           description: "Successful Password Reset"
+ *           schema:
+ *               type: object
+ *               properties:
+ *                   success:
+ *                       type: string
+ *                       example: true
+ *                   data:
+ *                       type: string
+ *                       example: token
+ *                   message:
+ *                       type: string
+ *                       example: Password reset successful. Sign in back to access your account.
+ *   
+ *        500:
+ *          description: Unsuccessful Reset Link Request
+ *          schema:
+ *              type: object
+ *              properties:
+ *                  success:
+ *                      type: string
+ *                      example: false
+ *                  data:
+ *                      type: string
+ *                      example: null
+ *                  message:
+ *                      type: string
+ *                      example: Something went wrong. Please try again later.
  */
 router.post('/reset/:token', reset);
 
@@ -250,34 +319,63 @@ router.post('/reset/:token', reset);
  *
  * /account/profile:
  *    get:
- *     description: Register as a user
+ *     description: Get User Profile
  *     produces:
  *       - application/json
  *     security:
  *       - bearerAuth: []
  *     responses:
  *       200:
- *          description: Registered
+ *          description: Fetch Registered User Profile
  *          schema:
  *              type: object
  *              properties:
- *                  id:
+ *                  data:
+ *                       properties:
+ *                          id:
+ *                             type: string
+ *                          isVerified:
+ *                             type: string
+ *                             example: true
+ *                          email:
+ *                             type: string
+ *                          role:
+ *                             type: string
+ *                          avatar:
+ *                             type: string
+ *                          profile:
+ *                             type: object
+ *                             properties:
+ *                                 name:
+ *                                     type: string
+ *                                 picture:
+ *                                     type: string
+ *                          tag:
+ *                             type: object
+ *                             properties:
+ *                                 tagId:
+ *                                     type: string
+ *                                 title:
+ *                                     type: string
+ *                                 status:
+ *                                     type: string
+ *                                 createdAt:
+ *                                     type: string
+ *                          
+ *       500:
+ *          description: Unsuccessful Fetching User Profile
+ *          schema:
+ *              type: object
+ *              properties:
+ *                  success:
  *                      type: string
- *                  email:
+ *                      example: false
+ *                  data:
  *                      type: string
- *                  role:
+ *                      example: null
+ *                  message:
  *                      type: string
- *                  avatar:
- *                      type: string
- *                  profile:
- *                      type: object
- *                      properties:
- *                          name:
- *                              type: string
- *                          picture:
- *                              type: string
- *       401:
- *          description: Unauthorized
+ *                      example: Something went wrong. Please try again later.
  */
 router.get('/profile', isAuthenticated, getProfile);
 router.post('/profile', isAuthenticated, postProfile);

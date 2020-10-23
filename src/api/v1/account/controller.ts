@@ -484,7 +484,15 @@ export const getProfile = async (
     //res.status(200).json(user.format());
     res.status(200).json({
       success: true,
-      data: null,
+      data:{
+          id: user.id,
+          isVerified: user.isVerified,
+          email: user.email,
+          role: user.role,
+          avatar: user.package,
+          profile: user.profile,
+          tag: user.tag,
+        },
       message: 'Get profile successful.'
     });
   } catch (error) {

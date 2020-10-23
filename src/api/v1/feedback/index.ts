@@ -13,7 +13,7 @@ const router = express.Router();
  *       - application/json
  *     parameters:
  *       - name: "Feedbacks"
- *         description: Sending feedbacks to db.
+ *         description: Feeback Body 
  *         in: body
  *         required: true
  *         schema:
@@ -29,11 +29,35 @@ const router = express.Router();
  *                      type: string
  *                      example: This platform is awesome.
  *     responses:
- *       200:
- *          description: Feedback sending successful.
- *
- *       400:
- *          description: Feedback sending unsuccessful.
+ *        200:
+ *           description: "Successful Feedback"
+ *           schema:
+ *               type: object
+ *               properties:
+ *                   success:
+ *                       type: string
+ *                       example: true
+ *                   data:
+ *                       type: string
+ *                       example: clientId
+ *                   message:
+ *                       type: string
+ *                       example: Feedback successfully submitted. We will contact you via email shortly.
+ *        500:
+ *           description: "Unsuccessful Feedback"
+ *           schema:
+ *               type: object
+ *               properties:
+ *                   success:
+ *                       type: string
+ *                       example: false
+ *                   data:
+ *                       type: string
+ *                       example: null
+ *                   message:
+ *                      type: string
+ *                      example: Feedback submission failed. Please try again later.
+ * 
  */
 router.post('/', feedback);
 
