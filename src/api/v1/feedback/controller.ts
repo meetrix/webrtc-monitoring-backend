@@ -15,19 +15,44 @@ export const feedback = async (
 ): Promise<void> => {
   try {
     const validationErrors = [];
-    const { name, feedback } = req.body;
     let { email } = req.body;
     if (!validator.isEmail(req.body.email)) {
       validationErrors.push('Please enter a valid email address.');
     }
 
     if (validationErrors.length) {
-      res.status(422).json(formatError(...validationErrors));
+      //res.status(422).json(formatError(...validationErrors));
+      res.status(422).json({
+        success: false,
+        data: null,
+        message: 'Please enter a valid email address and try again.'
+      });
       return;
     }
+    
     email = validator.normalizeEmail(email, {
       gmail_remove_dots: true
     });
+
+    let {name} = req.body;
+    if (!name) {
+      res.status(422).json({
+        success: false,
+        data: null,
+        message: 'Please enter your name correctly.'
+      });
+      return;
+    }
+
+    let {feedback} = req.body;
+    if (!feedback) {
+      res.status(422).json({
+        success: false,
+        data: null,
+        message: 'You should enter a feedback or message before submitting.'
+      });
+      return;
+    }
 
     // Here we generate a random value of 8 charcaters as a clientID
     const randValueHex = (len: number): string => {

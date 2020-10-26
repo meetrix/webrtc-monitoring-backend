@@ -43,6 +43,21 @@ const router = express.Router();
  *                   message:
  *                       type: string
  *                       example: Feedback successfully submitted. We will contact you via email shortly.
+ *        422:
+ *           description: "Missing Field (Name, Email, Feedback)"
+ *           schema:
+ *               type: object
+ *               properties:
+ *                   success:
+ *                       type: string
+ *                       example: false
+ *                   data:
+ *                       type: string
+ *                       example: null
+ *                   message:
+ *                      type: string
+ *                      example: Please enter your name correctly.
+ * 
  *        500:
  *           description: "Unsuccessful Feedback"
  *           schema:
@@ -57,6 +72,7 @@ const router = express.Router();
  *                   message:
  *                      type: string
  *                      example: Feedback submission failed. Please try again later.
+ * 
  * 
  */
 router.post('/', feedback);
