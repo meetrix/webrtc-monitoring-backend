@@ -63,7 +63,7 @@ router.get('/resetpassword', resetPassword);
  *                   message:
  *                       type: string
  *                       example: Login successful. Redirecting...
- *        401:
+ *        403:
  *           description: "Email & Password Not Matching"
  *           schema:
  *               type: object
@@ -91,20 +91,6 @@ router.get('/resetpassword', resetPassword);
  *                  message:
  *                      type: string
  *                      example: Something went wrong. Please try again later.
- *        404:
- *          description: Unavailable Account
- *          schema:
- *              type: object
- *              properties:
- *                  success:
- *                      type: string
- *                      example: false
- *                  data:
- *                      type: string
- *                      example: null
- *                  message:
- *                      type: string
- *                      example: Email address not found in our system.
  */
 router.post('/login', login);
 
