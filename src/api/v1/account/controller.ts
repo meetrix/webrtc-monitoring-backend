@@ -187,18 +187,17 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
       return log('Email sent to the user successfully.');
     });
 
-    res.redirect(`${AUTH_LANDING}/#/dashboard?token=${signToken(user)}`);
+      // A new email signin token issued to get user details to verify at signin
+      user.emailSigninToken = signToken(user),
+      await user.save();
+
+    res.redirect(`${AUTH_LANDING}/#/dashboard?token=${user.emailSigninToken}`);
 
     res.status(200).json({
       success: true,
-      data: { signToken: signToken(user) },
+      data: { signToken: user.emailSigninToken },
       message: 'Verification successfull. Redirecting...'
     });
-
-
-    // A new email signin token issued to get user details to verify at signin
-    user.emailSigninToken = signToken(user),
-      await user.save();
 
   } catch (error) {
     res.status(500).json({
@@ -491,7 +490,8 @@ export const getProfile = async (
           isVerified: user.isVerified,
           email: user.email,
           role: user.role,
-          avatar: user.package,
+          package: user.package,
+          avatar: user.gravatar,
           profile: user.profile,
           tag: user.tag,
         },
