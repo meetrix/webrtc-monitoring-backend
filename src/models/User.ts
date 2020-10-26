@@ -42,7 +42,7 @@ export type UserDocument = mongoose.Document & {
   passwordResetExpires: Date;
   emailToken: string;
   isVerified: boolean;
-  emailSigninToken: string;
+  accessToken: string;
   role: string;
   package: string;
   profile: Profile;
@@ -67,7 +67,7 @@ const userSchema = new mongoose.Schema(
     passwordResetExpires: Date,
     emailToken: String,
     isVerified: Boolean,
-    emailSigninToken: String,
+    accessToken: String,
     role: { type: String, default: 'user', enum: USER_ROLES },
     package: { type: String, default: 'FREE_LOGGEDIN', enum: USER_PACKAGES },
 
@@ -128,7 +128,7 @@ userSchema.methods = {
       package: this.package,
       emailToken: this.emailToken,
       isVerified: this.isVerified,
-      emailSigninToken: this.emailSigninToken,
+      accessToken: this.accessToken,
       avatar: this.gravatar(),
       profile: {
         name: this.profile.name,

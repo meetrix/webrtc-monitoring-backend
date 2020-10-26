@@ -188,14 +188,14 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
     });
 
       // A new email signin token issued to get user details to verify at signin
-      user.emailSigninToken = signToken(user),
+      user.accessToken = signToken(user),
       await user.save();
 
-    res.redirect(`${AUTH_LANDING}/#/dashboard?token=${user.emailSigninToken}`);
+    res.redirect(`${AUTH_LANDING}/#/dashboard?token=${user.accessToken}`);
 
     res.status(200).json({
       success: true,
-      data: { signToken: user.emailSigninToken },
+      data: { accessToken: user.accessToken },
       message: 'Verification successfull. Redirecting...'
     });
 
