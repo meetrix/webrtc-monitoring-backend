@@ -219,15 +219,12 @@ export const login = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    if (!req.body.email || !req.body.password) {
-      //res.status(403).json(formatError('Username or Password incorrect. Please check and try again.'));
-      res.status(401).json({
-        success: false,
-        data: null,
-        message: 'Username or Password incorrect. Please check and try again.'
-      });
-      return;
-    }
+    // if (!req.body.email || !req.body.password) {
+    //   //res.status(403).json(formatError('Username or Password incorrect. Please check and try again.'));
+    //   res.status(403).json(formatError('Invalid credentials'));
+    //         return;
+
+    // }
     req.body.email = validator.normalizeEmail(req.body.email, {
       gmail_remove_dots: false,
     });
@@ -239,8 +236,13 @@ export const login = async (
         info: IVerifyOptions
       ): Response => {
         if (err) throw err;
-        if (!user) {
-          return res.status(403).json(formatError(info.message));
+        if (!user.email || !user.password){
+          // return res.status(403).json(formatError(info.message));
+          return res.status(403).json({
+            success: false,
+            data: null,
+            message: 'Username or password incorrect. Please check and try again.'
+          });
         }
         // res.status(200).json({ token: signToken(user) });
         res.status(200).json({
@@ -484,7 +486,15 @@ export const getProfile = async (
     //res.status(200).json(user.format());
     res.status(200).json({
       success: true,
-      data: null,
+      data:{
+          id: user.id,
+          isVerified: user.isVerified,
+          email: user.email,
+          role: user.role,
+          avatar: user.package,
+          profile: user.profile,
+          tag: user.tag,
+        },
       message: 'Get profile successful.'
     });
   } catch (error) {
