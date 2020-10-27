@@ -7,7 +7,7 @@ import { Response, Request, NextFunction } from 'express';
 import { IVerifyOptions } from 'passport-local';
 import { getMailOptions, getTransporter } from '../../../util/mail';
 import {
-  AUTH_LANDING, API_BASE_URL
+  AUTH_LANDING, API_BASE_URL, SUPPORT_URL
 } from '../../../config/settings';
 const log = console.log;
 
@@ -123,7 +123,8 @@ export const register = async (
       context: {
         emailToken,
         API_BASE_URL,
-        AUTH_LANDING
+        AUTH_LANDING,
+        SUPPORT_URL
       }
     });
 
@@ -175,7 +176,8 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
       template: 'emailVerificationConfirmation',
       context: {
         API_BASE_URL,
-        AUTH_LANDING
+        AUTH_LANDING,
+        SUPPORT_URL
 
       }
     });
@@ -306,7 +308,8 @@ export const forgot = async (
       context: {
         token,
         API_BASE_URL,
-        AUTH_LANDING
+        AUTH_LANDING,
+        SUPPORT_URL
       }
     });
 
@@ -416,7 +419,8 @@ export const reset = async (
       template: 'passwordResetConfrimation',
       context: {
         API_BASE_URL,
-        AUTH_LANDING
+        AUTH_LANDING,
+        SUPPORT_URL
       }
     });
 
