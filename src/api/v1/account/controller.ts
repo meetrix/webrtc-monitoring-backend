@@ -436,6 +436,7 @@ export const reset = async (
       return log('Email sent to the user successfully.');
     });
 
+    res.redirect(`${AUTH_LANDING}/#/signin`);
     // res.status(201).json(SUCCESSFUL_RESPONSE);
     res.status(200).json({
       success: true,
