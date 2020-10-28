@@ -375,21 +375,26 @@ export const reset = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const validationErrors = [];
     if (!validator.isLength(req.body.password, { min: 8 })) {
-      validationErrors.push(
-        'Password must be at least 8 characters long.'
-      );
+      res.status(422).json({
+        success: false,
+        data: null,
+        message: 'Password must be at least 8 characters long.'
+      });
     }
     if (req.body.password !== req.body.confirm) {
-      validationErrors.push('Passwords do not match. Please check and enter the same password.');
+      res.status(422).json({
+        success: false,
+        data: null,
+        message: 'Passwords do not match. Please check and enter the same password.'
+      });
     }
     if (!validator.isHexadecimal(req.params.token)) {
-      validationErrors.push('Token expired or something went wrong. Please try again.');
-    }
-    if (validationErrors.length) {
-      res.status(422).json(formatError(...validationErrors));
-      return;
+      res.status(422).json({
+        success: false,
+        data: null,
+        message: 'Token expired or something went wrong. Please try again.'
+      });
     }
 
     const user = await User.findOne({
@@ -398,7 +403,11 @@ export const reset = async (
       .where('passwordResetExpires')
       .gt(Date.now());
     if (!user) {
-      res.status(422).json('Your reset link might be expired. Please try again.');
+      res.status(422).json({
+        success: false,
+        data: null,
+        message: 'our reset link might be expired. Please try again.'
+      });
 
       return;
     }
@@ -420,7 +429,12 @@ export const reset = async (
       }
     });
 
-    await transporter.sendMail(mailOptions);
+    transporter.sendMail(mailOptions, (err, data) => {
+      if (err) {
+        return log('Error occurs');
+      }
+      return log('Email sent to the user successfully.');
+    });
 
     // res.status(201).json(SUCCESSFUL_RESPONSE);
     res.status(200).json({
