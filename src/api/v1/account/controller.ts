@@ -92,7 +92,7 @@ export const register = async (
     const randValueHex = (len: number): string => {
       return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
     };
-    const emailToken = randValueHex(128);
+    const emailToken = randValueHex(32);
 
     const user = new User({
       email: req.body.email,
