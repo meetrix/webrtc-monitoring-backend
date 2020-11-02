@@ -287,7 +287,7 @@ export const forgot = async (
     const user = await User.findOne({ email });
     if (!user) {
       // res.status(404).json(formatError('Email not found'));
-      res.status(404).json({
+      res.status(401).json({
         success: false,
         data: null,
         message: 'Email Address not found in our system.'
