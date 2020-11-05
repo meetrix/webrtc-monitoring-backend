@@ -159,7 +159,7 @@ export const mailConfirmationTemplate = (
                   <br />
                 </h1>
                 <a href="https://screenapp.io" target="_blank">
-                  <img src="https://arcadeclouds.com/templates/arcade-clouds/resources/screenapp_logo.png" width="55%"
+                  <img src="https://arcadeclouds.com/templates/arcade-clouds/resources/screenapp_logo.png" width="33%"
                     height="100%" style="display: block; border: 0px" /></a>
               </td>
             </tr>
@@ -510,7 +510,7 @@ export const passwordResetTemplate = (
                       ">
   
                 <a href="https://screenapp.io" target="_blank">
-                  <img src="https://arcadeclouds.com/templates/arcade-clouds/resources/screenapp_logo.png" width="55%"
+                  <img src="https://arcadeclouds.com/templates/arcade-clouds/resources/screenapp_logo.png" width="33%"
                     height="100%" style="display: block; border: 0px" /></a>
               </td>
             </tr>
@@ -861,11 +861,9 @@ export const passwordChangedConfirmationTemplate = (
                       letter-spacing: 4px;
                       line-height: 48px;
                     ">
-              <h1 style="font-size: 20px; font-weight: 400; margin: 2">
-                <br />
-              </h1>
+              
               <a href="https://screenapp.io" target="_blank">
-                <img src="https://arcadeclouds.com/templates/arcade-clouds/resources/screenapp_logo.png" width="55%"
+                <img src="https://arcadeclouds.com/templates/arcade-clouds/resources/screenapp_logo.png" width="33%"
                   height="100%" style="display: block; border: 0px" /></a>
             </td>
           </tr>
@@ -1152,7 +1150,7 @@ export const emailVerifiedTemplate = (
                   <br />
                 </h1>
                 <a href="https://screenapp.io" target="_blank">
-                  <img src="https://arcadeclouds.com/templates/arcade-clouds/resources/screenapp_logo.png" width="55%"
+                  <img src="https://arcadeclouds.com/templates/arcade-clouds/resources/screenapp_logo.png" width="33%"
                     height="100%" style="display: block; border: 0px" /></a>
               </td>
             </tr>
