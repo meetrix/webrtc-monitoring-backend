@@ -226,7 +226,7 @@ router.post('/register', register);
  *                  message:
  *                      type: string
  *                      example: Something went wrong. Please try again later.
- *        401:
+ *        404:
  *          description: Unavailable Account
  *          schema:
  *              type: object
