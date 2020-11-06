@@ -17,7 +17,7 @@ export const SUPPORT_URL = process.env['SUPPORT_URL'];
 export const USER_ROLES = ['user', 'admin', 'owner'];
 export const USER_PACKAGES = ['FREE_LOGGEDIN', 'STANDARD', 'PREMIUM'];
 export const S3_CONTENT_BUCKET = 'starter-content';
-export const RECEIVER_EMAIL = process.env['RECEIVER_EMAIL'] || 'hello@meetrix.io';
+export const RECEIVER_EMAIL = process.env['RECEIVER_EMAIL'] || 'support@screenapp.io';
 export const SENDER_EMAIL = process.env['SENDER_EMAIL'] || 'hello@screenapp.io';
 export const S3_CONTENT_LINK_EXPIRATION = 15 * 60; // 15 min
 
