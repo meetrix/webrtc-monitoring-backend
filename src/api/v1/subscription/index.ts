@@ -6,31 +6,25 @@ const router = express.Router();
 /**
  * @swagger
  *
- * /feedback:
+ * /subscription/checkoutsession:
  *    post:
- *     description: Send feedback or inquiry to database
+ *     description: Send session to checkout
  *     produces:
  *       - application/json
  *     parameters:
- *       - name: "Feedbacks"
- *         description: Feeback Body 
+ *       - name: "Packages"
+ *         description: Packages 
  *         in: body
  *         required: true
  *         schema:
  *              type: object
  *              properties:
- *                  name:
- *                      type: string
- *                      example: Steve Jobs
- *                  email:
- *                      type: string
- *                      example: beta@meetrix.io
- *                  feedback:
- *                      type: string
- *                      example: This platform is awesome.
+ *                  plan:
+ *                      type: integer
+ *                      example: 2
  *     responses:
  *        200:
- *           description: "Successful Feedback"
+ *           description: "Successful checkout session"
  *           schema:
  *               type: object
  *               properties:
@@ -38,44 +32,72 @@ const router = express.Router();
  *                       type: string
  *                       example: true
  *                   data:
- *                       type: string
- *                       example: clientId
+ *                       type: object
+ *                       properties:
+ *                            sessionId:
+ *                                type: string
+ *                                example: cs_test_ceuAK4GDwaZz2O6Hg64QISf7n1caOWe9YkRVJJWU1V1dog9QxoLaqS0M
  *                   message:
  *                       type: string
- *                       example: Feedback successfully submitted. We will contact you via email shortly.
- *        422:
- *           description: "Missing Field (Name, Email, Feedback)"
- *           schema:
- *               type: object
- *               properties:
- *                   success:
- *                       type: string
- *                       example: false
- *                   data:
- *                       type: string
- *                       example: null
- *                   message:
- *                      type: string
- *                      example: Please enter your name correctly.
+ *                       example: Session created successfully.
  * 
  *        500:
- *           description: "Unsuccessful Feedback"
+ *           description: "Unsuccessful checkout session"
  *           schema:
  *               type: object
  *               properties:
  *                   success:
  *                       type: string
  *                       example: false
- *                   data:
+ *                   error:
  *                       type: string
- *                       example: null
- *                   message:
- *                      type: string
- *                      example: Feedback submission failed. Please try again later.
+ *                       example: invalid plan
  * 
  * 
  */
 router.post('/checkoutsession', checkoutSession);
+
+/**
+ * @swagger
+ *
+ * /subscription/customerportalurl:
+ *    get:
+ *     description: Send url to customerportal
+ *     produces:
+ *       - application/json
+ *     responses:
+ *        200:
+ *           description: "Successful url to customerportal"
+ *           schema:
+ *               type: object
+ *               properties:
+ *                   success:
+ *                       type: string
+ *                       example: true
+ *                   data:
+ *                       type: object
+ *                       properties:
+ *                            url:
+ *                                type: string
+ *                                example: https://billing.stripe.com/session/_IL5LBqDzHB9pxaruHYLdSvbUpLRX2dr
+ *                   message:
+ *                       type: string
+ *                       example: Customerportal url created successfully
+ * 
+ *        500:
+ *           description: "Unsuccessful url to customerportal"
+ *           schema:
+ *               type: object
+ *               properties:
+ *                   success:
+ *                       type: string
+ *                       example: false
+ *                   error:
+ *                       type: string
+ *                       example: Error acquiring customer portal url
+ * 
+ * 
+ */
 router.get('/customerportalurl', customerPortalUrl);
 
 export const subscriptionRouter = router;

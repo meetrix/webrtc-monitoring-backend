@@ -34,7 +34,7 @@ export const feedback = async (
       gmail_remove_dots: true
     });
 
-    let {name} = req.body;
+    const {name} = req.body;
     if (!name) {
       res.status(422).json({
         success: false,
@@ -44,7 +44,7 @@ export const feedback = async (
       return;
     }
 
-    let {feedback} = req.body;
+    const {feedback} = req.body;
     if (!feedback) {
       res.status(422).json({
         success: false,

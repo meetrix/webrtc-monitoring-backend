@@ -76,7 +76,7 @@ export const customerPortalUrl = async (
     res.status(200).json({
       success: true,
       data: { url: session.url },
-      message: 'Session url created successfully'
+      message: 'Customerportal url created successfully'
     });
 
   } catch (err) {

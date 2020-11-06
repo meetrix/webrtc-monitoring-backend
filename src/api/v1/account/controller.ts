@@ -61,19 +61,23 @@ export const register = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const validationErrors = [];
     if (!validator.isEmail(req.body.email)) {
-      validationErrors.push('Please enter a valid email address.');
-    }
-    if (!validator.isLength(req.body.password, { min: 8 })) {
-      validationErrors.push(
-        'Password must be at least 8 characters long.'
-      );
-    }
-    if (validationErrors.length) {
-      res.status(422).json(formatError(...validationErrors));
+      res.status(422).json({
+        success: false,
+        data: null,
+        message: 'Please enter a valid email address.'
+      });
       return;
     }
+    if (!validator.isLength(req.body.password, { min: 6 })) {
+      res.status(422).json({
+        success: false,
+        data: null,
+        message: 'Password must be at least 6 characters long.'
+      });
+      return;
+    }
+
     req.body.email = validator.normalizeEmail(req.body.email, {
       gmail_remove_dots: false,
     });
@@ -378,11 +382,11 @@ export const reset = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    if (!validator.isLength(req.body.password, { min: 8 })) {
+    if (!validator.isLength(req.body.password, { min: 6 })) {
       res.status(422).json({
         success: false,
         data: null,
-        message: 'Password must be at least 8 characters long.'
+        message: 'Password must be at least 6 characters long.'
       });
     }
     if (req.body.password !== req.body.confirm) {
