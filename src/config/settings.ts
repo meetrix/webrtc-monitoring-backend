@@ -20,7 +20,4 @@ export const S3_CONTENT_BUCKET = 'starter-content';
 export const RECEIVER_EMAIL = process.env['RECEIVER_EMAIL'] || 'support@screenapp.io';
 export const SENDER_EMAIL = process.env['SENDER_EMAIL'] || 'hello@screenapp.io';
 export const S3_CONTENT_LINK_EXPIRATION = 15 * 60; // 15 min
-export const STRIPE_SECRET_KEY = process.env['STRIPE_SECRET_KEY'];
-export const STRIPE_STANDARD_PRICE_ID = process.env['STRIPE_STANDARD_PRICE_ID'];
-export const STRIPE_FREE_PRICE_ID = process.env['STRIPE_FREE_PRICE_ID'];
 
