@@ -382,11 +382,11 @@ export const reset = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    if (!validator.isLength(req.body.password, { min: 8 })) {
+    if (!validator.isLength(req.body.password, { min: 6 })) {
       res.status(422).json({
         success: false,
         data: null,
-        message: 'Password must be at least 8 characters long.'
+        message: 'Password must be at least 6 characters long.'
       });
     }
     if (req.body.password !== req.body.confirm) {
