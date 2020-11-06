@@ -5,8 +5,10 @@ import _ from 'lodash';
 import {
   AUTH_LANDING, STRIPE_SECRET_KEY, STRIPE_FREE_PRICE_ID, STRIPE_STANDARD_PRICE_ID
 } from '../../../config/settings';
-
-const stripe = require('stripe')(STRIPE_SECRET_KEY);
+import Stripe from 'stripe';
+const stripe = new Stripe(STRIPE_SECRET_KEY, {
+  apiVersion: '2020-08-27',
+});
 
 export const checkoutSession = async (
   req: Request,
@@ -31,8 +33,8 @@ export const checkoutSession = async (
     // for additional parameters to pass.
 
     const session = await stripe.checkout.sessions.create({
-      mode: "subscription",
-      payment_method_types: ["card"],
+      mode: 'subscription',
+      payment_method_types: ['card'],
       line_items: [
         {
           price: priceId,
@@ -68,7 +70,7 @@ export const customerPortalUrl = async (
 ): Promise<void> => {
   try {
 
-    var session = await stripe.billingPortal.sessions.create({
+    const session = await stripe.billingPortal.sessions.create({
       customer: 'cus_IKe4DfpakphSmh',                         //have to change this
       return_url: AUTH_LANDING + '/success.html',
     });
