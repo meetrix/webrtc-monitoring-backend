@@ -33,7 +33,7 @@ export const checkoutSession = async (
     // See https://stripe.com/docs/api/checkout/sessions/create
     // for additional parameters to pass.
 
-    /*const session = await stripe.checkout.sessions.create({
+    const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
       line_items: [
@@ -52,7 +52,7 @@ export const checkoutSession = async (
       success: true,
       data: { sessionId: session.id },
       message: 'Session created successfully'
-    });*/
+    });
 
   } catch (err) {
     res.status(500).json({
@@ -71,7 +71,7 @@ export const customerPortalUrl = async (
 ): Promise<void> => {
   try {
 
-    /*const session = await stripe.billingPortal.sessions.create({
+    const session = await stripe.billingPortal.sessions.create({
       customer: 'cus_IKe4DfpakphSmh',                         //have to change this
       return_url: AUTH_LANDING + '/success.html',
     });
@@ -80,7 +80,7 @@ export const customerPortalUrl = async (
       success: true,
       data: { url: session.url },
       message: 'Customerportal url created successfully'
-    });*/
+    });
 
   } catch (err) {
     res.status(500).json({
