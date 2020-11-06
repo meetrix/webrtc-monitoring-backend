@@ -7,7 +7,7 @@ import crypto from 'crypto';
 import { Feedback } from '../../../models/Feedback';
 import { formatError } from '../../../util/error';
 import { getMailOptions, getTransporter } from '../../../util/mail';
-import {RECEIVER_EMAIL} from '../../../config/settings'
+import {RECEIVER_EMAIL} from '../../../config/settings';
 export const feedback = async (
   req: Request,
   res: Response,
