@@ -7,7 +7,7 @@ import crypto from 'crypto';
 import { Feedback } from '../../../models/Feedback';
 import { formatError } from '../../../util/error';
 import { getMailOptions, getTransporter } from '../../../util/mail';
-
+import {RECEIVER_EMAIL} from '../../../config/settings'
 export const feedback = async (
   req: Request,
   res: Response,
@@ -78,6 +78,7 @@ export const feedback = async (
     // const timestamp = Date();
     const mailOptions = getMailOptions({
       subject: `ScreenApp Client Feedback [# ${clientId}]`,
+      to: RECEIVER_EMAIL,
       template: 'feedbackEmail',
       context: {
         clientId,
