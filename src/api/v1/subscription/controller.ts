@@ -6,10 +6,10 @@ import {
   AUTH_LANDING, STRIPE_SECRET_KEY, STRIPE_FREE_PRICE_ID, STRIPE_STANDARD_PRICE_ID
 } from '../../../config/settings';
 
-/*import Stripe from 'stripe';
+import Stripe from 'stripe';
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
- apiVersion: '2020-08-27',
-});*/
+  apiVersion: '2020-08-27',
+});
 
 export const checkoutSession = async (
   req: Request,

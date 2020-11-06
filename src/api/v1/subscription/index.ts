@@ -1,5 +1,6 @@
 import express from 'express';
 import { checkoutSession, customerPortalUrl } from './controller';
+import { isAuthenticated } from '../../../middleware';
 
 const router = express.Router();
 
@@ -98,6 +99,6 @@ router.post('/checkoutsession', checkoutSession);
  * 
  * 
  */
-router.get('/customerportalurl', customerPortalUrl);
+router.get('/customerportalurl', isAuthenticated, customerPortalUrl);
 
 export const subscriptionRouter = router;

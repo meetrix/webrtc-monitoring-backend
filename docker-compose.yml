@@ -46,6 +46,9 @@ services:
       CORS_REGEX: ${CORS_REGEX}
       AUTH_LANDING: ${AUTH_LANDING}
       API_BASE_URL: ${API_BASE_URL}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_FREE_PRICE_ID: ${STRIPE_FREE_PRICE_ID}
+      STRIPE_STANDARD_PRICE_ID: ${STRIPE_STANDARD_PRICE_ID}
     volumes:
       - /usr/src/app/node_modules
     depends_on:
