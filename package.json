@@ -45,6 +45,7 @@
         "passport-linkedin": "^1.0.0",
         "passport-linkedin-oauth2": "^2.0.0",
         "passport-local": "1.0.0",
+        "stripe": "^8.119.0",
         "swagger-jsdoc": "^4.2.0",
         "swagger-ui-express": "^4.1.4",
         "uuid": "3.4.0",
