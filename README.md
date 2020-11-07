@@ -10,30 +10,20 @@ Set VSCode's Typescript import module specifier for the workspace to `relative` 
 
 ```shell
 
-# Install dependencies
-npm install
-
-# Build the project
-npm run build
-
 # Copy the .env.example contents into the .env
 cat .env.example > .env
 
-# Run MongoDB with docker
-
-docker-compose up mongo-express
-
-# Run (development mode) the API on port 9100
-npm start
+# Run (development mode) the API
+docker-compose up
 
 # Check whther the api is running
 
-http://localhost:9100/v1/spec
+http://api.localhost:8081/v1/spec
 ```
 
 To build the project in VS Code press `cmd + shift + b`. You can also run tasks using the command pallet (`cmd + shift + p`) and select `Tasks: Run Task` > `npm: start` to run `npm start` for you.
 
-Finally, navigate to [http://localhost:9100/v1/hello](http://localhost:9100/v1/hello) and you now have access to your API
+Finally, navigate to [http://api.localhost:8081/v1/hello](http://api.localhost:8081/v1/hello) and you now have access to your API
 
 ## OpenAPI Spec
 
@@ -45,7 +35,7 @@ Api spec is written with [openAPI 2.0](https://editor.swagger.io)
 
 ## Show mongodb collections
 
-Go to [http://localhost:8081/](http://localhost:8081/)
+Go to [http://mongo.localhost:8081/](http://mongo.localhost:8081/)
 
 ## Next Steps
 

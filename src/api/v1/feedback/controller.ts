@@ -7,7 +7,7 @@ import crypto from 'crypto';
 import { Feedback } from '../../../models/Feedback';
 import { formatError } from '../../../util/error';
 import { getMailOptions, getTransporter } from '../../../util/mail';
-import {RECEIVER_EMAIL} from '../../../config/settings';
+import { RECEIVER_EMAIL } from '../../../config/settings';
 export const feedback = async (
   req: Request,
   res: Response,
@@ -29,12 +29,12 @@ export const feedback = async (
       });
       return;
     }
-    
+
     email = validator.normalizeEmail(email, {
       gmail_remove_dots: true
     });
 
-    const {name} = req.body;
+    const { name } = req.body;
     if (!name) {
       res.status(422).json({
         success: false,
@@ -44,7 +44,7 @@ export const feedback = async (
       return;
     }
 
-    const {feedback} = req.body;
+    const { feedback } = req.body;
     if (!feedback) {
       res.status(422).json({
         success: false,
