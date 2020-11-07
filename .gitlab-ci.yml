@@ -33,8 +33,8 @@ staging_deploy:
     - ssh $SSH_USER@$SSH_HOST "kill -9 \$(ps aux | grep 'logs -f screenapp-mongo-express' | grep 'docker' | awk '{print \$2}') &"
     - docker-compose -f docker-compose.yml -f docker-compose.staging.yml --env-file $ENVFILE up -d mongo-express
     - ssh $SSH_USER@$SSH_HOST "docker logs -f screenapp-mongo-express >> /var/log/scrennapp/mongo-express.log 2>&1 &"
-    - ssh $SSH_USER@$SSH_HOST "kill -9 \$(ps aux | grep 'logs -f screenapp-auth-backend' | grep 'docker' | awk '{print \$2}') &"
+    - ssh $SSH_USER@$SSH_HOST "kill -9 \$(ps aux | grep 'logs -f screenapp-server' | grep 'docker' | awk '{print \$2}') &"
     - docker-compose -f docker-compose.yml -f docker-compose.staging.yml --env-file $ENVFILE up -d server
-    - ssh $SSH_USER@$SSH_HOST "docker logs -f screenapp-auth-backend >> /var/log/scrennapp/server.log 2>&1 &"
+    - ssh $SSH_USER@$SSH_HOST "docker logs -f screenapp-server >> /var/log/scrennapp/server.log 2>&1 &"
   only:
     - master
