@@ -13,6 +13,6 @@ services:
       - 8081:8081
   server:
     build: 
-      context: ./server
+      context: ./
       dockerfile: production.Dockerfile
     restart: always
