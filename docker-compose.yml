@@ -1,25 +1,24 @@
-version: "3"
+version: "3.8"
 services:
   mongo:
     image: mongo:4.0
     container_name: screenapp-mongodb
-    ports:
-      - "27017:27017"
+    
   mongo-express:
     image: mongo-express
     container_name: screenapp-mongo-express
     restart: always
-    ports:
-      - 8081:8081
     environment:
       ME_CONFIG_BASICAUTH_USERNAME: ${ME_CONFIG_BASICAUTH_USERNAME}
       ME_CONFIG_BASICAUTH_PASSWORD: ${ME_CONFIG_BASICAUTH_PASSWORD}
     depends_on:
       - mongo
+      
   server:
-    build:
+    build: 
       context: ./
-    container_name: screenapp-auth-backend
+      dockerfile: development.Dockerfile
+    container_name: screenapp-server
     ports:
       - 9100:9100
     environment:
@@ -50,7 +49,5 @@ services:
       STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
       STRIPE_FREE_PRICE_ID: ${STRIPE_FREE_PRICE_ID}
       STRIPE_STANDARD_PRICE_ID: ${STRIPE_STANDARD_PRICE_ID}
-    volumes:
-      - /usr/src/app/node_modules
     depends_on:
       - mongo
