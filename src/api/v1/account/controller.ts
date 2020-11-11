@@ -91,6 +91,7 @@ export const register = async (
       });
       return;
     }
+    
 
     // we create a random string to send as the token for email verification
     const randValueHex = (len: number): string => {
@@ -241,6 +242,49 @@ export const login = async (
         info: IVerifyOptions
       ): Response => {
         if (err) throw err;
+        
+        // Let's check user is verifed in the system
+        if (!user.isVerified === true){
+
+          const randValueHex = (len: number): string => {
+            return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
+          };
+          const emailToken = randValueHex(32);
+          const user = new User({
+            emailToken,
+            isVerified: false,
+          });
+          user.save();
+
+          const transporter = getTransporter();
+          const mailOptions = getMailOptions({
+            subject: 'Confirm Your Email Address - ScreenApp.IO',
+            to: `<${user.email}>`,
+            template: 'emailVerification',
+            context: {
+              emailToken,
+              API_BASE_URL,
+              AUTH_LANDING,
+              SUPPORT_URL
+            }
+          });
+      
+          transporter.sendMail(mailOptions, (err, data) => {
+            if (err) {
+              return log('Error occurs');
+            }
+            return log('Email sent to the user successfully.');
+            // res.status(201).json({ token: signToken(user) });
+          });
+          res.status(200).json({
+            success: true,
+            data: { emailToken },
+            message: 'You should complete your signin.'
+          });
+        
+    
+        }
+
         if (!user.email || !user.password){
           // return res.status(403).json(formatError(info.message));
           return res.status(403).json({
@@ -249,6 +293,10 @@ export const login = async (
             message: 'Username or password incorrect. Please check and try again.'
           });
         }
+
+
+
+
         // res.status(200).json({ token: signToken(user) });
         res.status(200).json({
           success: true,
@@ -591,3 +639,74 @@ export const deleteAccount = async (
     next(error);
   }
 };
+
+
+
+
+// Resend Verification
+// export const resendVerification = async (
+//   req: Request,
+//   res: Response,
+//   next: NextFunction
+// ): Promise<void> => {
+//   try {
+    
+//     const getUserById = await User.findOne({ id: req.body.id });
+//     const checkVerificationStatus = getUserById.isVerified === true;
+//     if (checkVerificationStatus) {
+//       res.status(422).json({
+//         success: false,
+//         data: null,
+//         message: 'Already Verified.'
+//       });
+//       return;
+//     }
+
+//     // we create a random string to send as the token for email verification
+//     const randValueHex = (len: number): string => {
+//       return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
+//     };
+//     const emailToken = randValueHex(128);
+
+//     const user = new User({
+//       emailToken,
+//       isVerified: false,
+//     });
+//     await user.save();
+
+
+//     const transporter = getTransporter();
+
+//     const mailOptions = getMailOptions({
+//       subject: 'Confirm Your Email Address - ScreenApp.IO',
+//       to: `<${user.email}>`,
+//       template: 'emailVerification',
+//       context: {
+//         emailToken,
+//         API_BASE_URL,
+//         AUTH_LANDING
+//       }
+//     });
+
+//     transporter.sendMail(mailOptions, (err, data) => {
+//       if (err) {
+//         return log('Error occurs');
+//       }
+//       return log('Email sent to the user successfully.');
+//       // res.status(201).json({ token: signToken(user) });
+//     });
+//     res.status(200).json({
+//       success: true,
+//       data: { emailToken },
+//       message: 'Confirmation email has been sent successfully. Please check your inbox to proceed.'
+//     });
+
+//   } catch (error) {
+//     res.status(500).json({
+//       success: false,
+//       data: null,
+//       message: 'Registration failed. Please try again in few minutes.'
+//     });
+//     next(error);
+//   }
+// };
