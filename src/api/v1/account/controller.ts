@@ -81,17 +81,17 @@ export const register = async (
     req.body.email = validator.normalizeEmail(req.body.email, {
       gmail_remove_dots: false,
     });
-    const existing = await User.findOne({ email: req.body.email });
-    if (existing) {
+    const verifying = await User.findOne({ email: req.body.email });
+
+    if (!verifying.isVerified === true) {
       // res.status(422).json(formatError('Account already exists.'));
       res.status(422).json({
         success: false,
         data: null,
-        message: 'Account Already exists.'
+        message: 'Account is not verifed. Please verify and login.'
       });
       return;
     }
-    
 
     // we create a random string to send as the token for email verification
     const randValueHex = (len: number): string => {
@@ -219,11 +219,8 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
 };
 
 // Login
-export const login = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
+export const login = async (req: any, res: Response, next: NextFunction): Promise<void> =>
+{
   try {
     // if (!req.body.email || !req.body.password) {
     //   //res.status(403).json(formatError('Username or Password incorrect. Please check and try again.'));
@@ -236,24 +233,24 @@ export const login = async (
     });
     passport.authenticate(
       'local',
-      (
+      async (
         err: Error,
         user: UserDocument,
         info: IVerifyOptions
-      ): Response => {
+      ): Promise<Response> => {
         if (err) throw err;
         
         // Let's check user is verifed in the system
-        if (!user.isVerified === true){
+        if (!user.isVerified){
+          const user = await User.findOne({ email: req.query.email });
 
+        //Let's generate a string for emailToken
           const randValueHex = (len: number): string => {
             return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
           };
           const emailToken = randValueHex(32);
-          const user = new User({
-            emailToken,
-            isVerified: false,
-          });
+          user.emailToken,
+          user.isVerified = false,
           user.save();
 
           const transporter = getTransporter();
@@ -279,10 +276,10 @@ export const login = async (
           res.status(200).json({
             success: true,
             data: { emailToken },
-            message: 'You should complete your signin.'
+            message: 'You should complete your signin process. Please confirm the verification email.'
           });
-        
-    
+
+        return;
         }
 
         if (!user.email || !user.password){
@@ -293,9 +290,6 @@ export const login = async (
             message: 'Username or password incorrect. Please check and try again.'
           });
         }
-
-
-
 
         // res.status(200).json({ token: signToken(user) });
         res.status(200).json({
