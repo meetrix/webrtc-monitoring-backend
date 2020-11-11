@@ -34,6 +34,11 @@ export interface UserAPIFormat {
   avatar: string;
   emailToken: string;
 }
+
+export interface Stripe {
+  customer_id?: string;
+}
+
 export type UserDocument = mongoose.Document & {
   id: string;
   email: string;
@@ -52,6 +57,7 @@ export type UserDocument = mongoose.Document & {
   linkedin: string;
   google: string;
   tokens: AuthToken[];
+  stripe: Stripe;
 
   authenticate: (candidatePassword: string) => Promise<boolean>;
   gravatar: (size: number) => string;
@@ -89,6 +95,9 @@ const userSchema = new mongoose.Schema(
       title: String,
       status: String,
       createdAt: String,
+    },
+    stripe: {
+      customer_id: { type: String, default: null },
     }
   },
   { timestamps: true }
