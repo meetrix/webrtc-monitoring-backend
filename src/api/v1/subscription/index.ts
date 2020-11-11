@@ -12,6 +12,8 @@ const router = express.Router();
  *     description: Send session to checkout
  *     produces:
  *       - application/json
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - name: "Packages"
  *         description: Packages 
@@ -56,7 +58,7 @@ const router = express.Router();
  * 
  * 
  */
-router.post('/checkoutsession', checkoutSession);
+router.post('/checkoutsession', isAuthenticated, checkoutSession);
 
 /**
  * @swagger
@@ -66,6 +68,8 @@ router.post('/checkoutsession', checkoutSession);
  *     description: Send url to customerportal
  *     produces:
  *       - application/json
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *        200:
  *           description: "Successful url to customerportal"

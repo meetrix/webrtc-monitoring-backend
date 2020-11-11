@@ -7,6 +7,7 @@ import {
 } from '../../../config/settings';
 
 import Stripe from 'stripe';
+import { User } from '../../../models/User';
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
   apiVersion: '2020-08-27',
 });
@@ -29,13 +30,19 @@ export const checkoutSession = async (
     } else {
       throw Error('invalid plan');
     }
-
+    const user = await User.findOne({ id: req.user.sub });
+    console.log(req.user.sub);
+    if (!user) {
+      throw Error('user not found');
+    }
     // See https://stripe.com/docs/api/checkout/sessions/create
     // for additional parameters to pass.
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
+      customer: user.stripe.customer_id,
+      //customer_email: user.email,
       line_items: [
         {
           price: priceId,
@@ -45,8 +52,8 @@ export const checkoutSession = async (
       // {CHECKOUT_SESSION_ID} is a string literal; do not change it!
       // the actual Session ID is returned in the query parameter when your customer
       // is redirected to the success page.
-      success_url: AUTH_LANDING + '/success.html?session_id={CHECKOUT_SESSION_ID}',
-      cancel_url: AUTH_LANDING + '/canceled.html',
+      success_url: `${AUTH_LANDING}/#/dashboard?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${AUTH_LANDING}/#/dashboard`,
     });
     res.status(200).json({
       success: true,
@@ -70,10 +77,14 @@ export const customerPortalUrl = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-
+    const user = await User.findOne({ id: req.user.sub });
+    console.log(req.user.sub);
+    if (!user) {
+      throw Error('user not found');
+    }
     const session = await stripe.billingPortal.sessions.create({
-      customer: 'cus_IKe4DfpakphSmh',                         //have to change this
-      return_url: AUTH_LANDING + '/success.html',
+      customer: user.stripe.customer_id,
+      return_url: `${AUTH_LANDING}/#/dashboard`,
     });
     console.log(session);
     res.status(200).json({
