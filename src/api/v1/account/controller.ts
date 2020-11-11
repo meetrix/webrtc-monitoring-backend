@@ -181,7 +181,7 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
       },
     });
 
-    user.stripe.customer_id = customer.id;
+    user.stripe.customerId = customer.id;
     user.emailToken = null;
     user.isVerified = true,
 

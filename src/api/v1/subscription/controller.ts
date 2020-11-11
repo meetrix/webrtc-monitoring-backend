@@ -41,7 +41,7 @@ export const checkoutSession = async (
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
       payment_method_types: ['card'],
-      customer: user.stripe.customer_id,
+      customer: user.stripe.customerId,
       //customer_email: user.email,
       line_items: [
         {
@@ -83,7 +83,7 @@ export const customerPortalUrl = async (
       throw Error('user not found');
     }
     const session = await stripe.billingPortal.sessions.create({
-      customer: user.stripe.customer_id,
+      customer: user.stripe.customerId,
       return_url: `${AUTH_LANDING}/#/dashboard`,
     });
     console.log(session);
