@@ -124,16 +124,19 @@ export const stripeEventHandler = async (
         signature,
         webhookSecret
       );
+
+      // Extract the object from the event.
+      eventType = event.type;
+      data = event.data;
+
     } catch (err) {
-      console.log('Webhook signature verification failed.');
-      res.status(400).json({
+      console.log(err);
+      console.log('Webhook signature verification failed.' + err.message);
+      return res.status(400).json({
         success: false,
         message: 'Webhook signature verification failed'
       });
     }
-    // Extract the object from the event.
-    eventType = event.type;
-    data = event.data;
   } else {
     // Webhook signing is recommended, but if the secret is not configured in `config.js`,
     // retrieve the event data directly from the request body.
@@ -173,4 +176,3 @@ export const stripeEventHandler = async (
     message: 'Webhook updated successfully'
   });
 };
-
