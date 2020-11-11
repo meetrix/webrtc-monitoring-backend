@@ -1,5 +1,5 @@
 import express from 'express';
-import { checkoutSession, customerPortalUrl } from './controller';
+import { checkoutSession, customerPortalUrl, stripeEventHandler } from './controller';
 import { isAuthenticated } from '../../../middleware';
 
 const router = express.Router();
@@ -104,5 +104,8 @@ router.post('/checkoutsession', isAuthenticated, checkoutSession);
  * 
  */
 router.get('/customerportalurl', isAuthenticated, customerPortalUrl);
+
+//dont put swagger here
+router.post('/stripeeventhandler/sr5h5vym2ayvft4fzkcgx6xbbrk53h3yshqzrm6xgqhdwr3k457754q2dta3dx8f', stripeEventHandler);
 
 export const subscriptionRouter = router;

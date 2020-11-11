@@ -177,7 +177,7 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
       email: user.email,
       name: 'this should filled',
       metadata: {
-        user_id: user._id.toString(),
+        userId: user._id.toString(),
       },
     });
 

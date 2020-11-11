@@ -23,4 +23,5 @@ export const S3_CONTENT_LINK_EXPIRATION = 15 * 60; // 15 min
 export const STRIPE_SECRET_KEY = process.env['STRIPE_SECRET_KEY'];
 export const STRIPE_STANDARD_PRICE_ID = process.env['STRIPE_STANDARD_PRICE_ID'];
 export const STRIPE_FREE_PRICE_ID = process.env['STRIPE_FREE_PRICE_ID'];
+export const STRIPE_WEBHOOK_SECRET = process.env['STRIPE_WEBHOOK_SECRET'];
 
