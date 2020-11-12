@@ -7,7 +7,7 @@ import { Response, Request, NextFunction } from 'express';
 import { IVerifyOptions } from 'passport-local';
 import { getMailOptions, getTransporter } from '../../../util/mail';
 import {
-  AUTH_LANDING, API_BASE_URL, SUPPORT_URL
+  AUTH_LANDING, API_BASE_URL, SUPPORT_URL, STRIPE_SECRET_KEY
 } from '../../../config/settings';
 const log = console.log;
 
@@ -19,6 +19,10 @@ import { UserDocument, User } from '../../../models/User';
 import { formatError } from '../../../util/error';
 import { SUCCESSFUL_RESPONSE } from '../../../util/success';
 import { signToken } from '../../../util/auth';
+import Stripe from 'stripe';
+const stripe = new Stripe(STRIPE_SECRET_KEY, {
+  apiVersion: '2020-08-27',
+});
 
 // Refresh
 export const refresh = async (
@@ -169,20 +173,31 @@ export const register = async (req: any, res: Response, next: NextFunction): Pro
 };
 
 // User account verification & auto signin at first attempt
-export const verify = async (req: any, res: Response, next: NextFunction): Promise<void> => {
+export const verify = async (req: any, res: Response, next: NextFunction): Promise<any> => {
   try {
 
     const user = await User.findOne({ emailToken: req.query.token });
     if (!user) {
       //res.status(422).json('Token is invalid or expired. Please try again.');
-      res.status(401).json({
+      return res.status(401).json({
         success: false,
         data: null,
         message: 'The verification link is already used or expired. Please try again.'
       });
     }
+
+    const customer = await stripe.customers.create({
+      email: user.email,
+      name: 'this should filled',
+      metadata: {
+        userId: user._id.toString(),
+      },
+    });
+
+    user.stripe.customerId = customer.id;
     user.emailToken = null;
     user.isVerified = true,
+
       await user.save();
 
     const transporter = getTransporter();
@@ -195,7 +210,6 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
         API_BASE_URL,
         AUTH_LANDING,
         SUPPORT_URL
-
       }
     });
 
@@ -206,17 +220,17 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
       return log('Email sent to the user successfully.');
     });
 
-      // A new email signin token issued to get user details to verify at signin
-      user.accessToken = signToken(user),
+    // A new email signin token issued to get user details to verify at signin
+    user.accessToken = signToken(user),
       await user.save();
 
     res.redirect(`${AUTH_LANDING}/#/dashboard?token=${user.accessToken}`);
 
-    res.status(200).json({
+    /*res.status(200).json({
       success: true,
       data: { accessToken: user.accessToken },
       message: 'Verification successfull. Redirecting...'
-    });
+    });*/
 
   } catch (error) {
     res.status(500).json({
@@ -563,16 +577,16 @@ export const getProfile = async (
     //res.status(200).json(user.format());
     res.status(200).json({
       success: true,
-      data:{
-          id: user.id,
-          isVerified: user.isVerified,
-          email: user.email,
-          role: user.role,
-          package: user.package,
-          avatar: user.gravatar,
-          profile: user.profile,
-          tag: user.tag,
-        },
+      data: {
+        id: user.id,
+        isVerified: user.isVerified,
+        email: user.email,
+        role: user.role,
+        package: user.package,
+        avatar: user.gravatar,
+        profile: user.profile,
+        tag: user.tag,
+      },
       message: 'Get profile successful.'
     });
   } catch (error) {

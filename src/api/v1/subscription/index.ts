@@ -1,5 +1,5 @@
 import express from 'express';
-import { checkoutSession, customerPortalUrl } from './controller';
+import { checkoutSession, customerPortalUrl, stripeEventHandler } from './controller';
 import { isAuthenticated } from '../../../middleware';
 
 const router = express.Router();
@@ -12,6 +12,8 @@ const router = express.Router();
  *     description: Send session to checkout
  *     produces:
  *       - application/json
+ *     security:
+ *       - bearerAuth: []
  *     parameters:
  *       - name: "Packages"
  *         description: Packages 
@@ -56,7 +58,7 @@ const router = express.Router();
  * 
  * 
  */
-router.post('/checkoutsession', checkoutSession);
+router.post('/checkoutsession', isAuthenticated, checkoutSession);
 
 /**
  * @swagger
@@ -66,6 +68,8 @@ router.post('/checkoutsession', checkoutSession);
  *     description: Send url to customerportal
  *     produces:
  *       - application/json
+ *     security:
+ *       - bearerAuth: []
  *     responses:
  *        200:
  *           description: "Successful url to customerportal"
@@ -100,5 +104,8 @@ router.post('/checkoutsession', checkoutSession);
  * 
  */
 router.get('/customerportalurl', isAuthenticated, customerPortalUrl);
+
+//dont put swagger here
+router.post('/stripeeventhandler/sr5h5vym2ayvft4fzkcgx6xbbrk53h3yshqzrm6xgqhdwr3k457754q2dta3dx8f', stripeEventHandler);
 
 export const subscriptionRouter = router;
