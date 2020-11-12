@@ -36,7 +36,9 @@ export interface UserAPIFormat {
 }
 
 export interface Stripe {
-  customerId?: string;
+  customerId: string;
+  priceId: string;
+  subscriptionStatus: string;
 }
 
 export type UserDocument = mongoose.Document & {
@@ -98,6 +100,8 @@ const userSchema = new mongoose.Schema(
     },
     stripe: {
       customerId: { type: String, default: null },
+      priceId: { type: String, default: null },
+      subscriptionStatus: { type: String, default: 'pending' },
     }
   },
   { timestamps: true }

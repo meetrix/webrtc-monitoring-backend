@@ -146,12 +146,32 @@ export const stripeEventHandler = async (
     data = req.body.data;
   }
 
+  let customerId;
+
   switch (eventType) {
     case 'checkout.session.completed':
       console.log(eventType);
       console.log(data);
       // Payment is successful and the subscription is created.
       // You should provision the subscription.
+
+      customerId = data.object.customer;
+      try {
+        const user = await User.findOne({ 'stripe.customerId': customerId });
+        if (!user) {
+          throw Error('user not found');
+        }
+        //console.log(user);
+        user.stripe.subscriptionStatus = 'active';
+        await user.save();
+
+      } catch (err) {
+        return res.status(500).json({
+          success: false,
+          error: err.message
+        });
+      }
+
       break;
     case 'invoice.paid':
       console.log(eventType);
@@ -172,7 +192,7 @@ export const stripeEventHandler = async (
       console.log(data);
 
       const subscribedPriceId = data.object.items.data[0].price.id;
-      const customerId = data.object.customer;
+      customerId = data.object.customer;
       console.log(subscribedPriceId);
 
       try {
@@ -191,6 +211,7 @@ export const stripeEventHandler = async (
         } else {
           throw Error('invalid plan');
         }
+        user.stripe.priceId = subscribedPriceId;
         user.package = packageName;
         await user.save();
 
@@ -210,6 +231,9 @@ export const stripeEventHandler = async (
 
   res.status(200).json({
     success: true,
+    data: {
+      event: eventType
+    },
     message: 'Webhook updated successfully'
   });
 };
