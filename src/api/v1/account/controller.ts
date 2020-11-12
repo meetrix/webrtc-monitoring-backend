@@ -366,10 +366,14 @@ export const forgot = async (
       res.status(401).json({
         success: false,
         data: null,
-        message: 'Email Address not found in our system.'
+        message: 'Email Address not found in our system. Please signup to enjoy ScreenApp.'
       });
+      res.redirect(`${AUTH_LANDING}/#/signup`);
       return;
+      
     }
+    
+    
     const token = crypto.randomBytes(16).toString('hex');
     user.passwordResetToken = token;
     user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // ms
