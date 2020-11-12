@@ -139,22 +139,11 @@ export const register = async (req: any, res: Response, next: NextFunction): Pro
 
    }
 
-   
-    // if (verifying) {
-    //   res.status(422).json({
-    //     success: true,
-    //     data: null,
-    //     message: 'Account is already verifed.'
-    //   });
-    //   return;
-    // }
-
-     // console.log(verifying.isVerified)
     if (!selectedUser.isVerified) {
       res.status(200).json({
         success: true,
         data: null,
-        message: 'You have an unverifed account with us. Please check your email and confirm it.'
+        message: 'You have an unverifed account with us. Please verify your account & signin.'
       });
       return;
     }
@@ -162,7 +151,7 @@ export const register = async (req: any, res: Response, next: NextFunction): Pro
       res.status(200).json({
         success: true,
         data: null,
-        message: 'You have an already verified account with us. If you need to reset your password, please reset it.'
+        message: 'You have a verified account with us. Please signin or reset your credentials to continue.'
       });
       return;
   }
@@ -189,7 +178,7 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
       res.status(401).json({
         success: false,
         data: null,
-        message: 'Token is invalid or expired. Please try again.'
+        message: 'The verification link is already used or expired. Please try again.'
       });
     }
     user.emailToken = null;
@@ -269,7 +258,7 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
           return res.status(403).json({
             success: false,
             data: null,
-            message: `Username or password incorrect. If you forgot your credentials, please <a href=${AUTH_LANDING}/resetpassword> Reset </a>`
+            message: `Username or password incorrect. If you forgot your credentials, please reset now.`
           });
         }
         
@@ -285,7 +274,7 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
 
           // Let's update new emailToken and verification status for existing users
           user.emailToken = emailToken,
-          user.isVerified = null,
+          user.isVerified = false,
           await user.save();
 
           const transporter = getTransporter();
@@ -310,13 +299,11 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
           res.status(200).json({
             success: true,
             data: { emailToken },
-            message: 'You should complete your signin process. Please confirm the verification email.'
+            message: 'You should complete your signin process. Please check your inbox & confirm your account to continue.'
           });
 
         return;
         }
-
-
 
         // res.status(200).json({ token: signToken(user) });
         res.status(200).json({
@@ -482,7 +469,7 @@ export const reset = async (
       res.status(422).json({
         success: false,
         data: null,
-        message: 'our reset link might be expired. Please try again.'
+        message: 'Your reset link might be expired. Please try again.'
       });
 
       return;
