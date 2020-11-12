@@ -83,15 +83,14 @@ export const register = async (
     });
     const verifying = await User.findOne({ email: req.body.email });
 
-    if (!verifying.isVerified === true) {
-      // res.status(422).json(formatError('Account already exists.'));
+    if (verifying.isVerified === true) {
       res.status(422).json({
-        success: false,
+        success: true,
         data: null,
-        message: 'Account is not verifed. Please verify and login.'
+        message: 'Account is already verifed.'
       });
-      return;
     }
+
 
     // we create a random string to send as the token for email verification
     const randValueHex = (len: number): string => {
@@ -242,17 +241,19 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
         
         // Let's check user is verifed in the system
         if (!user.isVerified){
-          const user = await User.findOne({ email: req.query.email });
-
+          console.log('a')
+         // const user = await User.findOne({ email: req.query.email });
+          console.log(user)
         //Let's generate a string for emailToken
           const randValueHex = (len: number): string => {
             return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
           };
+          console.log('c')
           const emailToken = randValueHex(32);
           user.emailToken,
           user.isVerified = false,
           user.save();
-
+          console.log('d')
           const transporter = getTransporter();
           const mailOptions = getMailOptions({
             subject: 'Confirm Your Email Address - ScreenApp.IO',
@@ -265,7 +266,7 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
               SUPPORT_URL
             }
           });
-      
+          console.log('e')
           transporter.sendMail(mailOptions, (err, data) => {
             if (err) {
               return log('Error occurs');
@@ -273,6 +274,7 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
             return log('Email sent to the user successfully.');
             // res.status(201).json({ token: signToken(user) });
           });
+          console.log('f')
           res.status(200).json({
             success: true,
             data: { emailToken },
@@ -633,8 +635,6 @@ export const deleteAccount = async (
     next(error);
   }
 };
-
-
 
 
 // Resend Verification
