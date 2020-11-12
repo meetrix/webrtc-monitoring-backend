@@ -3,7 +3,7 @@
 import { Response, Request, NextFunction } from 'express';
 import _ from 'lodash';
 import {
-  AUTH_LANDING, STRIPE_SECRET_KEY, STRIPE_FREE_PRICE_ID, STRIPE_STANDARD_PRICE_ID, STRIPE_WEBHOOK_SECRET
+  AUTH_LANDING, STRIPE_SECRET_KEY, STRIPE_FREE_PRICE_ID, STRIPE_STANDARD_PRICE_ID, STRIPE_WEBHOOK_SECRET, USER_PACKAGES
 } from '../../../config/settings';
 
 import Stripe from 'stripe';
@@ -23,10 +23,12 @@ export const checkoutSession = async (
     }
     const planId = req.body.plan;
     let priceId;
-    if (planId === 1) {
+    if (planId === USER_PACKAGES[0]) {
       priceId = STRIPE_FREE_PRICE_ID;
-    } else if (planId === 2) {
+    } else if (planId === USER_PACKAGES[1]) {
       priceId = STRIPE_STANDARD_PRICE_ID;
+    } else if (planId === USER_PACKAGES[2]) {
+      priceId = STRIPE_STANDARD_PRICE_ID;       //STRIPE_PREMIUM_PRICE_ID   //update with PREMIUM LATER
     } else {
       throw Error('invalid plan');
     }
@@ -164,6 +166,41 @@ export const stripeEventHandler = async (
       // The payment failed or the customer does not have a valid payment method.
       // The subscription becomes past_due. Notify your customer and send them to the
       // customer portal to update their payment information.
+      break;
+    case 'customer.subscription.updated':
+      console.log(eventType);
+      console.log(data);
+
+      const subscribedPriceId = data.object.items.data[0].price.id;
+      const customerId = data.object.customer;
+      console.log(subscribedPriceId);
+
+      try {
+        const user = await User.findOne({ 'stripe.customerId': customerId });
+        if (!user) {
+          throw Error('user not found');
+        }
+        //console.log(user);
+        let packageName;
+        if (subscribedPriceId == STRIPE_FREE_PRICE_ID) {
+          packageName = USER_PACKAGES[0];
+        } else if (subscribedPriceId == STRIPE_STANDARD_PRICE_ID) {
+          packageName = USER_PACKAGES[1];
+        } else if (subscribedPriceId == STRIPE_STANDARD_PRICE_ID) {   //STRIPE_PREMIUM_PRICE_ID   //update with PREMIUM LATER
+          packageName = USER_PACKAGES[2];
+        } else {
+          throw Error('invalid plan');
+        }
+        user.package = packageName;
+        await user.save();
+
+      } catch (err) {
+        return res.status(500).json({
+          success: false,
+          error: err.message
+        });
+      }
+
       break;
     default:
       console.log('unknown event type : ' + eventType);
