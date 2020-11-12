@@ -55,11 +55,8 @@ export const refresh = async (
 };
 
 // Register
-export const register = async (
-  req: Request,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
+
+export const register = async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
     if (!validator.isEmail(req.body.email)) {
       res.status(422).json({
@@ -81,18 +78,11 @@ export const register = async (
     req.body.email = validator.normalizeEmail(req.body.email, {
       gmail_remove_dots: false,
     });
-    const verifying = await User.findOne({ email: req.body.email });
-
-    if (verifying.isVerified === true) {
-      res.status(422).json({
-        success: true,
-        data: null,
-        message: 'Account is already verifed.'
-      });
-    }
+   const selectedUser = await User.findOne({ email: req.body.email });
 
 
-    // we create a random string to send as the token for email verification
+   if (!selectedUser) {
+
     const randValueHex = (len: number): string => {
       return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
     };
@@ -144,8 +134,41 @@ export const register = async (
       data: { emailToken },
       message: 'Confirmation email has been sent successfully. Please check your inbox to proceed.'
     });
+     
 
+
+   }
+
+   
+    // if (verifying) {
+    //   res.status(422).json({
+    //     success: true,
+    //     data: null,
+    //     message: 'Account is already verifed.'
+    //   });
+    //   return;
+    // }
+
+     // console.log(verifying.isVerified)
+    if (!selectedUser.isVerified) {
+      res.status(200).json({
+        success: true,
+        data: null,
+        message: 'You have an unverifed account with us. Please check your email and confirm it.'
+      });
+      return;
+    }
+    else if (selectedUser.isVerified) {
+      res.status(200).json({
+        success: true,
+        data: null,
+        message: 'You have an already verified account with us. If you need to reset your password, please reset it.'
+      });
+      return;
+  }
+    
   } catch (error) {
+    console.log(error)
     res.status(500).json({
       success: false,
       data: null,
@@ -153,6 +176,7 @@ export const register = async (
     });
     next(error);
   }
+  
 };
 
 // User account verification & auto signin at first attempt
@@ -238,22 +262,32 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
         info: IVerifyOptions
       ): Promise<Response> => {
         if (err) throw err;
+
+        // Let's check username or password is matached
+        if (!user.email || !user.password){
+          // return res.status(403).json(formatError(info.message));
+          return res.status(403).json({
+            success: false,
+            data: null,
+            message: `Username or password incorrect. If you forgot your credentials, please <a href=${AUTH_LANDING}/resetpassword> Reset </a>`
+          });
+        }
+        
         
         // Let's check user is verifed in the system
         if (!user.isVerified){
-          console.log('a')
-         // const user = await User.findOne({ email: req.query.email });
-          console.log(user)
+      
         //Let's generate a string for emailToken
           const randValueHex = (len: number): string => {
             return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
           };
-          console.log('c')
           const emailToken = randValueHex(32);
-          user.emailToken,
-          user.isVerified = false,
-          user.save();
-          console.log('d')
+
+          // Let's update new emailToken and verification status for existing users
+          user.emailToken = emailToken,
+          user.isVerified = null,
+          await user.save();
+
           const transporter = getTransporter();
           const mailOptions = getMailOptions({
             subject: 'Confirm Your Email Address - ScreenApp.IO',
@@ -266,7 +300,6 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
               SUPPORT_URL
             }
           });
-          console.log('e')
           transporter.sendMail(mailOptions, (err, data) => {
             if (err) {
               return log('Error occurs');
@@ -274,7 +307,6 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
             return log('Email sent to the user successfully.');
             // res.status(201).json({ token: signToken(user) });
           });
-          console.log('f')
           res.status(200).json({
             success: true,
             data: { emailToken },
@@ -284,14 +316,7 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
         return;
         }
 
-        if (!user.email || !user.password){
-          // return res.status(403).json(formatError(info.message));
-          return res.status(403).json({
-            success: false,
-            data: null,
-            message: 'Username or password incorrect. Please check and try again.'
-          });
-        }
+
 
         // res.status(200).json({ token: signToken(user) });
         res.status(200).json({
