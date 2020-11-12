@@ -319,6 +319,7 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
         return;
         }
 
+        if (user.isVerified){
         // res.status(200).json({ token: signToken(user) });
         res.status(200).json({
           success: true,
@@ -326,6 +327,7 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
           message: 'Login Successful. Redirecting...'
         });
       }
+    }
     )(req, res, next);
   } catch (error) {
     res.status(500).json({
