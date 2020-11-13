@@ -121,6 +121,7 @@ export const register = async (req: any, res: Response, next: NextFunction): Pro
     });
     await user.save();
 
+    const clientName = user.profile.name;
 
     const transporter = getTransporter();
 
@@ -129,6 +130,7 @@ export const register = async (req: any, res: Response, next: NextFunction): Pro
       to: `<${user.email}>`,
       template: 'emailVerification',
       context: {
+        clientName,
         emailToken,
         API_BASE_URL,
         AUTH_LANDING,
@@ -210,6 +212,8 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
 
       await user.save();
 
+    const clientName = user.profile.name;
+
     const transporter = getTransporter();
 
     const mailOptions = getMailOptions({
@@ -217,6 +221,7 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
       to: `<${user.email}>`,
       template: 'emailVerificationConfirmation',
       context: {
+        clientName,
         API_BASE_URL,
         AUTH_LANDING,
         SUPPORT_URL
@@ -301,12 +306,15 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
           user.isVerified = false,
           await user.save();
 
+          const clientName = user.profile.name;
+
           const transporter = getTransporter();
           const mailOptions = getMailOptions({
             subject: 'Confirm Your Email Address - ScreenApp.IO',
             to: `<${user.email}>`,
             template: 'emailVerification',
             context: {
+              clientName,
               emailToken,
               API_BASE_URL,
               AUTH_LANDING,
@@ -383,11 +391,12 @@ export const forgot = async (
       
     }
     
-    
     const token = crypto.randomBytes(16).toString('hex');
     user.passwordResetToken = token;
     user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // ms
     await user.save();
+
+    const clientName = user.profile.name;
 
     const transporter = getTransporter();
 
@@ -396,6 +405,7 @@ export const forgot = async (
       to: `<${user.email}>`,
       template: 'passwordReset',
       context: {
+        clientName,
         token,
         API_BASE_URL,
         AUTH_LANDING,
@@ -510,13 +520,16 @@ export const reset = async (
     user.passwordResetExpires = undefined;
     await user.save();
 
+    const clientName = user.profile.name;
+  
     const transporter = getTransporter();
 
     const mailOptions = getMailOptions({
       subject: 'Password Reset Successful - ScreenApp.IO',
       to: `<${user.email}>`,
-      template: 'passwordResetConfrimation',
+      template: 'passwordResetConfirmation',
       context: {
+        clientName,
         API_BASE_URL,
         AUTH_LANDING,
         SUPPORT_URL
@@ -537,7 +550,6 @@ export const reset = async (
       message: 'Password reset successful. Sign in back to access your account.'
     });
   } catch (error) {
-
     res.status(500).json({
       success: false,
       data: null,
