@@ -190,12 +190,13 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
 
     const user = await User.findOne({ emailToken: req.query.token });
     if (!user) {
-      //res.status(422).json('Token is invalid or expired. Please try again.');
-      return res.status(401).json({
+      res.redirect(`${AUTH_LANDING}/#/verificationtoken_expired`)
+      res.status(401).json({
         success: false,
         data: null,
         message: 'The verification link is already used or expired. Please try again.'
       });
+      return 
     }
 
     const customer = await stripe.customers.create({
@@ -443,11 +444,13 @@ export const resetPassword = async (req: any, res: Response, next: NextFunction)
 
     const user = await User.findOne({ passwordResetToken: req.query.token });
     if (!user) {
+      res.redirect(`${AUTH_LANDING}/#/resetpasswordtoken_expired`)
       res.status(401).json({
         success: false,
         data: null,
-        message: 'Token is invalid or expired. Please try again.'
+        message: 'The password reset link is already used or expired. Please try again.'
       });
+      return
     }
 
     res.redirect(`${AUTH_LANDING}/#/resetpassword?token=${user.passwordResetToken}`);
@@ -506,12 +509,12 @@ export const reset = async (
       .where('passwordResetExpires')
       .gt(Date.now());
     if (!user) {
-      res.status(422).json({
+      res.redirect(`${AUTH_LANDING}/#/resetpasswordtoken_expired`)
+      res.status(401).json({
         success: false,
         data: null,
-        message: 'Your reset link might be expired. Please try again.'
+        message: 'The password reset link is already used or expired. Please try again.'
       });
-
       return;
     }
 
