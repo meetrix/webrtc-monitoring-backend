@@ -62,6 +62,16 @@ export const refresh = async (
 
 export const register = async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
+
+    if (!validator.isEmpty(req.body.name)) {
+      res.status(422).json({
+        success: false,
+        data: null,
+        message: 'Please enter your name correctly.'
+      });
+      return;
+    }
+
     if (!validator.isEmail(req.body.email)) {
       res.status(422).json({
         success: false,
@@ -499,6 +509,8 @@ export const reset = async (
     user.passwordResetToken = undefined;
     user.passwordResetExpires = undefined;
     await user.save();
+
+    console.log('ffffffffff')
 
     const transporter = getTransporter();
 
