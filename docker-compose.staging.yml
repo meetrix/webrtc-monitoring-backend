@@ -5,7 +5,7 @@ services:
     volumes:
       - /opt/screenapp/mongodb/volume:/data/db
     ports:
-      - "27017:27017"
+      - 27017:27017
 
   mongo-express:
     restart: always

@@ -7,7 +7,6 @@ services:
   mongo-express:
     image: mongo-express
     container_name: screenapp-mongo-express
-    restart: always
     environment:
       ME_CONFIG_BASICAUTH_USERNAME: ${ME_CONFIG_BASICAUTH_USERNAME}
       ME_CONFIG_BASICAUTH_PASSWORD: ${ME_CONFIG_BASICAUTH_PASSWORD}
