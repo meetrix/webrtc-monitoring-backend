@@ -14,6 +14,10 @@ export const RECOVERY_LANDING =
 export const AUTH_LANDING = process.env['AUTH_LANDING'];
 export const API_BASE_URL = process.env['API_BASE_URL'];
 export const SUPPORT_URL = process.env['SUPPORT_URL'];
+
+export const GOOGLE_CALLBACK_URL = process.env['GOOGLE_CALLBACK_URL'];
+export const FACEBOOK_CALLBACK_URL = process.env['FACEBOOK_CALLBACK_URL'];
+export const LINKEDIN_CALLBACK_URL = process.env['LINKEDIN_CALLBACK_URL'];
 export const USER_ROLES = ['user', 'admin', 'owner'];
 export const USER_PACKAGES = ['FREE_LOGGEDIN', 'STANDARD', 'PREMIUM'];
 export const S3_CONTENT_BUCKET = 'starter-content';
