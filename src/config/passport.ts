@@ -7,9 +7,7 @@ import { Strategy as LinkedInStrategy } from 'passport-linkedin-oauth2';
 import { User, UserDocument } from '../models/User';
 import logger from '../util/logger';
 import { GOOGLE_ID, GOOGLE_SECRET, FACEBOOK_ID, FACEBOOK_SECRET, LINKEDIN_API_KEY, LINKEDIN_SECRET } from './secrets';
-import {
-  GOOGLE_CALLBACK_URL, FACEBOOK_CALLBACK_URL, LINKEDIN_CALLBACK_URL
-} from '../config/settings';
+import {API_BASE_URL} from '../config/settings';
 
 const LocalStrategy = passportLocal.Strategy;
 
@@ -99,7 +97,7 @@ const googleStrategyConfig = new GoogleAuthStratergy(
   {
     clientID: GOOGLE_ID,
     clientSecret: GOOGLE_SECRET,
-    callbackURL: GOOGLE_CALLBACK_URL,
+    callbackURL: `${API_BASE_URL}/auth/google/callback`,
   },
   async (accessToken, refreshToken, profile, done) => {
     try {
@@ -137,7 +135,7 @@ passport.use(
     {
       clientID: FACEBOOK_ID,
       clientSecret: FACEBOOK_SECRET,
-      callbackURL: FACEBOOK_CALLBACK_URL,
+      callbackURL: `${API_BASE_URL}/auth/facebook/callback`,
       profileFields: ['name', 'email', 'link', 'locale', 'timezone'],
       passReqToCallback: true,
     },
@@ -166,7 +164,7 @@ passport.use(
     {
       clientID: LINKEDIN_API_KEY,
       clientSecret: LINKEDIN_SECRET,
-      callbackURL: LINKEDIN_CALLBACK_URL,
+      callbackURL: `${API_BASE_URL}/auth/linkedin/callback`,
       profileFields: ['name', 'email', 'link', 'locale', 'timezone'],
       passReqToCallback: true,
     },
