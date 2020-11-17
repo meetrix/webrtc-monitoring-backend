@@ -39,7 +39,7 @@ router.use('/facebook/callback', facebookAuthCallback, authCallback);
  */
 router.use('/facebook', facebookAuth);
 
-router.use('/linkedin/callback', linkedinAuthCallback, authCallback);
+//router.use('/linkedin/callback', linkedinAuthCallback, authCallback);
 /**
  * @swagger
  * /auth/linkedin:
@@ -53,5 +53,5 @@ router.use('/linkedin/callback', linkedinAuthCallback, authCallback);
  *
  *
  */
-router.use('/linkedin', linkedinAuth);
+//router.use('/linkedin', linkedinAuth);
 export const authRouter = router;

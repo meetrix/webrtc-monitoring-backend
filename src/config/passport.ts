@@ -31,11 +31,11 @@ const findUserOrCreateUser = async (profile: Passport.ExtendedProfile, accessTok
     const { givenName, familyName } = name;
 
     const fullName = givenName + ' ' + familyName;
-    let email = '';                     //this should fix however
-    let picture = '';
-    if (emails && emails[0]) {
-      email = emails[0].value;
-    }
+    const email = emails[0].value;
+    //let email = '';
+    let picture = null;
+    //if (emails && emails[0]) {
+    //}
     if (photos && photos[0]) {
       picture = photos[0].value;
     }
@@ -47,19 +47,22 @@ const findUserOrCreateUser = async (profile: Passport.ExtendedProfile, accessTok
     if (user) return user;
 
     // 2. If we could not find any account with email, lets see whether there is an account with provider id
-    user = await User.findOne({ [provider]: id });
-    logger.info(`Found registered user with ${provider} id: ${id}`);
+    // we dont want this for now
 
-    if (user) return user;
+    //user = await User.findOne({ 'profile.provider': provider, 'profile.providerId': id });
+    //logger.info(`Found registered user with ${provider} id: ${id}`);
+
+    //if (user) return user;
 
     // 3. If we cannot find a user at all, we should create one
     logger.info('User not found. Creating a new user');
     user = new User({
       email,
-      [provider]: id,
       profile: {
         name: fullName,
         picture,
+        provider,
+        providerId: id
       },
     });
     user.tokens.push({

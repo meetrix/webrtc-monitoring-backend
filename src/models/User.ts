@@ -10,6 +10,8 @@ export interface Profile {
   location?: string;
   website?: string;
   picture?: string;
+  provider?: string;
+  providerId?: string;
 }
 
 export interface Tag {
@@ -20,8 +22,8 @@ export interface Tag {
   modifiedAt?: string;
 }
 export interface AuthToken {
-  accessToken: string;
   kind: string;
+  accessToken: string;
   refreshToken: string;
 }
 export interface UserAPIFormat {
@@ -89,7 +91,9 @@ const userSchema = new mongoose.Schema(
       gender: String,
       location: String,
       website: String,
-      picture: String
+      picture: String,
+      provider: String,
+      providerId: String
     },
 
     tag: {
@@ -98,6 +102,7 @@ const userSchema = new mongoose.Schema(
       status: String,
       createdAt: String,
     },
+
     stripe: {
       customerId: { type: String, default: null },
       priceId: { type: String, default: null },
@@ -148,13 +153,20 @@ userSchema.methods = {
         gender: this.profile.gnder,
         location: this.profile.location,
         website: this.profile.website,
-        picture: this.profile.picture
+        picture: this.profile.picture,
+        provider: this.profile.provider,
+        providerId: this.profile.providerId
       },
       tag: {
         tagId: this.tag.tagId,
         title: this.tag.title,
         status: this.tag.status,
         createdAt: this.tag.createdAt
+      },
+      stripe: {
+        customerId: this.stripe.customerId,
+        priceId: this.stripe.priceId,
+        subscriptionStatus: this.stripe.subscriptionStatus,
       }
     };
 
