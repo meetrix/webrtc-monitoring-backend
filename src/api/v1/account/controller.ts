@@ -173,7 +173,7 @@ export const register = async (req: any, res: Response, next: NextFunction): Pro
   }
     
   } catch (error) {
-    console.log(error)
+    console.log(error);
     res.status(500).json({
       success: false,
       data: null,
@@ -190,13 +190,13 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
 
     const user = await User.findOne({ emailToken: req.query.token });
     if (!user) {
-      res.redirect(`${AUTH_LANDING}/#/verificationtoken_expired`)
+      res.redirect(`${AUTH_LANDING}/#/verificationtoken_expired`);
       res.status(401).json({
         success: false,
         data: null,
         message: 'The verification link is already used or expired. Please try again.'
       });
-      return 
+      return; 
     }
 
     const customer = await stripe.customers.create({
@@ -288,7 +288,7 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
           return res.status(403).json({
             success: false,
             data: null,
-            message: `Username or password incorrect. If you forgot your credentials, please reset now.`
+            message: 'Username or password incorrect. If you forgot your credentials, please reset now.'
           });
         }
         
@@ -444,13 +444,13 @@ export const resetPassword = async (req: any, res: Response, next: NextFunction)
 
     const user = await User.findOne({ passwordResetToken: req.query.token });
     if (!user) {
-      res.redirect(`${AUTH_LANDING}/#/resetpasswordtoken_expired`)
+      res.redirect(`${AUTH_LANDING}/#/resetpasswordtoken_expired`);
       res.status(401).json({
         success: false,
         data: null,
         message: 'The password reset link is already used or expired. Please try again.'
       });
-      return
+      return;
     }
 
     res.redirect(`${AUTH_LANDING}/#/resetpassword?token=${user.passwordResetToken}`);
@@ -509,7 +509,7 @@ export const reset = async (
       .where('passwordResetExpires')
       .gt(Date.now());
     if (!user) {
-      res.redirect(`${AUTH_LANDING}/#/resetpasswordtoken_expired`)
+      res.redirect(`${AUTH_LANDING}/#/resetpasswordtoken_expired`);
       res.status(401).json({
         success: false,
         data: null,
