@@ -92,68 +92,68 @@ export const register = async (req: any, res: Response, next: NextFunction): Pro
     req.body.email = validator.normalizeEmail(req.body.email, {
       gmail_remove_dots: false,
     });
-   const selectedUser = await User.findOne({ email: req.body.email });
+    const selectedUser = await User.findOne({ email: req.body.email });
 
 
-   if (!selectedUser) {
+    if (!selectedUser) {
 
-    const randValueHex = (len: number): string => {
-      return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
-    };
-    const emailToken = randValueHex(32);
+      const randValueHex = (len: number): string => {
+        return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
+      };
+      const emailToken = randValueHex(32);
 
-    const user = new User({
-      email: req.body.email,
-      password: req.body.password,
-      profile: {
-        name: req.body.name,
+      const user = new User({
+        email: req.body.email,
+        password: req.body.password,
+        profile: {
+          name: req.body.name,
 
-      },
-      tag: {
-        tagId: null,
-        title: null,
-        status: null,
-        createdAt: null,
+        },
+        tag: {
+          tagId: null,
+          title: null,
+          status: null,
+          createdAt: null,
 
-      },
-      emailToken,
-      isVerified: false,
-    });
-    await user.save();
-
-    const clientName = user.profile.name;
-
-    const transporter = getTransporter();
-
-    const mailOptions = getMailOptions({
-      subject: 'Confirm Your Email Address - ScreenApp.IO',
-      to: `<${user.email}>`,
-      template: 'emailVerification',
-      context: {
-        clientName,
+        },
         emailToken,
-        API_BASE_URL,
-        AUTH_LANDING,
-        SUPPORT_URL
-      }
-    });
+        isVerified: false,
+      });
+      await user.save();
 
-    transporter.sendMail(mailOptions, (err, data) => {
-      if (err) {
-        return log('Error occurs');
-      }
-      return log('Email sent to the user successfully.');
-      // res.status(201).json({ token: signToken(user) });
-    });
-    res.status(200).json({
-      success: true,
-      data: { emailToken },
-      message: 'Confirmation email has been sent successfully. Please check your inbox to proceed.'
-    });
-     
+      const clientName = user.profile.name;
+
+      const transporter = getTransporter();
+
+      const mailOptions = getMailOptions({
+        subject: 'Confirm Your Email Address - ScreenApp.IO',
+        to: `<${user.email}>`,
+        template: 'emailVerification',
+        context: {
+          clientName,
+          emailToken,
+          API_BASE_URL,
+          AUTH_LANDING,
+          SUPPORT_URL
+        }
+      });
+
+      transporter.sendMail(mailOptions, (err, data) => {
+        if (err) {
+          return log('Error occurs');
+        }
+        return log('Email sent to the user successfully.');
+        // res.status(201).json({ token: signToken(user) });
+      });
+      res.status(200).json({
+        success: true,
+        data: { emailToken },
+        message: 'Confirmation email has been sent successfully. Please check your inbox to proceed.'
+      });
 
 
-   }
+
+    }
 
     if (!selectedUser.isVerified) {
       res.status(200).json({
@@ -170,8 +170,8 @@ export const register = async (req: any, res: Response, next: NextFunction): Pro
         message: 'You have a verified account with us. Please signin or reset your credentials to continue.'
       });
       return;
-  }
-    
+    }
+
   } catch (error) {
     console.log(error);
     res.status(500).json({
@@ -181,7 +181,7 @@ export const register = async (req: any, res: Response, next: NextFunction): Pro
     });
     next(error);
   }
-  
+
 };
 
 // User account verification & auto signin at first attempt
@@ -196,12 +196,12 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
         data: null,
         message: 'The verification link is already used or expired. Please try again.'
       });
-      return; 
+      return;
     }
 
     const customer = await stripe.customers.create({
       email: user.email,
-      name: 'this should filled',
+      name: user.profile.name,
       metadata: {
         userId: user._id.toString(),
       },
@@ -261,8 +261,7 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
 };
 
 // Login
-export const login = async (req: any, res: Response, next: NextFunction): Promise<void> =>
-{
+export const login = async (req: any, res: Response, next: NextFunction): Promise<void> => {
   try {
     // if (!req.body.email || !req.body.password) {
     //   //res.status(403).json(formatError('Username or Password incorrect. Please check and try again.'));
@@ -283,7 +282,7 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
         if (err) throw err;
 
         // Let's check username or password is matached
-        if (!user.email || !user.password){
+        if (!user.email || !user.password) {
           // return res.status(403).json(formatError(info.message));
           return res.status(403).json({
             success: false,
@@ -291,12 +290,12 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
             message: 'Username or password incorrect. If you forgot your credentials, please reset now.'
           });
         }
-        
-        
+
+
         // Let's check user is verifed in the system
-        if (!user.isVerified){
-      
-        //Let's generate a string for emailToken
+        if (!user.isVerified) {
+
+          //Let's generate a string for emailToken
           const randValueHex = (len: number): string => {
             return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
           };
@@ -304,8 +303,8 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
 
           // Let's update new emailToken and verification status for existing users
           user.emailToken = emailToken,
-          user.isVerified = false,
-          await user.save();
+            user.isVerified = false,
+            await user.save();
 
           const clientName = user.profile.name;
 
@@ -335,18 +334,18 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
             message: 'You should complete your signin process. Please check your inbox & confirm your account to continue.'
           });
 
-        return;
+          return;
         }
 
-        if (user.isVerified){
-        // res.status(200).json({ token: signToken(user) });
-        res.status(200).json({
-          success: true,
-          data: { token: signToken(user) },
-          message: 'Login Successful. Redirecting...'
-        });
+        if (user.isVerified) {
+          // res.status(200).json({ token: signToken(user) });
+          res.status(200).json({
+            success: true,
+            data: { token: signToken(user) },
+            message: 'Login Successful. Redirecting...'
+          });
+        }
       }
-    }
     )(req, res, next);
   } catch (error) {
     res.status(500).json({
@@ -389,9 +388,9 @@ export const forgot = async (
       });
       res.redirect(`${AUTH_LANDING}/#/signup`);
       return;
-      
+
     }
-    
+
     const token = crypto.randomBytes(16).toString('hex');
     user.passwordResetToken = token;
     user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // ms
@@ -524,7 +523,7 @@ export const reset = async (
     await user.save();
 
     const clientName = user.profile.name;
-  
+
     const transporter = getTransporter();
 
     const mailOptions = getMailOptions({
@@ -701,7 +700,7 @@ export const deleteAccount = async (
 //   next: NextFunction
 // ): Promise<void> => {
 //   try {
-    
+
 //     const getUserById = await User.findOne({ id: req.body.id });
 //     const checkVerificationStatus = getUserById.isVerified === true;
 //     if (checkVerificationStatus) {
