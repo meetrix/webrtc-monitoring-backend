@@ -7,6 +7,11 @@ import { Strategy as LinkedInStrategy } from 'passport-linkedin-oauth2';
 import { User, UserDocument } from '../models/User';
 import logger from '../util/logger';
 import { GOOGLE_ID, GOOGLE_SECRET, FACEBOOK_ID, FACEBOOK_SECRET, LINKEDIN_API_KEY, LINKEDIN_SECRET } from './secrets';
+import Stripe from 'stripe';
+import { API_BASE_URL, STRIPE_SECRET_KEY } from './settings';
+const stripe = new Stripe(STRIPE_SECRET_KEY, {
+  apiVersion: '2020-08-27',
+});
 
 const LocalStrategy = passportLocal.Strategy;
 
@@ -51,6 +56,17 @@ const findUserOrCreateUser = async (profile: Passport.ExtendedProfile, accessTok
       accessToken,
       refreshToken,
     });
+    await user.save();
+
+    const customer = await stripe.customers.create({
+      email: user.email,
+      name: user.profile.name,
+      metadata: {
+        userId: user._id.toString(),
+      },
+    });
+    user.stripe.customerId = customer.id;
+
     await user.save();
     return user;
 
@@ -163,7 +179,7 @@ passport.use(
     {
       clientID: LINKEDIN_API_KEY,
       clientSecret: LINKEDIN_SECRET,
-      callbackURL: 'https://api.dev.screenapp.io/v1/auth/linkedin/callback',
+      callbackURL: API_BASE_URL + '/auth/linkedin/callback',
       profileFields: ['name', 'email', 'link', 'locale', 'timezone'],
       passReqToCallback: true,
     },
