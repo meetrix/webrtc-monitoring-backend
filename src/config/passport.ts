@@ -27,8 +27,19 @@ passport.deserializeUser((id, done) => {
 
 const findUserOrCreateUser = async (profile: Passport.ExtendedProfile, accessToken: string, refreshToken: string): Promise<UserDocument> => {
   try {
-    const { provider, id } = profile;
-    const { name, email, picture } = profile._json;
+    const { provider, id, name, emails, photos } = profile;
+    const { givenName, familyName } = name;
+
+    const fullName = givenName + ' ' + familyName;
+    let email = '';                     //this should fix however
+    let picture = '';
+    if (emails && emails[0]) {
+      email = emails[0].value;
+    }
+    if (photos && photos[0]) {
+      picture = photos[0].value;
+    }
+
     // 1. Lets see whether there are accounts for the any of the emails
     let user = await User.findOne({ email });
     logger.info(`Found registered user with email: ${email}`);
@@ -47,7 +58,7 @@ const findUserOrCreateUser = async (profile: Passport.ExtendedProfile, accessTok
       email,
       [provider]: id,
       profile: {
-        name,
+        name: fullName,
         picture,
       },
     });
@@ -60,7 +71,7 @@ const findUserOrCreateUser = async (profile: Passport.ExtendedProfile, accessTok
 
     const customer = await stripe.customers.create({
       email: user.email,
-      name: user.profile.name,
+      name: fullName,
       metadata: {
         userId: user._id.toString(),
       },
@@ -116,7 +127,7 @@ const googleStrategyConfig = new GoogleAuthStratergy(
   },
   async (accessToken, refreshToken, profile, done) => {
     try {
-      // return done(null);
+      //console.log(profile);
       const user = await findUserOrCreateUser(profile, accessToken, refreshToken);
       return done(null, user);
     } catch (error) {
@@ -162,6 +173,7 @@ passport.use(
       done: Function
     ): Promise<void> => {
       try {
+        //console.log(profile);
         const user = await findUserOrCreateUser(profile, accessToken, refreshToken);
         return done(null, user);
       } catch (error) {
@@ -191,6 +203,7 @@ passport.use(
       done: Function
     ): Promise<void> => {
       try {
+        //console.log(profile);
         const user = await findUserOrCreateUser(profile, accessToken, refreshToken);
         return done(null, user);
       } catch (error) {
