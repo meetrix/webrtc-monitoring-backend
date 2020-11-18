@@ -329,10 +329,10 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
             return log('Email sent to the user successfully.');
             // res.status(201).json({ token: signToken(user) });
           });
-          res.status(200).json({
+          res.status(403).json({
             success: false,
             data: { emailToken },
-            message: 'You should complete your signin process. Please check your inbox & confirm your account to continue.'
+            message: 'You should complete your signin process. We have sent you a new confirmation email. Please check your inbox & confirm your account to continue.'
           });
 
           return;
