@@ -617,6 +617,7 @@ export const getProfile = async (
         package: user.package,
         avatar: user.gravatar,
         profile: user.profile,
+        subscriptionStatus: user.stripe.subscriptionStatus,
         tag: user.tag,
       },
       message: 'Get profile successful.'
