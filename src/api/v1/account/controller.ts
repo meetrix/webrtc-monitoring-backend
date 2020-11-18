@@ -296,7 +296,6 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
 
         // Let's check user is verifed in the system
         if (!user.isVerified) {
-
           //Let's generate a string for emailToken
           const randValueHex = (len: number): string => {
             return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
@@ -330,10 +329,10 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
             return log('Email sent to the user successfully.');
             // res.status(201).json({ token: signToken(user) });
           });
-          res.status(200).json({
-            success: true,
+          res.status(403).json({
+            success: false,
             data: { emailToken },
-            message: 'You should complete your signin process. Please check your inbox & confirm your account to continue.'
+            message: 'You should complete your signin process. We have sent you a new confirmation email. Please check your inbox & confirm your account to continue.'
           });
 
           return;
