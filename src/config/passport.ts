@@ -165,7 +165,7 @@ passport.use(
       clientID: FACEBOOK_ID,
       clientSecret: FACEBOOK_SECRET,
       callbackURL: `${API_BASE_URL}/auth/facebook/callback`,
-      profileFields: ['name', 'email', 'link', 'locale', 'timezone'],
+      profileFields: ['name', 'email', 'link', 'locale', 'timezone', 'picture.type(small)'],
       passReqToCallback: true,
     },
     async (
