@@ -1,5 +1,5 @@
 import express from 'express';
-import { checkoutSession, customerPortalUrl, stripeEventHandler } from './controller';
+import { checkoutSession, checkoutSessionStatus, customerPortalUrl, stripeEventHandler } from './controller';
 import { isAuthenticated } from '../../../middleware';
 
 const router = express.Router();
@@ -59,6 +59,59 @@ const router = express.Router();
  * 
  */
 router.post('/checkoutsession', isAuthenticated, checkoutSession);
+
+/**
+ * @swagger
+ *
+ * /subscription/checkoutsessionstatus:
+ *    post:
+ *     description: Send session status
+ *     produces:
+ *       - application/json
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: "checkoutSessionId "
+ *         description: Checkout session id 
+ *         in: body
+ *         required: true
+ *         schema:
+ *              type: object
+ *              properties:
+ *                  strchecsessid:
+ *                      type: string
+ *                      example: adiagewyfuvewafuaewgifgk
+ *     responses:
+ *        200:
+ *           description: "Successful checkout session status"
+ *           schema:
+ *               type: object
+ *               properties:
+ *                   success:
+ *                       type: string
+ *                       example: true
+ *                   data:
+ *                       type: string
+ *                       example: null
+ *                   message:
+ *                       type: string
+ *                       example: checkout Session Status retrieved successfully.
+ * 
+ *        500:
+ *           description: "Unsuccessful checkout session status"
+ *           schema:
+ *               type: object
+ *               properties:
+ *                   success:
+ *                       type: string
+ *                       example: false
+ *                   error:
+ *                       type: string
+ *                       example: invalid strchecsessid
+ * 
+ * 
+ */
+router.post('/checkoutsessionstatus', isAuthenticated, checkoutSessionStatus);
 
 /**
  * @swagger

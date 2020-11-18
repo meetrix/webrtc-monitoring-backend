@@ -54,7 +54,7 @@ export const checkoutSession = async (
       // {CHECKOUT_SESSION_ID} is a string literal; do not change it!
       // the actual Session ID is returned in the query parameter when your customer
       // is redirected to the success page.
-      success_url: `${AUTH_LANDING}/#/dashboard?session_id={CHECKOUT_SESSION_ID}`,
+      success_url: `${AUTH_LANDING}/#/dashboard?strchecsessid={CHECKOUT_SESSION_ID}`,
       cancel_url: `${AUTH_LANDING}/#/dashboard`,
     });
     res.status(200).json({
@@ -93,6 +93,51 @@ export const customerPortalUrl = async (
       success: true,
       data: { url: session.url },
       message: 'Customerportal url created successfully'
+    });
+
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
+    next(err);
+  }
+};
+
+
+export const checkoutSessionStatus = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+
+    const user1 = await User.findOne({ id: req.user.sub });
+    if (!user1) {
+      throw Error('user not found');
+    }
+
+    if (!req.body.strchecsessid) {
+      throw Error('strchecsessid not defined');
+    }
+
+    const user2 = await User.findOne({ 'stripe.checkoutSessionId': req.body.strchecsessid });
+    if (!user2) {
+      throw Error('strchecsessid not found');
+    }
+    const user1Id = user1._id.toString();
+    const user2Id = user2._id.toString();
+    if (user1Id != user2Id) {
+      throw Error('invalid strchecsessid');
+    }
+
+    user2.stripe.checkoutSessionId = null;
+    await user2.save();
+
+    res.status(200).json({
+      success: true,
+      data: null,
+      message: 'checkout Session Status retrieved successfully'
     });
 
   } catch (err) {
@@ -162,6 +207,7 @@ export const stripeEventHandler = async (
           throw Error('user not found');
         }
         //console.log(user);
+        user.stripe.checkoutSessionId = data.object.id;
         user.stripe.subscriptionStatus = 'active';
         await user.save();
 
