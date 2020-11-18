@@ -107,15 +107,17 @@ export const register = async (req: any, res: Response, next: NextFunction): Pro
         password: req.body.password,
         profile: {
           name: req.body.name,
-
+          picture: null, 
+          provider: 'manual',
+          providerId: null
         },
         tag: {
           tagId: null,
           title: null,
           status: null,
           createdAt: null,
-
         },
+
         emailToken,
         isVerified: false,
       });
