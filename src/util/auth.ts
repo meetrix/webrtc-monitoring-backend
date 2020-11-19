@@ -11,7 +11,7 @@ export const signToken = (user: UserDocument): string => {
     SESSION_SECRET,
     {
       expiresIn: JWT_EXPIRATION,
-      subject: user.id
+      subject: user._id.toString()
     }
   );
 };

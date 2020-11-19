@@ -43,7 +43,7 @@ export const upload = async (
         .createHash('md5')
         .update(file.buffer)
         .digest('hex');
-      const key = `${req.user.sub}/${hash}`;
+      const key = `${req.user._id.toString()}/${hash}`;
       await s3
         .putObject({
           Body: file.buffer,

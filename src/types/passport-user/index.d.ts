@@ -4,7 +4,10 @@ import { UserDocument } from '../../models/User';
 
 declare global {
   namespace Express {
-    interface User {
+    interface User extends UserDocument {
+
+    }
+    interface JwtUser {
       email: string;
       role: string;
       sub: string;

@@ -27,7 +27,6 @@ export interface AuthToken {
   refreshToken: string;
 }
 export interface UserAPIFormat {
-  id: string;
   email: string;
   role: string;
   package: string;
@@ -45,7 +44,6 @@ export interface Stripe {
 }
 
 export type UserDocument = mongoose.Document & {
-  id: string;
   email: string;
   password: string;
   passwordResetToken: string;
@@ -71,7 +69,6 @@ export type UserDocument = mongoose.Document & {
 
 const userSchema = new mongoose.Schema(
   {
-    id: { type: String, default: UUID, unique: true },
     email: { type: String, unique: true },
     password: String,
     passwordResetToken: String,
@@ -142,7 +139,6 @@ userSchema.methods = {
   },
   format: function (): UserAPIFormat {
     const result = {
-      id: this.id,
       email: this.email,
       role: this.role,
       package: this.package,
