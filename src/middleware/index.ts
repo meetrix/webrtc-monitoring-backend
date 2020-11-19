@@ -5,6 +5,7 @@ import logger from '../util/logger';
 import { SESSION_SECRET } from '../config/secrets';
 import { USER_ROLES } from '../config/settings';
 import { formatError } from '../util/error';
+import { User } from '../models/User';
 
 export const handleErrors = (
   error: Error,
@@ -21,22 +22,35 @@ export const handleMissing = (_req: Request, res: Response): void => {
   res.sendStatus(404);
 };
 
-export const isAuthenticated = (
+export const isAuthenticated = async (
   req: Request,
   res: Response,
   next: NextFunction
-): void => {
+): Promise<void> => {
   try {
     if (!req.headers.authorization) {
-      res.sendStatus(401);
+      res.status(401).json({
+        success: false,
+        error: 'unauthorized'
+      });
       return;
     }
     const token = req.headers.authorization.split('Bearer ')[1];
-    req.user = jwt.verify(token, SESSION_SECRET) as Express.User;
+    const jwtInfo = jwt.verify(token, SESSION_SECRET) as Express.JwtUser;
+
+    const userDoc = await User.findOne({ _id: jwtInfo.sub });
+    if (!userDoc) {
+      throw Error('user not found');
+    }
+    req.user = userDoc;
+
     next();
   } catch (error) {
     logger.error(error);
-    res.sendStatus(401);
+    res.status(401).json({
+      success: false,
+      error: 'unauthorized'
+    });
   }
 };
 

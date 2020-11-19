@@ -10,12 +10,12 @@ export const authCallback = async (req: any, res: Response, next: NextFunction):
     }
     const user = req.user as UserDocument;
     user.isVerified = true,
-    user.tag;
-        user.tag.tagId = null,
-        user.tag.title = null,
-        user.tag.status = null,
-        user.tag.createdAt = null,
-    user.accessToken = signToken(user),
+      user.tag;
+    user.tag.tagId = null,
+      user.tag.title = null,
+      user.tag.status = null,
+      user.tag.createdAt = null,
+      user.accessToken = signToken(user),
 
       await user.save();
     res.redirect(`${AUTH_LANDING}/#/dashboard?token=${user.accessToken}`);
