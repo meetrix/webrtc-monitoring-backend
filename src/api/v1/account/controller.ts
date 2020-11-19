@@ -283,7 +283,7 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
       ): Promise<Response> => {
         if (err) throw err;
 
-        // Let's check username or password is matached
+        // Let's check username or password is matched
         if (!user.email || !user.password) {
           // return res.status(403).json(formatError(info.message));
           return res.status(403).json({
@@ -292,7 +292,6 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
             message: 'Username or password incorrect. If you forgot your credentials, please reset now.'
           });
         }
-
 
         // Let's check user is verifed in the system
         if (!user.isVerified) {
@@ -367,7 +366,7 @@ export const forgot = async (
   try {
     if (!req.body.email) {
       // res.status(422).json(formatError('Invalid data'));
-      res.status(401).json({
+      res.status(500).json({
         success: false,
         data: null,
         message: 'Invalid data.'
@@ -382,7 +381,7 @@ export const forgot = async (
     const user = await User.findOne({ email });
     if (!user) {
       // res.status(404).json(formatError('Email not found'));
-      res.status(401).json({
+      res.status(500).json({
         success: false,
         data: null,
         message: 'Email Address not found in our system. Please signup to enjoy ScreenApp.'

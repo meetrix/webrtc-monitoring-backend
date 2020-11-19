@@ -125,7 +125,11 @@ userSchema.pre('save', async function (next: Function): Promise<void> {
 
 userSchema.methods = {
   authenticate: async function (candidatePassword: string): Promise<boolean> {
-    return bcrypt.compare(candidatePassword, this.password);
+    if (this.password) {
+      return bcrypt.compare(candidatePassword, this.password);
+    } else {
+      return false;
+    }
   },
   gravatar: function (size: number = 200): string {
     if (!this.email) {
