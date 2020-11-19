@@ -31,7 +31,7 @@ export const refresh = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const user = req.user;
+    const user = await User.findOne({ id: req.user.sub });
     if (!user) {
       //res.sendStatus(401);
       res.status(401).json({
@@ -107,7 +107,7 @@ export const register = async (req: any, res: Response, next: NextFunction): Pro
         password: req.body.password,
         profile: {
           name: req.body.name,
-          picture: null,
+          picture: null, 
           provider: 'manual',
           providerId: null
         },
@@ -569,7 +569,7 @@ export const postProfile = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const user = req.user;
+    const user = await User.findOne({ id: req.user.sub });
     user.profile.name = req.body.name;
     user.profile.gender = req.body.gender;
     user.profile.location = req.body.location;
@@ -604,7 +604,7 @@ export const getProfile = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const user = req.user;
+    const user = await User.findOne({ id: req.user.sub });
     //res.status(200).json(user.format());
     res.status(200).json({
       success: true,
@@ -651,7 +651,7 @@ export const password = async (
       res.status(422).json(formatError(...validationErrors));
       return;
     }
-    const user = req.user;
+    const user = await User.findOne({ id: req.user.sub });
     user.password = req.body.password;
     await user.save();
     // res.status(200).json(SUCCESSFUL_RESPONSE);
@@ -677,7 +677,7 @@ export const deleteAccount = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    await User.deleteOne({ _id: req.user._id.toString() });
+    await User.deleteOne({ id: req.user.sub });
     //res.status(200).json(SUCCESSFUL_RESPONSE);
     res.status(200).json({
       success: true,

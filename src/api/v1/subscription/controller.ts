@@ -32,8 +32,11 @@ export const checkoutSession = async (
     } else {
       throw Error('invalid plan');
     }
-    const user = req.user;
-
+    const user = await User.findOne({ id: req.user.sub });
+    console.log(req.user.sub);
+    if (!user) {
+      throw Error('user not found');
+    }
     // See https://stripe.com/docs/api/checkout/sessions/create
     // for additional parameters to pass.
 
@@ -76,7 +79,11 @@ export const customerPortalUrl = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const user = req.user;
+    const user = await User.findOne({ id: req.user.sub });
+    console.log(req.user.sub);
+    if (!user) {
+      throw Error('user not found');
+    }
     const session = await stripe.billingPortal.sessions.create({
       customer: user.stripe.customerId,
       return_url: `${AUTH_LANDING}/#/dashboard`,
@@ -105,7 +112,10 @@ export const checkoutSessionStatus = async (
 ): Promise<void> => {
   try {
 
-    const user1 = req.user;
+    const user1 = await User.findOne({ id: req.user.sub });
+    if (!user1) {
+      throw Error('user not found');
+    }
 
     if (!req.body.strchecsessid) {
       throw Error('strchecsessid not defined');
