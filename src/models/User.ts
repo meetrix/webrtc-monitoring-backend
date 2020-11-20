@@ -40,6 +40,8 @@ export interface Stripe {
   customerId: string;
   priceId: string;
   checkoutSessionId: string;
+  subscriptionId: string;
+  subscriptionItemId: string;
   subscriptionStatus: string;
 }
 
@@ -105,6 +107,8 @@ const userSchema = new mongoose.Schema(
       customerId: { type: String, default: null },
       priceId: { type: String, default: null },
       checkoutSessionId: { type: String, default: null },
+      subscriptionId: { type: String, default: null },
+      subscriptionItemId: { type: String, default: null },
       subscriptionStatus: { type: String, default: 'pending' },
     }
   },
@@ -169,6 +173,8 @@ userSchema.methods = {
         customerId: this.stripe.customerId,
         priceId: this.stripe.priceId,
         checkoutSessionId: this.stripe.checkoutSessionId,
+        subscriptionId: this.stripe.subscriptionId,
+        subscriptionItemId: this.stripe.subscriptionItemId,
         subscriptionStatus: this.stripe.subscriptionStatus,
       }
     };

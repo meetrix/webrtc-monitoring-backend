@@ -8,9 +8,38 @@ import {
 
 import Stripe from 'stripe';
 import { User } from '../../../models/User';
+import { Payment } from '../../../models/Payment';
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
   apiVersion: '2020-08-27',
 });
+
+const getPriceIdbyPlanId = (
+  planId: string,
+): string => {
+  if (planId === USER_PACKAGES[0]) {
+    return STRIPE_FREE_PRICE_ID;
+  } else if (planId === USER_PACKAGES[1]) {
+    return STRIPE_STANDARD_PRICE_ID;
+  } else if (planId === USER_PACKAGES[2]) {
+    return STRIPE_STANDARD_PRICE_ID;       //STRIPE_PREMIUM_PRICE_ID   //update with PREMIUM LATER
+  } else {
+    throw Error('invalid plan');
+  }
+};
+
+const getPlanIdByPriceId = (
+  priceId: string,
+): string => {
+  if (priceId == STRIPE_FREE_PRICE_ID) {
+    return USER_PACKAGES[0];
+  } else if (priceId == STRIPE_STANDARD_PRICE_ID) {
+    return USER_PACKAGES[1];
+  } else if (priceId == STRIPE_STANDARD_PRICE_ID) {   //STRIPE_PREMIUM_PRICE_ID   //update with PREMIUM LATER
+    return USER_PACKAGES[2];
+  } else {
+    throw Error('invalid plan');
+  }
+};
 
 export const checkoutSession = async (
   req: Request,
@@ -22,16 +51,8 @@ export const checkoutSession = async (
       throw Error('invalid plan');
     }
     const planId = req.body.plan;
-    let priceId;
-    if (planId === USER_PACKAGES[0]) {
-      priceId = STRIPE_FREE_PRICE_ID;
-    } else if (planId === USER_PACKAGES[1]) {
-      priceId = STRIPE_STANDARD_PRICE_ID;
-    } else if (planId === USER_PACKAGES[2]) {
-      priceId = STRIPE_STANDARD_PRICE_ID;       //STRIPE_PREMIUM_PRICE_ID   //update with PREMIUM LATER
-    } else {
-      throw Error('invalid plan');
-    }
+    const priceId = getPriceIdbyPlanId(planId);
+
     const user = req.user;
 
     // See https://stripe.com/docs/api/checkout/sessions/create
@@ -215,6 +236,65 @@ export const stripeEventHandler = async (
       // Continue to provision the subscription as payments continue to be made.
       // Store the status in your database and check when a user accesses your service.
       // This approach helps you avoid hitting rate limits.
+
+      try {
+        const invoiceId = data.object.id;
+        const subscriptionId = data.object.lines.data[0].subscription;
+        const attemptCount = data.object.attempt_count;
+        const billingReason = data.object.billing_reason;
+        const collectionMethod = data.object.collection_method;
+        customerId = data.object.customer;
+
+        const user1 = await User.findOne({ 'stripe.customerId': customerId });
+        if (!user1) {
+          throw Error('user not found');
+        }
+        const userId = user1._id.toString();
+        const customerEmail = data.object.customer_email;
+        const hostedInvoiceUrl = data.object.hosted_invoice_url;
+        const invoicePdf = data.object.invoice_pdf;
+        const subscriptionItemId = data.object.lines.data[0].subscription_item;
+        const priceId = data.object.lines.data[0].price.id;
+        const plan = getPlanIdByPriceId(priceId);
+        const paid = data.object.paid;
+        const status = data.object.status;
+        const currency = data.object.currency;
+        const amountDue = data.object.amount_due;
+        const amountPaid = data.object.amount_paid;
+        const subtotal = data.object.subtotal;
+        const total = data.object.total;
+
+        const payment = new Payment({
+          invoiceId,
+          subscriptionId,
+          attemptCount,
+          billingReason,
+          collectionMethod,
+          userId,
+          customerId,
+          customerEmail,
+          hostedInvoiceUrl,
+          invoicePdf,
+          subscriptionItemId,
+          priceId,
+          plan,
+          paid,
+          status,
+          currency,
+          amountDue,
+          amountPaid,
+          subtotal,
+          total,
+        });
+        await payment.save();
+
+      } catch (err) {
+        return res.status(500).json({
+          success: false,
+          error: err.message
+        });
+      }
+
       break;
     case 'invoice.payment_failed':
       console.log(eventType);
@@ -237,18 +317,12 @@ export const stripeEventHandler = async (
           throw Error('user not found');
         }
         //console.log(user);
-        let packageName;
-        if (subscribedPriceId == STRIPE_FREE_PRICE_ID) {
-          packageName = USER_PACKAGES[0];
-        } else if (subscribedPriceId == STRIPE_STANDARD_PRICE_ID) {
-          packageName = USER_PACKAGES[1];
-        } else if (subscribedPriceId == STRIPE_STANDARD_PRICE_ID) {   //STRIPE_PREMIUM_PRICE_ID   //update with PREMIUM LATER
-          packageName = USER_PACKAGES[2];
-        } else {
-          throw Error('invalid plan');
-        }
+        const planId = getPlanIdByPriceId(subscribedPriceId);
+
         user.stripe.priceId = subscribedPriceId;
-        user.package = packageName;
+        user.stripe.subscriptionId = data.object.id;
+        user.stripe.subscriptionItemId = data.object.items.data[0].id;
+        user.package = planId;
         await user.save();
 
       } catch (err) {
