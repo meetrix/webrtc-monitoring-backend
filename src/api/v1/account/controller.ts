@@ -569,10 +569,11 @@ export const postProfile = async (
 ): Promise<void> => {
   try {
     const user = req.user;
+    user.email = req.body.email;
+    user.password = req.body.password;
+    
     user.profile.name = req.body.name;
-    user.profile.gender = req.body.gender;
-    user.profile.location = req.body.location;
-    user.profile.website = req.body.website;
+    user.profile.name = req.body.name;
 
     user.tag.tagId = req.body.tagId;
     user.tag.title = req.body.titile;
