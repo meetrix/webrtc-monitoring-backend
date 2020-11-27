@@ -573,7 +573,7 @@ export const postProfile = async (
     user.password = req.body.password;
     
     user.profile.name = req.body.name;
-    user.profile.name = req.body.name;
+    user.profile.picture = req.body.picture;
 
     user.tag.tagId = req.body.tagId;
     user.tag.title = req.body.titile;
