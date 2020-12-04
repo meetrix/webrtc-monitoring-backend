@@ -570,14 +570,44 @@ export const postProfile = async (
   try {
     const user = req.user;
 
-    if (!user.password){
+    if (!req.body.password){
       user.email = req.body.email;
       user.profile.name = req.body.name;
     }
-    else if (user.password){
+    else{
     user.email = req.body.email;
     user.password = req.body.password;
     user.profile.name = req.body.name;
+
+
+    //Password change notification
+
+    const clientName = user.profile.name;
+
+    const transporter = getTransporter();
+
+    const mailOptions = getMailOptions({
+      subject: 'Password Reset Successful - ScreenApp.IO',
+      to: `<${user.email}>`,
+      template: 'passwordResetConfirmation',
+      context: {
+        clientName,
+        API_BASE_URL,
+        AUTH_LANDING,
+        SUPPORT_URL
+      }
+    });
+
+    transporter.sendMail(mailOptions, (err, data) => {
+      if (err) {
+        return log('Error occurs');
+      }
+      return log('Email sent to the user successfully.');
+    });
+
+
+
+
     }
 
     await user.save();
@@ -585,7 +615,7 @@ export const postProfile = async (
     res.status(200).json({
       success: true,
       data: null,
-      message: 'Profile update successfull.'
+      message: 'Profile successfully updated.'
     });
   } catch (error) {
     res.status(500).json({
