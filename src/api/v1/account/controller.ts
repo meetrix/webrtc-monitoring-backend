@@ -569,16 +569,16 @@ export const postProfile = async (
 ): Promise<void> => {
   try {
     const user = req.user;
+
+    if (!user.password){
+      user.email = req.body.email;
+      user.profile.name = req.body.name;
+    }
+    else if (user.password){
     user.email = req.body.email;
     user.password = req.body.password;
-    
     user.profile.name = req.body.name;
-    user.profile.picture = req.body.picture;
-
-    user.tag.tagId = req.body.tagId;
-    user.tag.title = req.body.titile;
-    user.tag.status = req.body.status;
-    user.tag.createdAt = req.body.createdAt;
+    }
 
     await user.save();
     //res.status(200).json(user.format());
