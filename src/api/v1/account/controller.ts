@@ -7,7 +7,7 @@ import { Response, Request, NextFunction } from 'express';
 import { IVerifyOptions } from 'passport-local';
 import { getMailOptions, getTransporter } from '../../../util/mail';
 import {
-  AUTH_LANDING, API_BASE_URL, FRONTED_EMAIL_ROUTE, SUPPORT_URL, STRIPE_SECRET_KEY
+  AUTH_LANDING, API_BASE_URL, SUPPORT_URL, STRIPE_SECRET_KEY
 } from '../../../config/settings';
 const log = console.log;
 
@@ -135,7 +135,6 @@ export const register = async (req: any, res: Response, next: NextFunction): Pro
           clientName,
           emailToken,
           API_BASE_URL,
-          FRONTED_EMAIL_ROUTE,
           AUTH_LANDING,
           SUPPORT_URL
         }
