@@ -7,7 +7,7 @@ import { Response, Request, NextFunction } from 'express';
 import { IVerifyOptions } from 'passport-local';
 import { getMailOptions, getTransporter } from '../../../util/mail';
 import {
-  AUTH_LANDING, API_BASE_URL, SUPPORT_URL, STRIPE_SECRET_KEY
+  AUTH_LANDING, API_BASE_URL, SUPPORT_URL, STRIPE_SECRET_KEY, S3_USER_META_BUCKET
 } from '../../../config/settings';
 const log = console.log;
 
@@ -20,6 +20,8 @@ import { formatError } from '../../../util/error';
 import { SUCCESSFUL_RESPONSE } from '../../../util/success';
 import { signToken } from '../../../util/auth';
 import Stripe from 'stripe';
+import S3 from 'aws-sdk/clients/s3';
+import { AWS_ACCESS_KEY_ID, AWS_ACCESS_KEY_SECRET } from '../../../config/secrets';
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
   apiVersion: '2020-08-27',
 });
@@ -561,6 +563,18 @@ export const reset = async (
   }
 };
 
+const uploadProfilePicture = async (key: string, imgBuffer: Buffer, imgMime: string) => {
+  const s3 = new S3({
+    credentials: { accessKeyId: AWS_ACCESS_KEY_ID, secretAccessKey: AWS_ACCESS_KEY_SECRET }
+  });
+
+  const s3Response = await s3.upload({
+    Body: imgBuffer, Bucket: S3_USER_META_BUCKET, Key: key, ContentType: imgMime
+  }).promise();
+
+  return s3Response.Location;
+};
+
 // Post Profile
 export const postProfile = async (
   req: Request,
@@ -570,44 +584,45 @@ export const postProfile = async (
   try {
     const user = req.user;
 
-    if (!req.body.password){
-      user.email = req.body.email;
-      user.profile.name = req.body.name;
-    }
-    else{
     user.email = req.body.email;
-    user.password = req.body.password;
     user.profile.name = req.body.name;
 
+    if (req.body.picture) {
+      const imgBuffer = Buffer.from(req.body.picture, 'base64');
+      const hash = crypto.createHash('md5').update(user.email, 'utf8').digest('base64');
+      const key = `profile-picture-${hash}`;
+      const imgPath = await uploadProfilePicture(key, imgBuffer, req.body.pictureMime);
+      user.profile.picture = imgPath;
+      // TODO Delete old image if exists or, generate key s.t.: old one is overwritten
+    }
 
-    //Password change notification
+    if (!!req.body.password && req.body.password.length > 0) {
+      user.password = req.body.password;
 
-    const clientName = user.profile.name;
+      //Password change notification
 
-    const transporter = getTransporter();
+      const clientName = user.profile.name;
 
-    const mailOptions = getMailOptions({
-      subject: 'Password Reset Successful - ScreenApp.IO',
-      to: `<${user.email}>`,
-      template: 'passwordResetConfirmation',
-      context: {
-        clientName,
-        API_BASE_URL,
-        AUTH_LANDING,
-        SUPPORT_URL
-      }
-    });
+      const transporter = getTransporter();
 
-    transporter.sendMail(mailOptions, (err, data) => {
-      if (err) {
-        return log('Error occurs');
-      }
-      return log('Email sent to the user successfully.');
-    });
+      const mailOptions = getMailOptions({
+        subject: 'Password Reset Successful - ScreenApp.IO',
+        to: `<${user.email}>`,
+        template: 'passwordResetConfirmation',
+        context: {
+          clientName,
+          API_BASE_URL,
+          AUTH_LANDING,
+          SUPPORT_URL
+        }
+      });
 
-
-
-
+      transporter.sendMail(mailOptions, (err, data) => {
+        if (err) {
+          return log('Error occurs');
+        }
+        return log('Email sent to the user successfully.');
+      });
     }
 
     await user.save();
