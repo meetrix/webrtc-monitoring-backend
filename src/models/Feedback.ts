@@ -1,19 +1,21 @@
-import mongoose from 'mongoose';
+import mongoose, { Schema } from 'mongoose';
 import UUID from 'uuid/v4';
 
 export interface FeedbackType {
   id: string;
   clientId: string;
-  name: string;
+  // name: string;
   email: string;
+  rating: number;
   feedback: string;
-
+  meta: unknown;
 }
 export type FeedbackDocument = mongoose.Document & {
   id: string;
   clientId: string;
-  name: string;
+  // name: string;
   email: string;
+  rating: number;
   feedback: string;
   format: () => FeedbackType;
 };
@@ -22,24 +24,25 @@ const feedbackSchema = new mongoose.Schema(
   {
     id: { type: String, default: UUID, unique: true },
     clientId: String,
-    name: String,
+    // name: String,
     email: { type: String, unique: false },
+    rating: Number,
     feedback: String,
-
+    meta: Schema.Types.Mixed,
   },
   { timestamps: true }
 );
 
 feedbackSchema.methods = {
-
   format: function (): FeedbackType {
     const result = {
       id: this.id,
       clientId: this.clientId,
-      name: this.name,
+      // name: this.name,
       email: this.email,
+      rating: this.rating,
       feedback: this.feedback,
-
+      meta: this.meta
     };
 
     return result;

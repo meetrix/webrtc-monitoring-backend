@@ -18,12 +18,10 @@ docker-compose up
 
 # Check whther the api is running
 
-http://api.localhost:8081/v1/spec
+http://localhost:8081/v1/spec
 ```
 
 To build the project in VS Code press `cmd + shift + b`. You can also run tasks using the command pallet (`cmd + shift + p`) and select `Tasks: Run Task` > `npm: start` to run `npm start` for you.
-
-Finally, navigate to [http://api.localhost:8081/v1/hello](http://api.localhost:8081/v1/hello) and you now have access to your API
 
 ## OpenAPI Spec
 
