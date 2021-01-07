@@ -151,12 +151,9 @@ export const register = async (req: any, res: Response, next: NextFunction): Pro
       });
       res.status(200).json({
         success: true,
-        data: { emailToken },
+        // data: { emailToken },
         message: 'Confirmation email has been sent successfully. Please check your inbox to proceed.'
       });
-
-
-
     }
 
     if (!selectedUser.isVerified) {
@@ -194,7 +191,7 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
 
     const user = await User.findOne({ emailToken: req.query.token });
     if (!user) {
-      res.redirect(`${AUTH_LANDING}/#/verificationtoken_expired`);
+      // res.redirect(`${AUTH_LANDING}/#/verificationtoken_expired`);
       res.status(401).json({
         success: false,
         data: null,
@@ -382,15 +379,12 @@ export const forgot = async (
 
     const user = await User.findOne({ email });
     if (!user) {
-      // res.status(404).json(formatError('Email not found'));
       res.status(500).json({
         success: false,
         data: null,
         message: 'Email Address not found in our system. Please signup to enjoy ScreenApp.'
       });
-      res.redirect(`${AUTH_LANDING}/#/signup`);
       return;
-
     }
 
     const token = crypto.randomBytes(16).toString('hex');
@@ -421,11 +415,11 @@ export const forgot = async (
       }
       return log('Email sent to the user successfully.');
     });
-    // res.status(201).json(SUCCESSFUL_RESPONSE);
-    // res.status(201).json({ token });
+
+    // console.log(token);
+
     res.status(200).json({
       success: true,
-      data: { token },
       message: 'Password reset link has been sent to your mail successfully. It will be valid for next 60 minutes.'
     });
   } catch (error) {
@@ -445,7 +439,7 @@ export const resetPassword = async (req: any, res: Response, next: NextFunction)
 
     const user = await User.findOne({ passwordResetToken: req.query.token });
     if (!user) {
-      res.redirect(`${AUTH_LANDING}/#/resetpasswordtoken_expired`);
+      // res.redirect(`${AUTH_LANDING}/#/resetpasswordtoken_expired`);
       res.status(401).json({
         success: false,
         data: null,
@@ -454,15 +448,13 @@ export const resetPassword = async (req: any, res: Response, next: NextFunction)
       return;
     }
 
-    res.redirect(`${AUTH_LANDING}/#/resetpassword?token=${user.passwordResetToken}`);
+    // res.redirect(`${AUTH_LANDING}/#/resetpassword?token=${user.passwordResetToken}`);
 
     res.status(200).json({
       success: true,
       data: { passwordResetToken: user.passwordResetToken },
       message: 'Reset successful. Redirecting...'
     });
-
-
   } catch (error) {
     log('Something went wrong.');
     res.status(500).json({
@@ -563,13 +555,21 @@ export const reset = async (
   }
 };
 
-const uploadProfilePicture = async (key: string, imgBuffer: Buffer, imgMime: string) => {
+const uploadProfilePicture = async (
+  key: string, 
+  imgBuffer: Buffer, 
+  imgMime: string
+): Promise<string> => {
   const s3 = new S3({
     credentials: { accessKeyId: AWS_ACCESS_KEY_ID, secretAccessKey: AWS_ACCESS_KEY_SECRET }
   });
 
   const s3Response = await s3.upload({
-    Body: imgBuffer, Bucket: S3_USER_META_BUCKET, Key: key, ContentType: imgMime
+    Bucket: S3_USER_META_BUCKET, 
+    Key: key, 
+    Body: imgBuffer, 
+    ContentType: imgMime,
+    ACL: 'public-read',
   }).promise();
 
   return s3Response.Location;
@@ -589,11 +589,10 @@ export const postProfile = async (
 
     if (req.body.picture) {
       const imgBuffer = Buffer.from(req.body.picture, 'base64');
-      const hash = crypto.createHash('md5').update(user.email, 'utf8').digest('base64');
-      const key = `profile-picture-${hash}`;
+      const emailHex = Buffer.from(user.email).toString('hex');
+      const key = `profile-picture-${emailHex}`; // Replace profile picture if exists
       const imgPath = await uploadProfilePicture(key, imgBuffer, req.body.pictureMime);
       user.profile.picture = imgPath;
-      // TODO Delete old image if exists or, generate key s.t.: old one is overwritten
     }
 
     if (!!req.body.password && req.body.password.length > 0) {
