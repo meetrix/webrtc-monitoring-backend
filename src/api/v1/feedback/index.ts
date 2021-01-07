@@ -19,15 +19,18 @@ const router = express.Router();
  *         schema:
  *              type: object
  *              properties:
- *                  name:
- *                      type: string
- *                      example: Steve Jobs
  *                  email:
  *                      type: string
  *                      example: beta@meetrix.io
  *                  feedback:
  *                      type: string
  *                      example: This platform is awesome.
+ *                  rating:
+ *                      type: number
+ *                      example: 5
+ *                  meta:
+ *                      type: any
+ *                      example: {}
  *     responses:
  *        200:
  *           description: "Successful Feedback"

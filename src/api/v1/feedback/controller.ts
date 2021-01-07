@@ -34,15 +34,17 @@ export const feedback = async (
       gmail_remove_dots: true
     });
 
-    const { name } = req.body;
-    if (!name) {
-      res.status(422).json({
-        success: false,
-        data: null,
-        message: 'Please enter your name correctly.'
-      });
-      return;
-    }
+    // const { name } = req.body;
+    // if (!name) {
+    //   res.status(422).json({
+    //     success: false,
+    //     data: null,
+    //     message: 'Please enter your name correctly.'
+    //   });
+    //   return;
+    // }
+
+    const { rating } = req.body;
 
     const { feedback } = req.body;
     if (!feedback) {
@@ -60,15 +62,19 @@ export const feedback = async (
     };
     const clientId = randValueHex(8);
 
+    const { meta } = req.body;
+
     // Here we get the time of feedback writing
     const timestamp = Date();
 
     const feedbackDocument = new Feedback({
       clientId,
-      name,
+      // name,
       email,
+      rating,
       feedback,
       timestamp,
+      meta,
     });
 
     feedbackDocument.save();
@@ -83,8 +89,9 @@ export const feedback = async (
       context: {
         clientId,
         feedback: {
-          name,
+          // name,
           email,
+          rating,
           feedback,
           timestamp,
         }
