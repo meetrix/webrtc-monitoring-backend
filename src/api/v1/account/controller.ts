@@ -329,7 +329,7 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
           });
           res.status(403).json({
             success: false,
-            data: { emailToken },
+            // data: { emailToken },
             message: 'You should complete your signin process. We have sent you a new confirmation email. Please check your inbox & confirm your account to continue.'
           });
 
@@ -584,7 +584,9 @@ export const postProfile = async (
   try {
     const user = req.user;
 
-    user.email = req.body.email;
+    // Do not set email
+    // user.email = req.body.email;
+
     user.profile.name = req.body.name;
 
     if (req.body.picture) {
@@ -595,7 +597,28 @@ export const postProfile = async (
       user.profile.picture = imgPath;
     }
 
-    if (!!req.body.password && req.body.password.length > 0) {
+    if (!!req.body.oldPassword && !!req.body.password && req.body.password.length > 0) {
+
+      // Validate old password
+      if (!(await user.authenticate(req.body.oldPassword))) {
+        res.status(422).json({
+          success: false,
+          data: null,
+          message: 'Current password entered is incorrect.'
+        });
+        return;
+      } 
+
+      // Validate new password
+      if (!validator.isLength(req.body.password, { min: 6 })) {
+        res.status(422).json({
+          success: false,
+          data: null,
+          message: 'Password must be at least 6 characters long.'
+        });
+        return;
+      }
+
       user.password = req.body.password;
 
       //Password change notification
