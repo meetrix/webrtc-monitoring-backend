@@ -592,15 +592,15 @@ export const postProfile = async (
     if (req.body.picture) {
       const imgBuffer = Buffer.from(req.body.picture, 'base64');
       const emailHex = Buffer.from(user.email).toString('hex');
-      const key = `profile-picture-${emailHex}`; // Replace profile picture if exists
+      const key = `profile-pictures/${emailHex}`; // Replace profile picture if exists
       const imgPath = await uploadProfilePicture(key, imgBuffer, req.body.pictureMime);
       user.profile.picture = imgPath;
     }
 
-    if (!!req.body.oldPassword && !!req.body.password && req.body.password.length > 0) {
+    if (!!req.body.password && req.body.password.length > 0) {
 
-      // Validate old password
-      if (!(await user.authenticate(req.body.oldPassword))) {
+      // Validate old password, if only there is an old password
+      if (user.password && !(await user.authenticate(req.body.oldPassword))) {
         res.status(422).json({
           success: false,
           data: null,
@@ -678,6 +678,7 @@ export const getProfile = async (
       data: {
         id: user.id,
         isVerified: user.isVerified,
+        hasPasswordSet: !!user.password,
         email: user.email,
         role: user.role,
         package: user.package,
