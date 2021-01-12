@@ -600,7 +600,7 @@ export const postProfile = async (
     if (!!req.body.password && req.body.password.length > 0) {
 
       // Validate old password, if only there is an old password
-      if (user.password && !(await user.authenticate(req.body.oldPassword))) {
+      if (user.password && !(await user.authenticate(req.body.oldPassword || ''))) {
         res.status(422).json({
           success: false,
           data: null,
