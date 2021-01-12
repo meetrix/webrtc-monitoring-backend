@@ -7,7 +7,7 @@ import { Response, Request, NextFunction } from 'express';
 import { IVerifyOptions } from 'passport-local';
 import { getMailOptions, getTransporter } from '../../../util/mail';
 import {
-  AUTH_LANDING, API_BASE_URL, SUPPORT_URL, STRIPE_SECRET_KEY
+  AUTH_LANDING, API_BASE_URL, SUPPORT_URL, STRIPE_SECRET_KEY, S3_USER_META_BUCKET
 } from '../../../config/settings';
 const log = console.log;
 
@@ -20,6 +20,8 @@ import { formatError } from '../../../util/error';
 import { SUCCESSFUL_RESPONSE } from '../../../util/success';
 import { signToken } from '../../../util/auth';
 import Stripe from 'stripe';
+import S3 from 'aws-sdk/clients/s3';
+import { AWS_ACCESS_KEY_ID, AWS_ACCESS_KEY_SECRET } from '../../../config/secrets';
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
   apiVersion: '2020-08-27',
 });
@@ -149,12 +151,9 @@ export const register = async (req: any, res: Response, next: NextFunction): Pro
       });
       res.status(200).json({
         success: true,
-        data: { emailToken },
+        // data: { emailToken },
         message: 'Confirmation email has been sent successfully. Please check your inbox to proceed.'
       });
-
-
-
     }
 
     if (!selectedUser.isVerified) {
@@ -192,7 +191,7 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
 
     const user = await User.findOne({ emailToken: req.query.token });
     if (!user) {
-      res.redirect(`${AUTH_LANDING}/#/verificationtoken_expired`);
+      // res.redirect(`${AUTH_LANDING}/#/verificationtoken_expired`);
       res.status(401).json({
         success: false,
         data: null,
@@ -330,7 +329,7 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
           });
           res.status(403).json({
             success: false,
-            data: { emailToken },
+            // data: { emailToken },
             message: 'You should complete your signin process. We have sent you a new confirmation email. Please check your inbox & confirm your account to continue.'
           });
 
@@ -380,15 +379,12 @@ export const forgot = async (
 
     const user = await User.findOne({ email });
     if (!user) {
-      // res.status(404).json(formatError('Email not found'));
       res.status(500).json({
         success: false,
         data: null,
         message: 'Email Address not found in our system. Please signup to enjoy ScreenApp.'
       });
-      res.redirect(`${AUTH_LANDING}/#/signup`);
       return;
-
     }
 
     const token = crypto.randomBytes(16).toString('hex');
@@ -419,11 +415,11 @@ export const forgot = async (
       }
       return log('Email sent to the user successfully.');
     });
-    // res.status(201).json(SUCCESSFUL_RESPONSE);
-    // res.status(201).json({ token });
+
+    // console.log(token);
+
     res.status(200).json({
       success: true,
-      data: { token },
       message: 'Password reset link has been sent to your mail successfully. It will be valid for next 60 minutes.'
     });
   } catch (error) {
@@ -443,7 +439,7 @@ export const resetPassword = async (req: any, res: Response, next: NextFunction)
 
     const user = await User.findOne({ passwordResetToken: req.query.token });
     if (!user) {
-      res.redirect(`${AUTH_LANDING}/#/resetpasswordtoken_expired`);
+      // res.redirect(`${AUTH_LANDING}/#/resetpasswordtoken_expired`);
       res.status(401).json({
         success: false,
         data: null,
@@ -452,15 +448,13 @@ export const resetPassword = async (req: any, res: Response, next: NextFunction)
       return;
     }
 
-    res.redirect(`${AUTH_LANDING}/#/resetpassword?token=${user.passwordResetToken}`);
+    // res.redirect(`${AUTH_LANDING}/#/resetpassword?token=${user.passwordResetToken}`);
 
     res.status(200).json({
       success: true,
       data: { passwordResetToken: user.passwordResetToken },
       message: 'Reset successful. Redirecting...'
     });
-
-
   } catch (error) {
     log('Something went wrong.');
     res.status(500).json({
@@ -561,6 +555,26 @@ export const reset = async (
   }
 };
 
+const uploadProfilePicture = async (
+  key: string, 
+  imgBuffer: Buffer, 
+  imgMime: string
+): Promise<string> => {
+  const s3 = new S3({
+    credentials: { accessKeyId: AWS_ACCESS_KEY_ID, secretAccessKey: AWS_ACCESS_KEY_SECRET }
+  });
+
+  const s3Response = await s3.upload({
+    Bucket: S3_USER_META_BUCKET, 
+    Key: key, 
+    Body: imgBuffer, 
+    ContentType: imgMime,
+    ACL: 'public-read',
+  }).promise();
+
+  return s3Response.Location;
+};
+
 // Post Profile
 export const postProfile = async (
   req: Request,
@@ -570,44 +584,67 @@ export const postProfile = async (
   try {
     const user = req.user;
 
-    if (!req.body.password){
-      user.email = req.body.email;
-      user.profile.name = req.body.name;
-    }
-    else{
-    user.email = req.body.email;
-    user.password = req.body.password;
+    // Do not set email
+    // user.email = req.body.email;
+
     user.profile.name = req.body.name;
 
+    if (req.body.picture) {
+      const imgBuffer = Buffer.from(req.body.picture, 'base64');
+      const emailHex = Buffer.from(user.email).toString('hex');
+      const key = `profile-picture-${emailHex}`; // Replace profile picture if exists
+      const imgPath = await uploadProfilePicture(key, imgBuffer, req.body.pictureMime);
+      user.profile.picture = imgPath;
+    }
 
-    //Password change notification
+    if (!!req.body.oldPassword && !!req.body.password && req.body.password.length > 0) {
 
-    const clientName = user.profile.name;
+      // Validate old password
+      if (!(await user.authenticate(req.body.oldPassword))) {
+        res.status(422).json({
+          success: false,
+          data: null,
+          message: 'Current password entered is incorrect.'
+        });
+        return;
+      } 
 
-    const transporter = getTransporter();
-
-    const mailOptions = getMailOptions({
-      subject: 'Password Reset Successful - ScreenApp.IO',
-      to: `<${user.email}>`,
-      template: 'passwordResetConfirmation',
-      context: {
-        clientName,
-        API_BASE_URL,
-        AUTH_LANDING,
-        SUPPORT_URL
+      // Validate new password
+      if (!validator.isLength(req.body.password, { min: 6 })) {
+        res.status(422).json({
+          success: false,
+          data: null,
+          message: 'Password must be at least 6 characters long.'
+        });
+        return;
       }
-    });
 
-    transporter.sendMail(mailOptions, (err, data) => {
-      if (err) {
-        return log('Error occurs');
-      }
-      return log('Email sent to the user successfully.');
-    });
+      user.password = req.body.password;
 
+      //Password change notification
 
+      const clientName = user.profile.name;
 
+      const transporter = getTransporter();
 
+      const mailOptions = getMailOptions({
+        subject: 'Password Reset Successful - ScreenApp.IO',
+        to: `<${user.email}>`,
+        template: 'passwordResetConfirmation',
+        context: {
+          clientName,
+          API_BASE_URL,
+          AUTH_LANDING,
+          SUPPORT_URL
+        }
+      });
+
+      transporter.sendMail(mailOptions, (err, data) => {
+        if (err) {
+          return log('Error occurs');
+        }
+        return log('Email sent to the user successfully.');
+      });
     }
 
     await user.save();
