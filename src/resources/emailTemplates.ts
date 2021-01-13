@@ -159,7 +159,7 @@ export const mailConfirmationTemplate = (
                   <br />
                 </h1>
                 <a href="https://screenapp.io" target="_blank">
-                  <img src="https://arcadeclouds.com/templates/arcade-clouds/resources/screenapp_logo.png" width="33%"
+                  <img src="https://s3-us-west-2.amazonaws.com/download.meetrix.io/screenapp/email/210113/screenapp_logo.png" width="33%"
                     height="100%" style="display: block; border: 0px" /></a>
               </td>
             </tr>
@@ -510,7 +510,7 @@ export const passwordResetTemplate = (
                       ">
   
                 <a href="https://screenapp.io" target="_blank">
-                  <img src="https://arcadeclouds.com/templates/arcade-clouds/resources/screenapp_logo.png" width="33%"
+                  <img src="https://s3-us-west-2.amazonaws.com/download.meetrix.io/screenapp/email/210113/screenapp_logo.png" width="33%"
                     height="100%" style="display: block; border: 0px" /></a>
               </td>
             </tr>
@@ -863,7 +863,7 @@ export const passwordChangedConfirmationTemplate = (
                     ">
               
               <a href="https://screenapp.io" target="_blank">
-                <img src="https://arcadeclouds.com/templates/arcade-clouds/resources/screenapp_logo.png" width="33%"
+                <img src="https://s3-us-west-2.amazonaws.com/download.meetrix.io/screenapp/email/210113/screenapp_logo.png" width="33%"
                   height="100%" style="display: block; border: 0px" /></a>
             </td>
           </tr>
@@ -1150,7 +1150,7 @@ export const emailVerifiedTemplate = (
                   <br />
                 </h1>
                 <a href="https://screenapp.io" target="_blank">
-                  <img src="https://arcadeclouds.com/templates/arcade-clouds/resources/screenapp_logo.png" width="33%"
+                  <img src="https://s3-us-west-2.amazonaws.com/download.meetrix.io/screenapp/email/210113/screenapp_logo.png" width="33%"
                     height="100%" style="display: block; border: 0px" /></a>
               </td>
             </tr>
