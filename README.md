@@ -60,7 +60,7 @@ For how environment variables are imported and exported have a look in [src/conf
 | SENDGRID_USER         | Sendgrid account user name                                                                                                            |
 | SENDGRID_PASSWORD     | Sendgrid account password                                                                                                             |
 |                       | AWS user used for uploading files to s3 with `AmazonS3FullAccess` Policy                                                              |
-| AWS_ACCESS_KEY_ID     | AWS Access key ID                                                                                                                     |
+| AWS_ACCESS_KEY     | AWS Access key ID                                                                                                                     |
 | AWS_ACCESS_KEY_SECRET | AWS Access key secret                                                                                                                 |
 |                       | This will be used to create a REGEX that will block origins that don't match                                                          |
 | CORS_REGEX            | use `localhost:\d{4}$` for development and `domain\.tld$` for production                                                              |  |
