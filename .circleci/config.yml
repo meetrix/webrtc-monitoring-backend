@@ -77,7 +77,7 @@ jobs:
       - run:
           name: Deploy to k8s cluster
           command: |
-            # Ensure AWS_ACCESS_KEY_ID and AWS_SECRET_ACCESS_KEY are set in the project's env vars
+            # Ensure AWS_ACCESS_KEY and AWS_SECRET_ACCESS_KEY are set in the project's env vars
             kops export kubecfg --name k8s.explabs.io
             kubectl set image deploy/node-api-starter node-api-starter=$IMAGE_NAME:$CIRCLE_SHA1
 

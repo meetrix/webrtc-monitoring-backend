@@ -21,7 +21,7 @@ import { SUCCESSFUL_RESPONSE } from '../../../util/success';
 import { signToken } from '../../../util/auth';
 import Stripe from 'stripe';
 import S3 from 'aws-sdk/clients/s3';
-import { AWS_ACCESS_KEY_ID, AWS_ACCESS_KEY_SECRET } from '../../../config/secrets';
+import { AWS_ACCESS_KEY, AWS_ACCESS_KEY_SECRET } from '../../../config/secrets';
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
   apiVersion: '2020-08-27',
 });
@@ -560,10 +560,8 @@ const uploadProfilePicture = async (
   imgBuffer: Buffer, 
   imgMime: string
 ): Promise<string> => {
-  console.log(`>>>${AWS_ACCESS_KEY_ID}<<< >>>${AWS_ACCESS_KEY_SECRET}<<< >>>${S3_USER_META_BUCKET}<<<`);
-  
   const s3 = new S3({
-    credentials: { accessKeyId: AWS_ACCESS_KEY_ID, secretAccessKey: AWS_ACCESS_KEY_SECRET }
+    credentials: { accessKeyId: AWS_ACCESS_KEY, secretAccessKey: AWS_ACCESS_KEY_SECRET }
   });
 
   const s3Response = await s3.upload({

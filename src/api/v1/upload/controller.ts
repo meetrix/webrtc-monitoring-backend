@@ -4,7 +4,7 @@ import { Request, Response, NextFunction } from 'express';
 
 import {
   AWS_ACCESS_KEY_SECRET,
-  AWS_ACCESS_KEY_ID
+  AWS_ACCESS_KEY
 } from '../../../config/secrets';
 import {
   S3_CONTENT_BUCKET,
@@ -13,7 +13,7 @@ import {
 
 const s3 = new S3({
   credentials: {
-    accessKeyId: AWS_ACCESS_KEY_ID,
+    accessKeyId: AWS_ACCESS_KEY,
     secretAccessKey: AWS_ACCESS_KEY_SECRET
   }
 });

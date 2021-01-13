@@ -3,7 +3,7 @@ services:
   mongo:
     image: mongo:4.0
     container_name: screenapp-mongodb
-    
+
   mongo-express:
     image: mongo-express
     container_name: screenapp-mongo-express
@@ -12,9 +12,9 @@ services:
       ME_CONFIG_BASICAUTH_PASSWORD: ${ME_CONFIG_BASICAUTH_PASSWORD}
     depends_on:
       - mongo
-      
+
   server:
-    build: 
+    build:
       context: ./
       dockerfile: development.Dockerfile
     container_name: screenapp-server
@@ -34,7 +34,7 @@ services:
       GOOGLE_SECRET: ${GOOGLE_SECRET}
       LINKEDIN_API_KEY: ${LINKEDIN_API_KEY}
       LINKEDIN_SECRET: ${LINKEDIN_SECRET}
-      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
       AWS_ACCESS_KEY_SECRET: ${AWS_ACCESS_KEY_SECRET}
       USER_META_BUCKET: ${USER_META_BUCKET}
       SMTP_HOST: ${SMTP_HOST}

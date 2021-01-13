@@ -25,7 +25,7 @@ const requiredSecrets = [
   'FACEBOOK_ID',
   'FACEBOOK_SECRET',
 
-  'AWS_ACCESS_KEY_ID',
+  'AWS_ACCESS_KEY',
   'AWS_ACCESS_KEY_SECRET',
 
   'CORS_REGEX'
@@ -61,7 +61,7 @@ export const LINKEDIN_SECRET = process.env['LINKEDIN_SECRET'];
 
 export const GOOGLE_ID = process.env['GOOGLE_ID'];
 export const GOOGLE_SECRET = process.env['GOOGLE_SECRET'];
-export const AWS_ACCESS_KEY_ID = process.env['AWS_ACCESS_KEY_ID'];
+export const AWS_ACCESS_KEY = process.env['AWS_ACCESS_KEY'];
 export const AWS_ACCESS_KEY_SECRET = process.env['AWS_ACCESS_KEY_SECRET'];
 export const SMTP_HOST = process.env['SMTP_HOST'];
 

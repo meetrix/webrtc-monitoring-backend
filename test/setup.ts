@@ -11,7 +11,7 @@ process.env.MONGO_PORT = '27017';
 process.env.MONGO_USERNAME = 'not_used';
 process.env.MONGO_PASSWORD = 'not_used';
 
-process.env.AWS_ACCESS_KEY_ID = 'not_used';
+process.env.AWS_ACCESS_KEY = 'not_used';
 process.env.AWS_ACCESS_KEY_SECRET = 'not_used';
 
 process.env.CORS_REGEX = 'not_used';
