@@ -560,6 +560,8 @@ const uploadProfilePicture = async (
   imgBuffer: Buffer, 
   imgMime: string
 ): Promise<string> => {
+  console.log(`>>>${AWS_ACCESS_KEY_ID}<<< >>>${AWS_ACCESS_KEY_SECRET}<<< >>>${S3_USER_META_BUCKET}<<<`);
+  
   const s3 = new S3({
     credentials: { accessKeyId: AWS_ACCESS_KEY_ID, secretAccessKey: AWS_ACCESS_KEY_SECRET }
   });
