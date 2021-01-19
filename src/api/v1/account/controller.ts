@@ -411,9 +411,9 @@ export const forgot = async (
 
     transporter.sendMail(mailOptions, (err, data) => {
       if (err) {
-        return log('Error occurs');
+        return log('Error occured. ');
       }
-      return log('Email sent to the user successfully.');
+      return log('Email sent to the user successfully. ');
     });
 
     // console.log(token);
