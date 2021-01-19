@@ -149,6 +149,8 @@ export const register = async (req: any, res: Response, next: NextFunction): Pro
         return log('Email sent to the user successfully.');
         // res.status(201).json({ token: signToken(user) });
       });
+      console.log(emailToken);
+      
       res.status(200).json({
         success: true,
         // data: { emailToken },
@@ -212,7 +214,7 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
     user.emailToken = null;
     user.isVerified = true,
 
-      await user.save();
+    await user.save();
 
     const clientName = user.profile.name;
 
@@ -239,15 +241,13 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
 
     // A new email signin token issued to get user details to verify at signin
     user.accessToken = signToken(user),
-      await user.save();
+    await user.save();
 
-    res.redirect(`${AUTH_LANDING}/#/dashboard?token=${user.accessToken}`);
-
-    /*res.status(200).json({
+    res.status(200).json({
       success: true,
       data: { accessToken: user.accessToken },
       message: 'Verification successfull. Redirecting...'
-    });*/
+    });
 
   } catch (error) {
     res.status(500).json({
