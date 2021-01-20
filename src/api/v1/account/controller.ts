@@ -149,7 +149,7 @@ export const register = async (req: any, res: Response, next: NextFunction): Pro
         return log('Email sent to the user successfully.');
         // res.status(201).json({ token: signToken(user) });
       });
-      console.log(emailToken);
+      // console.log(emailToken);
       
       res.status(200).json({
         success: true,
