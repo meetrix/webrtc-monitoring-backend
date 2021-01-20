@@ -364,7 +364,6 @@ export const forgot = async (
 ): Promise<void> => {
   try {
     if (!req.body.email) {
-      // res.status(422).json(formatError('Invalid data'));
       res.status(500).json({
         success: false,
         data: null,
@@ -387,8 +386,8 @@ export const forgot = async (
       return;
     }
 
-    const token = crypto.randomBytes(16).toString('hex');
-    user.passwordResetToken = token;
+    const emailToken = crypto.randomBytes(16).toString('hex');
+    user.passwordResetToken = emailToken;
     user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // ms
     await user.save();
 
@@ -402,7 +401,7 @@ export const forgot = async (
       template: 'passwordReset',
       context: {
         clientName,
-        token,
+        emailToken,
         API_BASE_URL,
         AUTH_LANDING,
         SUPPORT_URL
@@ -411,12 +410,10 @@ export const forgot = async (
 
     transporter.sendMail(mailOptions, (err, data) => {
       if (err) {
-        return log('Error occured. ');
+        return log(err);
       }
       return log('Email sent to the user successfully. ');
     });
-
-    // console.log(token);
 
     res.status(200).json({
       success: true,
