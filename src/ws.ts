@@ -6,7 +6,7 @@ import { URL } from 'url';
 import { CORS_REGEX, SESSION_SECRET } from './config/secrets';
 import { API_BASE_URL, USER_ROLES, USER_PACKAGES } from './config/settings';
 import { User } from './models/User';
-import { uploadToS3 } from './api/v1/recording/controller';
+import { listRecordings, uploadRecordingToS3 } from './api/v1/recording/controller';
 
 function abortHandshake(socket, code: number, message: string, headers: { [x: string]: string | number }): void {
   if (socket.writable) {
@@ -76,26 +76,53 @@ const handleWebSocketEvents = (server: http.Server): void => {
     });
   });
 
+  // Notifying the clients that the connection is alive
+  const heartbeat = setInterval(function beat() {
+    wss.clients.forEach(function each(client) {
+      if (client.readyState === WebSocket.OPEN) {
+        client.send('');
+      }
+    });
+  }, 1000);
+
   wss.on('connection', async function connection(ws: WebSocket, req: http.IncomingMessage, reqUrl: URL, user: Express.JwtUser) {
+    ws.on('close', function close(code: number, reason: string) {
+      // This ends the stream properly, results in an upload. 
+      console.log(`WebSocket closed. ${code}: ${reason}`);
+    });
+
+    ws.on('error', function error(code: number, reason: string) {
+      console.log(`WebSocket error. ${code}: ${reason}`);
+    });
+
     const userId = user.sub;
 
     // pathname format: /ws/recordingId
     // e.g.: /ws/04d7bc00-5fa2-11eb-acce-45b0eb5de22d
-    const [recordingId] = reqUrl.pathname 
+    const [recordingId] = reqUrl.pathname
       .replace('/ws/', '')
       .split(/\//g);
 
+    const prevVideosWithSameKey = (await listRecordings(userId, recordingId)).length;
+
+    console.log(`Receiving file ${userId}/${recordingId}.webm. `);
     const wsStream = WebSocket.createWebSocketStream(ws);
     try {
-      await uploadToS3(userId, recordingId, wsStream);
+      if (prevVideosWithSameKey > 0) {
+        await uploadRecordingToS3(userId, recordingId, wsStream, `_${prevVideosWithSameKey}`);
+      } else {
+        await uploadRecordingToS3(userId, recordingId, wsStream);
+      }
 
       console.log(`File ${userId}/${recordingId}.webm uploaded. `);
-
     } catch (error) {
       console.error(error);
     }
   });
 
+  wss.on('close', function close() {
+    clearInterval(heartbeat);
+  });
 };
 
 export default handleWebSocketEvents;
