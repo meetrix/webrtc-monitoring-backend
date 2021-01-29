@@ -58,8 +58,8 @@ export const feedbackReport = async (
       res.status(200).json('Not implemented yet. ');
       // res.type('text/csv').status(200).send(stringify(result));
     } else {
-      const prev = from - limit < 0 ? null : from - limit;
-      const next = result.length < limit ? null : from + limit;
+      const prev = from - limit < 0 ? null : (from - limit).toString();
+      const next = result.length < limit ? null : (from + limit).toString();
       res.status(200).send(feedbackView({ records: result, prev, next, from, limit }));
     }
   } catch (error) {
