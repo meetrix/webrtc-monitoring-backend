@@ -2,13 +2,14 @@ import WebSocket from 'ws';
 import http from 'http';
 import jwt from 'jsonwebtoken';
 import { URL } from 'url';
+import { Socket } from 'net';
 
 import { CORS_REGEX, SESSION_SECRET } from './config/secrets';
 import { API_BASE_URL, USER_ROLES, USER_PACKAGES } from './config/settings';
 import { User } from './models/User';
 import { listRecordings, uploadRecordingToS3 } from './api/v1/recording/controller';
 
-function abortHandshake(socket, code: number, message: string, headers: { [x: string]: string | number }): void {
+function abortHandshake(socket: Socket, code: number, message: string, headers: { [x: string]: string | number }): void {
   if (socket.writable) {
     message = message || http.STATUS_CODES[code];
     headers = {
@@ -34,7 +35,7 @@ function abortHandshake(socket, code: number, message: string, headers: { [x: st
 const handleWebSocketEvents = (server: http.Server): void => {
   const wss = new WebSocket.Server({ noServer: true, perMessageDeflate: false });
 
-  server.on('upgrade', async function upgrade(request: http.IncomingMessage, socket, head: Buffer) {
+  server.on('upgrade', async function upgrade(request: http.IncomingMessage, socket: Socket, head: Buffer) {
 
     const corsVerified = request.headers['origin'].toString().match(new RegExp(CORS_REGEX)) ? true : false;
     if (!corsVerified) {
@@ -71,7 +72,7 @@ const handleWebSocketEvents = (server: http.Server): void => {
       return;
     }
 
-    wss.handleUpgrade(request, socket, head, function done(ws) {
+    wss.handleUpgrade(request, socket as Socket, head, function done(ws) {
       wss.emit('connection', ws, request, reqUrl, jwtUser);
     });
   });
