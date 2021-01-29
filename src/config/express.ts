@@ -23,8 +23,8 @@ export const setupExpress = (app: Express): void => {
   setupPassport(app);
 
   app.use(cors(corsOptions));
-  app.use(bodyParser.json());
-  app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(bodyParser.json({ limit: '2mb' }));
+  app.use(bodyParser.urlencoded({ limit: '2mb', extended: true }));
   app.use(compression());
   app.use(
     morgan(
