@@ -1,4 +1,5 @@
 import app from './app';
+import handleWebSocketEvents from './ws';
 import logger from './util/logger';
 
 const server = app.listen(app.get('port'), (): void => {
@@ -8,5 +9,7 @@ const server = app.listen(app.get('port'), (): void => {
     )} mode`
   );
 });
+
+handleWebSocketEvents(server);
 
 export default server;
