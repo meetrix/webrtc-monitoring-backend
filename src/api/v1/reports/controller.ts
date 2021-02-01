@@ -1,7 +1,7 @@
 import { Response, Request, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import Handlebars from 'handlebars';
-// import stringify from 'csv-stringify';
+import stringify from 'csv-stringify/lib/sync';
 
 import { Feedback } from '../../../models/Feedback';
 import { SESSION_SECRET } from '../../../config/secrets';
@@ -66,8 +66,6 @@ export const feedbackReport = async (
 ): Promise<void> => {
   let token: string = null;
   if (req.body.email) {
-    console.log('first time');
-    
     token = await authenticateAdmin(req.body.email, req.body.password);
   } else {
     token = req.query.token as string;
@@ -77,7 +75,12 @@ export const feedbackReport = async (
     res.status(401).send('unauthorized');
   }
 
-  const { from: fromStr, limit: limitStr, type = null, all = null } = req.query;
+  const type = req.route.path.endsWith('.csv')
+    ? 'csv'
+    : req.route.path.endsWith('.json')
+      ? 'json'
+      : '';
+  const { from: fromStr, limit: limitStr, all = null } = req.query;
   const from = Number(fromStr) || 0;
   const limit = Number(limitStr) || Number(req.body.limit) || 100;
 
@@ -106,15 +109,14 @@ export const feedbackReport = async (
         browserVersion,
         os,
         osVersion,
-        createdAt,
+        createdAt: createdAt.toISOString(),
       };
     });
 
     if (type == 'json') {
       res.status(200).json(result);
     } else if (type == 'csv') {
-      res.status(500).send('Not implemented yet. ');
-      // res.type('text/csv').status(200).send(stringify(result));
+      res.type('text/csv').status(200).send(stringify(result, { header: true }));
     } else {
       const prev = from - limit < 0 ? null : (from - limit).toString();
       const next = result.length < limit ? null : (from + limit).toString();

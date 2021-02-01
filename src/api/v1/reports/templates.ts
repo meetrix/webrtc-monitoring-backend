@@ -78,8 +78,8 @@ export const feedbacksTemplate = `<!DOCTYPE html>
   {{#if next}}
   <a href="/v1/reports/feedbacks?from={{next}}&limit={{limit}}&token={{token}}">next</a>
   {{/if}}
-  <a href="/v1/reports/feedbacks?from={{from}}&limit={{limit}}&type=csv&token={{token}}">download</a>
-  <a href="/v1/reports/feedbacks?all=true&type=csv&token={{token}}">download everything</a>
+  <a href="/v1/reports/feedbacks.csv?from={{from}}&limit={{limit}}&token={{token}}">download</a>
+  <a href="/v1/reports/feedbacks.csv?all=true&token={{token}}">download everything</a>
 </body>
 
 </html>
