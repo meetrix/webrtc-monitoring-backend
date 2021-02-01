@@ -6,14 +6,24 @@ export const indexTemplate = `<!DOCTYPE html>
 </head>
 
 <body>
-  <a href="/v1/reports/feedbacks?from=0&limit=100">Feedbacks report</a>
+  <form action="/v1/reports/feedbacks" method="post">
+    <label for="email">Email: </label><br>
+    <input type="email" id="email" name="email" /><br>
+
+    <label for="password">Password: </label><br>
+    <input type="password" id="password" name="password" /><br>
+
+    <label for="number">Number of records per page: </label><br>
+    <input type="number" min="1" max="1000" id="limit" name="limit" value="100"/><br>
+
+    <input type="submit" value="Show feedbacks report" />
+  </form>
 </body>
 
 </html>
 `;
 
-
-export const feedbacksTemplate = `
+export const feedbacksTemplate = `<!DOCTYPE html>
 <html>
 
 <head>
@@ -63,13 +73,13 @@ export const feedbacksTemplate = `
   </table>
 
   {{#if prev}}
-  <a href="/v1/reports/feedbacks?from={{prev}}&limit={{limit}}">prev</a>
+  <a href="/v1/reports/feedbacks?from={{prev}}&limit={{limit}}&token={{token}}">prev</a>
   {{/if}}
   {{#if next}}
-  <a href="/v1/reports/feedbacks?from={{next}}&limit={{limit}}">next</a>
+  <a href="/v1/reports/feedbacks?from={{next}}&limit={{limit}}&token={{token}}">next</a>
   {{/if}}
-  <a href="/v1/reports/feedbacks?from={{from}}&limit={{limit}}&type=csv">download</a>
-  <a href="/v1/reports/feedbacks?all=true&type=csv">download everything</a>
+  <a href="/v1/reports/feedbacks?from={{from}}&limit={{limit}}&type=csv&token={{token}}">download</a>
+  <a href="/v1/reports/feedbacks?all=true&type=csv&token={{token}}">download everything</a>
 </body>
 
 </html>

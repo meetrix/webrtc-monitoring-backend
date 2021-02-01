@@ -1,10 +1,11 @@
 import express from 'express';
 
-import { feedbackReport, index } from './controller';
+import { feedbackReport, index, verifyAdmin } from './controller';
 
 const router = express.Router();
 
-router.use('/feedbacks', feedbackReport);
-router.use('/', index);
+router.get('/feedbacks', verifyAdmin, feedbackReport);
+router.post('/feedbacks', feedbackReport);
+router.get('/', index);
 
 export const reportsRouter = router;
