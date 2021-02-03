@@ -1,6 +1,7 @@
 import { Response, Request, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import Handlebars from 'handlebars';
+import validator from 'validator';
 import stringify from 'csv-stringify/lib/sync';
 
 import { Feedback } from '../../../models/Feedback';
@@ -8,8 +9,8 @@ import { SESSION_SECRET } from '../../../config/secrets';
 import { USER_ROLES } from '../../../config/settings';
 import { indexTemplate, feedbacksTemplate } from './templates';
 import { signToken } from '../../../util/auth';
-import validator from 'validator';
 import { User } from '../../../models/User';
+import { Recording } from '../../../models/Recording';
 
 const indexView = Handlebars.compile(indexTemplate);
 const feedbackView = Handlebars.compile(feedbacksTemplate);
@@ -62,7 +63,7 @@ export const verifyAdmin = (req: Request, res: Response, next: NextFunction): vo
 export const feedbackReport = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  nextFunc: NextFunction
 ): Promise<void> => {
   let token: string = null;
   if (req.body.email) {
@@ -73,6 +74,7 @@ export const feedbackReport = async (
 
   if (!token) {
     res.status(401).send('unauthorized');
+    return;
   }
 
   const type = req.route.path.endsWith('.csv')
@@ -123,6 +125,70 @@ export const feedbackReport = async (
       res.status(200).send(feedbackView({ records: result, prev, next, from, limit, token }));
     }
   } catch (error) {
-    next(error);
+    nextFunc(error);
+  }
+};
+
+/**
+ * Tries to parse a date string
+ * @param date A date in YYYY-MM-DD format
+ */
+const parseDate = (date: string): Date | null => {
+  const matches = date.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (matches.length === 4) {
+    // Month is 0-indexed
+    return new Date(Number(matches[1]), Number(matches[2]) - 1, Number(matches[3]));
+  }
+
+  return null;
+};
+
+export const usersReport = async (
+  req: Request,
+  res: Response,
+  nextFunc: NextFunction
+): Promise<void> => {
+  // let token: string = null;
+  // if (req.body.email) {
+  //   token = await authenticateAdmin(req.body.email, req.body.password);
+  // } else {
+  //   token = req.query.token as string;
+  // }
+
+  // if (!token) {
+  //   res.status(401).send('unauthorized');
+  //   return;
+  // }
+
+  try {
+    const { from, to, minRecordingMinutes } = req.query;
+    // Defaults to current date
+    const toDate = to && parseDate(to as string) || new Date();
+    // Defaults to 30 days before -- auto adjusted
+    const fromDate = from && parseDate(from as string)
+      || new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate() - 30);
+    // Defaults to 1 hour, in seconds
+    const minDuration = (Number(minRecordingMinutes) ?? 60) * 60;
+
+    const users = await Recording.aggregate()
+      .match({ createdAt: { $gte: fromDate, $lt: toDate } })
+      .group({
+        _id: '$ltid',
+        email: { $first: '$email' },
+        recordingsCount: { $sum: 1 },
+        totalLength: { $sum: '$duration' }
+      })
+      .match({ totalLength: { $gte: minDuration } })
+      .sort('-totalLength')
+      .project({
+        _id: 1,
+        email: 1,
+        recordingsCount: 1,
+        totalLength: { $divide: ['$totalLength', 60] }
+      });
+
+    res.json({ count: users.length, users });
+  } catch (error) {
+    nextFunc(error);
   }
 };
