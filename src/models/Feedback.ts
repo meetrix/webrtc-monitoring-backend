@@ -12,6 +12,7 @@ export interface FeedbackType {
     app?: { version: string }; 
     os?: { name: string; version: string }; 
     browser?: { name: string; version: string }; 
+    screen?: { resolution: string; aspectRatio: string };
   };
   createdAt: Date;
 }

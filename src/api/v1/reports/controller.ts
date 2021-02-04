@@ -114,6 +114,8 @@ export const feedbackReport = async (
       const browserVersion = meta?.browser?.version;
       const os = meta?.os?.name;
       const osVersion = meta?.os?.version;
+      const screenResolution = meta?.screen?.resolution;
+      const screenAspectRatio = meta?.screen?.aspectRatio;
 
       return {
         email,
@@ -124,6 +126,8 @@ export const feedbackReport = async (
         browserVersion,
         os,
         osVersion,
+        screenResolution,
+        screenAspectRatio,
         createdAt: createdAt.toISOString(),
       };
     });
