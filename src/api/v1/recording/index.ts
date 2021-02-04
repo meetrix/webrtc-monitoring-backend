@@ -6,6 +6,6 @@ import { trackRecording } from './controller';
 
 const router = express.Router();
 
-router.post('/', isAuthenticated, trackRecording);
+router.post('/', trackRecording);
 
 export const recordingRouter = router;
