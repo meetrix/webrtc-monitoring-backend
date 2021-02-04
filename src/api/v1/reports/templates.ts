@@ -35,7 +35,10 @@ export const indexTemplate = `<!DOCTYPE html>
   <label for="to">To: </label><br>
   <input type="date" id="to" name="to" /><br>
 
-  <input type="submit" name="submitUsers" value="Show usage report" />
+  <input type="submit" name="submitUsers" value="Show usage report" /><br>
+  <hr>
+
+  <a href="/v1/reports/logout">Sign-out</a>
 </form>
 </body>
 
@@ -92,13 +95,13 @@ export const feedbacksTemplate = `<!DOCTYPE html>
   </table>
 
   {{#if prev}}
-  <a href="/v1/reports/feedbacks?from={{prev}}&limit={{limit}}&token={{token}}">prev</a>
+  <a href="/v1/reports/feedbacks?from={{prev}}&limit={{limit}}">prev</a>
   {{/if}}
   {{#if next}}
-  <a href="/v1/reports/feedbacks?from={{next}}&limit={{limit}}&token={{token}}">next</a>
+  <a href="/v1/reports/feedbacks?from={{next}}&limit={{limit}}">next</a>
   {{/if}}
-  <a href="/v1/reports/feedbacks.csv?from={{from}}&limit={{limit}}&token={{token}}">download</a>
-  <a href="/v1/reports/feedbacks.csv?all=true&token={{token}}">download everything</a>
+  <a href="/v1/reports/feedbacks.csv?from={{from}}&limit={{limit}}">download</a>
+  <a href="/v1/reports/feedbacks.csv?all=true">download everything</a>
 </body>
 
 </html>
