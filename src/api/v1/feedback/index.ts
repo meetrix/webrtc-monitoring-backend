@@ -1,4 +1,6 @@
 import express from 'express';
+
+import rateLimiterMiddleware from '../../../middleware/rateLimiterMemory';
 import { feedback } from './controller';
 
 const router = express.Router();
@@ -78,6 +80,6 @@ const router = express.Router();
  * 
  * 
  */
-router.post('/', feedback);
+router.post('/', rateLimiterMiddleware, feedback);
 
 export const feedbackRouter = router;

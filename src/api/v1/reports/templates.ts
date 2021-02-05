@@ -8,16 +8,38 @@ export const indexTemplate = `<!DOCTYPE html>
 <body>
   <form action="/v1/reports/feedbacks" method="post">
     <label for="email">Email: </label><br>
-    <input type="email" id="email" name="email" /><br>
+    <input type="email" id="email1" name="email" /><br>
 
     <label for="password">Password: </label><br>
-    <input type="password" id="password" name="password" /><br>
+    <input type="password" id="password1" name="password" /><br>
 
-    <label for="number">Number of records per page: </label><br>
+    <label for="limit">Number of records per page: </label><br>
     <input type="number" min="1" max="1000" id="limit" name="limit" value="100"/><br>
 
-    <input type="submit" value="Show feedbacks report" />
+    <input type="submit" name="submitFeedbacks" value="Show feedbacks report" />
   </form>
+
+<form action="/v1/reports/users" method="post">
+  <label for="email">Email: </label><br>
+  <input type="email" id="email2" name="email" /><br>
+
+  <label for="password">Password: </label><br>
+  <input type="password" id="password2" name="password" /><br>
+
+  <label for="number">Minimum recording minutes: </label><br>
+  <input type="number" min="0" id="minRecordingMinutes" name="minRecordingMinutes" value="50"/><br>
+
+  <label for="from">From: </label><br>
+  <input type="date" id="from" name="from" /><br>
+
+  <label for="to">To: </label><br>
+  <input type="date" id="to" name="to" /><br>
+
+  <input type="submit" name="submitUsers" value="Show usage report" /><br>
+  <hr>
+
+  <a href="/v1/reports/logout">Sign-out</a>
+</form>
 </body>
 
 </html>
@@ -73,13 +95,13 @@ export const feedbacksTemplate = `<!DOCTYPE html>
   </table>
 
   {{#if prev}}
-  <a href="/v1/reports/feedbacks?from={{prev}}&limit={{limit}}&token={{token}}">prev</a>
+  <a href="/v1/reports/feedbacks?from={{prev}}&limit={{limit}}">prev</a>
   {{/if}}
   {{#if next}}
-  <a href="/v1/reports/feedbacks?from={{next}}&limit={{limit}}&token={{token}}">next</a>
+  <a href="/v1/reports/feedbacks?from={{next}}&limit={{limit}}">next</a>
   {{/if}}
-  <a href="/v1/reports/feedbacks.csv?from={{from}}&limit={{limit}}&token={{token}}">download</a>
-  <a href="/v1/reports/feedbacks.csv?all=true&token={{token}}">download everything</a>
+  <a href="/v1/reports/feedbacks.csv?from={{from}}&limit={{limit}}">download</a>
+  <a href="/v1/reports/feedbacks.csv?all=true">download everything</a>
 </body>
 
 </html>

@@ -1,6 +1,7 @@
 import { Response, Request, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import Handlebars from 'handlebars';
+import validator from 'validator';
 import stringify from 'csv-stringify/lib/sync';
 
 import { Feedback } from '../../../models/Feedback';
@@ -8,16 +9,29 @@ import { SESSION_SECRET } from '../../../config/secrets';
 import { USER_ROLES } from '../../../config/settings';
 import { indexTemplate, feedbacksTemplate } from './templates';
 import { signToken } from '../../../util/auth';
-import validator from 'validator';
 import { User } from '../../../models/User';
+import { Recording } from '../../../models/Recording';
 
 const indexView = Handlebars.compile(indexTemplate);
 const feedbackView = Handlebars.compile(feedbacksTemplate);
+
+const COOKIE_MAX_AGE = 1000 * 60 * 60 * 8; // 8 Hours
+
 export const index = async (
   req: Request,
   res: Response
 ): Promise<void> => {
   res.status(200).send(indexView({}));
+};
+
+export const logout = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  res.status(200).cookie('token', '', {
+    httpOnly: true, path: '/', maxAge: 0
+  })
+    .send('Logged out.');
 };
 
 const authenticateAdmin = async (emailRaw: string, password: string): Promise<string | null> => {
@@ -43,7 +57,7 @@ const authenticateAdmin = async (emailRaw: string, password: string): Promise<st
 };
 
 export const verifyAdmin = (req: Request, res: Response, next: NextFunction): void => {
-  const token = req.query.token as string;
+  const token = req.cookies.token as string;
 
   try {
     const user = jwt.verify(token, SESSION_SECRET) as Express.User;
@@ -62,17 +76,18 @@ export const verifyAdmin = (req: Request, res: Response, next: NextFunction): vo
 export const feedbackReport = async (
   req: Request,
   res: Response,
-  next: NextFunction
+  nextFunc: NextFunction
 ): Promise<void> => {
   let token: string = null;
   if (req.body.email) {
     token = await authenticateAdmin(req.body.email, req.body.password);
   } else {
-    token = req.query.token as string;
+    token = req.cookies.token as string;
   }
 
   if (!token) {
     res.status(401).send('unauthorized');
+    return;
   }
 
   const type = req.route.path.endsWith('.csv')
@@ -114,15 +129,91 @@ export const feedbackReport = async (
     });
 
     if (type == 'json') {
-      res.status(200).json(result);
+      res.cookie('token', token, {
+        httpOnly: true, path: '/', maxAge: COOKIE_MAX_AGE
+      })
+        .json(result);
     } else if (type == 'csv') {
-      res.type('text/csv').status(200).send(stringify(result, { header: true }));
+      res.type('text/csv').cookie('token', token, {
+        httpOnly: true, path: '/', maxAge: COOKIE_MAX_AGE
+      })
+        .send(stringify(result, { header: true }));
     } else {
       const prev = from - limit < 0 ? null : (from - limit).toString();
       const next = result.length < limit ? null : (from + limit).toString();
-      res.status(200).send(feedbackView({ records: result, prev, next, from, limit, token }));
+      res.cookie('token', token, {
+        httpOnly: true, path: '/', maxAge: COOKIE_MAX_AGE
+      })
+        .send(feedbackView({ records: result, prev, next, from, limit }));
     }
   } catch (error) {
-    next(error);
+    nextFunc(error);
+  }
+};
+
+/**
+ * Tries to parse a date string
+ * @param date A date in YYYY-MM-DD format
+ */
+const parseDate = (date: string): Date | null => {
+  const matches = date.match(/(\d{4})-(\d{2})-(\d{2})/);
+  if (matches && matches.length === 4) {
+    // Month is 0-indexed
+    return new Date(Number(matches[1]), Number(matches[2]) - 1, Number(matches[3]));
+  }
+
+  return null;
+};
+
+export const usersReport = async (
+  req: Request,
+  res: Response,
+  nextFunc: NextFunction
+): Promise<void> => {
+  let token: string = null;
+  if (req.body.email) {
+    token = await authenticateAdmin(req.body.email, req.body.password);
+  } else {
+    token = req.cookies.token as string;
+  }
+
+  if (!token) {
+    res.status(401).send('unauthorized');
+    return;
+  }
+
+  try {
+    const { from, to, minRecordingMinutes } = req.query;
+    // Defaults to current date
+    const toDate = to && parseDate(to as string) || new Date();
+    // Defaults to 30 days before -- auto adjusted
+    const fromDate = from && parseDate(from as string)
+      || new Date(toDate.getFullYear(), toDate.getMonth(), toDate.getDate() - 30);
+    // Defaults to 1 hour, in seconds
+    const minDuration = (Number(minRecordingMinutes) ?? 60) * 60;
+
+    const users = await Recording.aggregate()
+      .match({ createdAt: { $gte: fromDate, $lt: toDate } })
+      .group({
+        _id: '$ltid',
+        email: { $first: '$email' },
+        recordingsCount: { $sum: 1 },
+        totalLength: { $sum: '$duration' }
+      })
+      .match({ totalLength: { $gte: minDuration } })
+      .sort('-totalLength')
+      .project({
+        _id: 1,
+        email: 1,
+        recordingsCount: 1,
+        totalLength: { $divide: ['$totalLength', 60] }
+      });
+
+    res.cookie('token', token, {
+      httpOnly: true, path: '/', maxAge: COOKIE_MAX_AGE
+    })
+      .json({ count: users.length, users });
+  } catch (error) {
+    nextFunc(error);
   }
 };
