@@ -149,6 +149,8 @@ export const register = async (req: any, res: Response, next: NextFunction): Pro
         return log('Email sent to the user successfully.');
         // res.status(201).json({ token: signToken(user) });
       });
+      // console.log(emailToken);
+      
       res.status(200).json({
         success: true,
         // data: { emailToken },
@@ -212,7 +214,7 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
     user.emailToken = null;
     user.isVerified = true,
 
-      await user.save();
+    await user.save();
 
     const clientName = user.profile.name;
 
@@ -239,15 +241,13 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
 
     // A new email signin token issued to get user details to verify at signin
     user.accessToken = signToken(user),
-      await user.save();
+    await user.save();
 
-    res.redirect(`${AUTH_LANDING}/#/dashboard?token=${user.accessToken}`);
-
-    /*res.status(200).json({
+    res.status(200).json({
       success: true,
       data: { accessToken: user.accessToken },
       message: 'Verification successfull. Redirecting...'
-    });*/
+    });
 
   } catch (error) {
     res.status(500).json({
@@ -364,7 +364,6 @@ export const forgot = async (
 ): Promise<void> => {
   try {
     if (!req.body.email) {
-      // res.status(422).json(formatError('Invalid data'));
       res.status(500).json({
         success: false,
         data: null,
@@ -387,8 +386,8 @@ export const forgot = async (
       return;
     }
 
-    const token = crypto.randomBytes(16).toString('hex');
-    user.passwordResetToken = token;
+    const emailToken = crypto.randomBytes(16).toString('hex');
+    user.passwordResetToken = emailToken;
     user.passwordResetExpires = new Date(Date.now() + 60 * 60 * 1000); // ms
     await user.save();
 
@@ -402,7 +401,7 @@ export const forgot = async (
       template: 'passwordReset',
       context: {
         clientName,
-        token,
+        emailToken,
         API_BASE_URL,
         AUTH_LANDING,
         SUPPORT_URL
@@ -411,12 +410,10 @@ export const forgot = async (
 
     transporter.sendMail(mailOptions, (err, data) => {
       if (err) {
-        return log('Error occurs');
+        return log(err);
       }
-      return log('Email sent to the user successfully.');
+      return log('Email sent to the user successfully. ');
     });
-
-    // console.log(token);
 
     res.status(200).json({
       success: true,

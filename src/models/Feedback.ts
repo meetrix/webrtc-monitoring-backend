@@ -8,7 +8,12 @@ export interface FeedbackType {
   email: string;
   rating: number;
   feedback: string;
-  meta: unknown;
+  meta?: { 
+    app?: { version: string }; 
+    os?: { name: string; version: string }; 
+    browser?: { name: string; version: string }; 
+  };
+  createdAt: Date;
 }
 export type FeedbackDocument = mongoose.Document & {
   id: string;
@@ -42,7 +47,8 @@ feedbackSchema.methods = {
       email: this.email,
       rating: this.rating,
       feedback: this.feedback,
-      meta: this.meta
+      meta: this.meta,
+      createdAt: this.createdAt
     };
 
     return result;
