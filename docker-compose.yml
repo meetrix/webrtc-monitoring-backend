@@ -1,17 +1,5 @@
 version: "3.8"
 services:
-  mongo:
-    image: mongo:4.0
-    container_name: screenapp-mongodb
-
-  mongo-express:
-    image: mongo-express
-    container_name: screenapp-mongo-express
-    environment:
-      ME_CONFIG_BASICAUTH_USERNAME: ${ME_CONFIG_BASICAUTH_USERNAME}
-      ME_CONFIG_BASICAUTH_PASSWORD: ${ME_CONFIG_BASICAUTH_PASSWORD}
-    depends_on:
-      - mongo
 
   server:
     build:
@@ -51,5 +39,3 @@ services:
       STRIPE_FREE_PRICE_ID: ${STRIPE_FREE_PRICE_ID}
       STRIPE_STANDARD_PRICE_ID: ${STRIPE_STANDARD_PRICE_ID}
       STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
-    depends_on:
-      - mongo

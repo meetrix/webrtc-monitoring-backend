@@ -1,16 +1,5 @@
 version: "3.8"
 services:
-  mongo:
-    restart: always
-    volumes:
-      - /opt/screenapp/mongodb/volume:/data/db
-    ports:
-      - 27017:27017
-
-  mongo-express:
-    restart: always
-    ports:
-      - 8081:8081
   server:
     build: 
       context: ./
