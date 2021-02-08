@@ -74,6 +74,8 @@ export const feedbacksTemplate = `<!DOCTYPE html>
         <th>Browser Version</th>
         <th>OS</th>
         <th>OS Version</th>
+        <th>Screen Resolution</th>
+        <th>Screen Aspect-Ratio</th>
         <th>Created At</th>
       </tr>
     </thead>
@@ -88,6 +90,8 @@ export const feedbacksTemplate = `<!DOCTYPE html>
         <td>{{browserVersion}}</td>
         <td>{{os}}</td>
         <td>{{osVersion}}</td>
+        <td>{{screenResolution}}</td>
+        <td>{{screenAspectRatio}}</td>
         <td>{{createdAt}}</td>
       </tr>
       {{/each}}
