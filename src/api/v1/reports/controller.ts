@@ -183,7 +183,8 @@ export const usersReport = async (
   }
 
   try {
-    const { from, to, minRecordingMinutes } = req.query;
+    // Support POST (body) as well as GET (query)
+    const { from, to, minRecordingMinutes } = Object.keys(req.query).length > 0 ? req.query : req.body;
     // Defaults to current date
     const toDate = to && parseDate(to as string) || new Date();
     // Defaults to 30 days before -- auto adjusted
