@@ -65,22 +65,26 @@ export const feedback = async (
     });
     feedbackDocument.save();
 
-    const transporter = getTransporter();
-    const mailOptions = getMailOptions({
-      subject: `ScreenApp Client Feedback [# ${clientId}]`,
-      to: RECEIVER_EMAIL,
-      template: 'feedbackEmail',
-      context: {
-        clientId,
-        feedback: {
-          email,
-          rating,
-          feedback,
-          timestamp,
+    // Notify admins/developers only if there's non-empty feedback text
+    if (!!feedback) {
+      // console.log(`Feedback: ${feedback}`);
+      const transporter = getTransporter();
+      const mailOptions = getMailOptions({
+        subject: `ScreenApp Client Feedback [# ${clientId}]`,
+        to: RECEIVER_EMAIL,
+        template: 'feedbackEmail',
+        context: {
+          clientId,
+          feedback: {
+            email,
+            rating,
+            feedback,
+            timestamp,
+          }
         }
-      }
-    });
-    await transporter.sendMail(mailOptions);
+      });
+      await transporter.sendMail(mailOptions);
+    }
 
     res.status(200).json({
       success: true,
