@@ -11,7 +11,6 @@ export interface FileSystemEntityType {
 
 const fileSystemEntitySchemaDef = {
   type: String,
-  id: String,
   name: String,
   createdAt: Date,
   modifiedAt: Date,
@@ -26,7 +25,7 @@ const folderSchemaDef = {};
 
 export interface FileType extends FileSystemEntityType {
   type: 'File';
-  description: string;
+  description?: string;
   size: number; // bytes
   provider: 'S3'; // For future use
   providerKey: string; // Storage provider key
