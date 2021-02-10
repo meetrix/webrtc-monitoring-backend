@@ -1,9 +1,10 @@
 import express from 'express';
 import { isAuthenticated } from '../../../middleware';
-import { fetchFileSystem } from './controller';
+import { createFolder, fetchFileSystem } from './controller';
 
 const router = express.Router();
 
 router.get('/', isAuthenticated, fetchFileSystem);
+router.post('/', isAuthenticated, createFolder);
 
 export const cloudRouter = router;
