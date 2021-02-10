@@ -3,6 +3,7 @@ import bcrypt from 'bcrypt';
 import mongoose from 'mongoose';
 import UUID from 'uuid/v4';
 import { USER_PACKAGES, USER_ROLES } from '../config/settings';
+import { FileType, FolderType } from './FileSystemEntity';
 
 export interface Profile {
   name?: string;
@@ -57,6 +58,7 @@ export type UserDocument = mongoose.Document & {
   package: string;
   profile: Profile;
   tag: Tag;
+  fileSystem: (FileType | FolderType)[];
 
   facebook: string;
   linkedin: string;
