@@ -23,7 +23,7 @@ export const detectCycles = (
 
     fs
       .filter((d) => d.parentId === childId)
-      .forEach((d) => childIds.push(d._id));
+      .forEach((d) => childIds.push(d._id.toString()));
   }
 
   return false;
@@ -52,9 +52,9 @@ export const filterDescendants = (
       .filter((f) => f.parentId === childId)
       .forEach((f) => {
         if (f.type === 'File') {
-          files.push(f._id);
+          files.push(f._id.toString());
         } else if (f.type === 'Folder') {
-          childIds.push(f._id);
+          childIds.push(f._id.toString());
         }
       });
   }

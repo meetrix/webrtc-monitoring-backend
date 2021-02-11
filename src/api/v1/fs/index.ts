@@ -7,8 +7,8 @@ const router = express.Router();
 router.post('/:id', isAuthenticated, updateFolder);
 router.patch('/:id', isAuthenticated, updateFolder);
 router.delete('/:id', isAuthenticated, deleteFolder);
+router.post('', isAuthenticated, createFolder);
 
 router.get('/', isAuthenticated, fetchFileSystem);
-router.post('/', isAuthenticated, createFolder);
 
-export const cloudRouter = router;
+export const fsRouter = router;

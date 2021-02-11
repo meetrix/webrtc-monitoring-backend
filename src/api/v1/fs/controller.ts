@@ -111,7 +111,7 @@ export const updateFolder = async (
         }
 
         // Cycle detection 
-        const cyclesDetected = detectCycles(folders, source._id, parentId);
+        const cyclesDetected = detectCycles(folders, source._id.toString(), parentId);
         if (cyclesDetected) {
           res.status(400).json({
             success: false,
@@ -190,6 +190,8 @@ export const deleteFolder = async (
       req.user.fileSystem.filter((f) => f.provider === source.provider),
       id
     );
+
+    console.log(files, folders);
 
     // TODO Delete folders
     // TODO Delete files
