@@ -1,5 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
+
 import { FolderType } from '../../../models/FileSystemEntity';
+import { detectCycles } from './util';
 
 // Fetch flat file system - GET /
 export const fetchFileSystem = async (
@@ -24,7 +26,15 @@ export const createFolder = async (
 ): Promise<void> => {
 
   try {
-    const { name, parentId = null }: { name: string; parentId: string } = req.body;
+    const {
+      name,
+      parentId = null,
+      provider = 'IDB'
+    }: {
+      name: string;
+      parentId: string;
+      provider: 'S3' | 'IDB';
+    } = req.body;
 
     // Name and parentId (null for root level) must be defined
     if (!name || typeof name !== 'string' || name.length <= 0) {
@@ -46,7 +56,7 @@ export const createFolder = async (
       return;
     }
 
-    req.user.fileSystem.push({ type: 'Folder', name, parentId });
+    req.user.fileSystem.push({ type: 'Folder', name, parentId, provider });
     const folder = (await req.user.save())
       .fileSystem.find((f) => f.name === name && f.parentId === parentId);
 
@@ -57,26 +67,6 @@ export const createFolder = async (
   }
 };
 
-const detectCycles = (
-  fs: FolderType[],
-  sourceId: string,
-  destinationId: string): boolean => {
-
-  const childIds = [sourceId];
-  while (childIds.length > 0) {
-    const childId = childIds.shift();
-    if (childId === destinationId) {
-      return true;
-    }
-
-    fs
-      .filter((d) => d.parentId === sourceId)
-      .forEach((d) => childIds.push(d._id));
-  }
-
-  return false;
-};
-
 // Update folder details, move folders around - POST /:id
 export const updateFolder = async (
   req: Request,
@@ -84,6 +74,7 @@ export const updateFolder = async (
 ): Promise<void> => {
 
   try {
+    // No file system defined yet
     if (!req.user.fileSystem) {
       res.status(404).json({ success: false, error: 'No such source folder exists.' });
       return;
@@ -91,31 +82,30 @@ export const updateFolder = async (
 
     const { id } = req.params;
 
-    const fse = req.user.fileSystem.find((f) => f._id === id);
-    if (!fse) {
+    const source = req.user.fileSystem.find((f) => f._id === id);
+    // Folder does not exist
+    if (!source) {
       res.status(404).json({ success: false, error: 'No such source folder exists.' });
       return;
     }
 
     const { name, parentId } = req.body;
+    const shouldRename = !!name && typeof name === 'string';
+    const shouldMove = !!parentId && typeof parentId === 'string';
 
-    // Rename the folder if needed
-    if (!!name && typeof name === 'string') {
-      fse.name = name;
-    }
+    const folders = req.user.fileSystem
+      .filter((f) => f.type === 'Folder' && f.provider === source.provider) as FolderType[];
 
-    // Move the folder if needed
-    if (!!parentId && typeof parentId === 'string') {
-
+    if (shouldMove) {
       // Destination folder must exist
-      const folders = req.user.fileSystem.filter((f) => f.type === 'Folder') as FolderType[];
-      if (folders.filter((d) => d._id === parentId).length !== 1) {
+      const destination = folders.find((d) => d._id === parentId);
+      if (!destination) {
         res.status(400).json({ success: false, error: 'No such destination folder exists.' });
         return;
       }
 
       // Cycle detection 
-      const cyclesDetected = detectCycles(folders, fse._id, parentId);
+      const cyclesDetected = detectCycles(folders, source._id, parentId);
       if (cyclesDetected) {
         res.status(400).json({
           success: false,
@@ -124,11 +114,41 @@ export const updateFolder = async (
         return;
       }
 
-      fse.parentId = parentId;
+      // The new parent folder shouldn't have a folder with the same name (or new name if given)
+      const nameExists = folders
+        .filter((d) => d.name === (shouldRename ? name : source.name) && d.parentId === destination._id)
+        .length > 0;
+      if (nameExists) {
+        res.status(400).json({
+          success: false,
+          error: `Destination folder already contains a folder by the same name: ${name || source.name}.`
+        });
+        return;
+      }
+
+      if (shouldRename) {
+        source.name = name;
+      }
+
+      source.parentId = parentId;
+    } else if (shouldRename) {
+      // The parent folder shouldn't have a folder with the provided name
+      const nameExists = folders
+        .filter((d) => d.name ===  name && d.parentId === source.parentId)
+        .length > 0;
+      if (nameExists) {
+        res.status(400).json({
+          success: false,
+          error: `Destination folder already contains a folder by the same name: ${name}.`
+        });
+        return;
+      }
+
+      source.name = name;
     }
 
     const folder = (await req.user.save())
-      .fileSystem.find((f) => f._id = fse._id);
+      .fileSystem.find((f) => f._id = source._id);
 
     res.status(200).json({ success: true, data: { folder } });
   } catch (error) {

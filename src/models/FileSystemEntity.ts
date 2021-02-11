@@ -4,6 +4,7 @@ export interface FileSystemEntityType {
   type: 'File' | 'Folder'; // Discriminator
   _id?: string; // folder.key; file.recordingId
   name: string;
+  provider: 'S3' | 'IDB';
   createdAt?: Date; // fse.timestamp
   modifiedAt?: Date;
   parentId: null | string; // folder.parentId; file.folderId
@@ -12,6 +13,7 @@ export interface FileSystemEntityType {
 const fileSystemEntitySchemaDef = {
   type: String,
   name: String,
+  provider: String,
   createdAt: Date,
   modifiedAt: Date,
   parentId: String,
@@ -27,14 +29,12 @@ export interface FileType extends FileSystemEntityType {
   type: 'File';
   description?: string;
   size: number; // bytes
-  provider: 'S3'; // For future use
   providerKey: string; // Storage provider key
 }
 
 const fileSchemaDef = {
   description: String,
   size: Number,
-  provider: String,
   providerKey: String,
 };
 
