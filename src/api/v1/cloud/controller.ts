@@ -26,16 +26,8 @@ export const createFolder = async (
 ): Promise<void> => {
 
   try {
-    const {
-      name,
-      parentId = null,
-      provider = 'IDB'
-    }: {
-      name: string;
-      parentId: string;
-      provider: 'S3' | 'IDB';
-    } = req.body;
-
+    const name = req.body.name as string;
+    const parentId = req.body.parentId || null;
     // Name and parentId (null for root level) must be defined
     if (!name || typeof name !== 'string' || name.length <= 0) {
       res.status(400).json({ success: false, error: 'Folder name must be provided.' });
@@ -47,6 +39,12 @@ export const createFolder = async (
       req.user.fileSystem = [];
     }
 
+    const parent = parentId ? req.user.fileSystem.find((f) => f._id === parentId) : null;
+    if (parent === undefined) { // null => orphan/root
+      res.status(400).json({ success: false, error: 'Parent folder not found.' });
+      return;
+    }
+
     // Check whether the parent folder already contains a file or folder by the same name
     if (req.user.fileSystem
       .filter((f) => f.name === name && f.parentId === parentId)
@@ -55,6 +53,10 @@ export const createFolder = async (
       res.status(400).json({ success: false, error: 'File/folder already exists.' });
       return;
     }
+
+    const provider = parent
+      ? parent.provider
+      : (['IDB', 'S3'].includes(req.body.provider) ? req.body.provider : 'IDB');
 
     req.user.fileSystem.push({ type: 'Folder', name, parentId, provider });
     const folder = (await req.user.save())
@@ -91,32 +93,35 @@ export const updateFolder = async (
 
     const { name, parentId } = req.body;
     const shouldRename = !!name && typeof name === 'string';
-    const shouldMove = !!parentId && typeof parentId === 'string';
+    const shouldMove = parentId === null || !!parentId && typeof parentId === 'string';
 
     const folders = req.user.fileSystem
       .filter((f) => f.type === 'Folder' && f.provider === source.provider) as FolderType[];
 
     if (shouldMove) {
-      // Destination folder must exist
-      const destination = folders.find((d) => d._id === parentId);
-      if (!destination) {
-        res.status(400).json({ success: false, error: 'No such destination folder exists.' });
-        return;
-      }
+      // Cycle detection and destination folder validations are not needed when moving into roow folder
+      if (parentId !== null) {
+        // Destination folder must exist
+        const destination = folders.find((d) => d._id === parentId);
+        if (!destination) {
+          res.status(400).json({ success: false, error: 'No such destination folder exists.' });
+          return;
+        }
 
-      // Cycle detection 
-      const cyclesDetected = detectCycles(folders, source._id, parentId);
-      if (cyclesDetected) {
-        res.status(400).json({
-          success: false,
-          error: 'Cannot move a folder into itself or its children.'
-        });
-        return;
+        // Cycle detection 
+        const cyclesDetected = detectCycles(folders, source._id, parentId);
+        if (cyclesDetected) {
+          res.status(400).json({
+            success: false,
+            error: 'Cannot move a folder into itself or its children.'
+          });
+          return;
+        }
       }
 
       // The new parent folder shouldn't have a folder with the same name (or new name if given)
       const nameExists = folders
-        .filter((d) => d.name === (shouldRename ? name : source.name) && d.parentId === destination._id)
+        .filter((d) => d.name === (shouldRename ? name : source.name) && d.parentId === parentId)
         .length > 0;
       if (nameExists) {
         res.status(400).json({
@@ -134,7 +139,7 @@ export const updateFolder = async (
     } else if (shouldRename) {
       // The parent folder shouldn't have a folder with the provided name
       const nameExists = folders
-        .filter((d) => d.name ===  name && d.parentId === source.parentId)
+        .filter((d) => d.name === name && d.parentId === source.parentId)
         .length > 0;
       if (nameExists) {
         res.status(400).json({
