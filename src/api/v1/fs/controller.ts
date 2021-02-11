@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
+import { Types } from 'mongoose';
 
-import { FolderType } from '../../../models/FileSystemEntity';
+import { FileSystemEntityDocument, FileType, FolderType } from '../../../models/FileSystemEntity';
 import { detectCycles, filterDescendants } from './util';
 
 // Fetch flat file system - GET /
@@ -10,7 +11,7 @@ export const fetchFileSystem = async (
 ): Promise<void> => {
 
   try {
-    const fileSystem = req.user.fileSystem || [];
+    const fileSystem = req.user.fileSystem || [] as Types.DocumentArray<FileSystemEntityDocument>;
 
     res.status(200).json({ success: true, data: { fileSystem } });
   } catch (error) {
@@ -36,7 +37,7 @@ export const createFolder = async (
 
     // The fileSystem might not be defined; Fix it
     if (!req.user.fileSystem) {
-      req.user.fileSystem = [];
+      req.user.fileSystem = [] as Types.DocumentArray<FileSystemEntityDocument>;
     }
 
     const parent = parentId
@@ -86,7 +87,7 @@ export const updateFolder = async (
 
     const { id } = req.params;
 
-    const source = req.user.fileSystem.find((f) => f._id.toString() === id);
+    const source = req.user.fileSystem.id(id);
     // Folder does not exist
     if (!source) {
       res.status(404).json({ success: false, error: 'No such source folder exists.' });
@@ -164,6 +165,13 @@ export const updateFolder = async (
   }
 };
 
+const deleteFilesFromProvider = async (files: FileType[]): Promise<void> => {
+  const awsKeys = files.filter((f) => f.provider === 'S3').map((f) => f.providerKey);
+  if (awsKeys.length > 0) {
+    // TODO Call API to delete files from AWS S3
+  }
+};
+
 // Delete folder, and its contents - DELETE /:id
 export const deleteFolder = async (
   req: Request,
@@ -179,24 +187,26 @@ export const deleteFolder = async (
 
     const { id } = req.params;
 
-    const source = req.user.fileSystem.find((f) => f._id.toString() === id);
+    const source = req.user.fileSystem.id(id);
     // Folder does not exist
-    if (!source) {
+    if (!source || source.type !== 'Folder') {
       res.status(404).json({ success: false, error: 'No such folder exists.' });
       return;
     }
 
     const { files, folders } = filterDescendants(
       req.user.fileSystem.filter((f) => f.provider === source.provider),
-      id
+      source as FolderType
     );
 
-    console.log(files, folders);
+    await deleteFilesFromProvider(files);
 
-    // TODO Delete folders
-    // TODO Delete files
+    req.user.fileSystem.pull(...files);
+    req.user.fileSystem.pull(...folders);
 
-    res.status(200).json({ success: true });
+    const fileSystem = (await req.user.save()).fileSystem;
+
+    res.status(200).json({ success: true, data: { fileSystem } });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false });

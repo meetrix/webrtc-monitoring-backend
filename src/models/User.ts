@@ -6,8 +6,6 @@ import { USER_PACKAGES, USER_ROLES } from '../config/settings';
 import {
   FileSystemEntityDocument,
   fileSystemEntitySchema,
-  FileType,
-  FolderType,
   fileSchema,
   folderSchema,
 } from './FileSystemEntity';
@@ -65,7 +63,7 @@ export type UserDocument = mongoose.Document & {
   package: string;
   profile: Profile;
   tag: Tag;
-  fileSystem: (FileType | FolderType)[];
+  fileSystem: mongoose.Types.DocumentArray<FileSystemEntityDocument>;
 
   facebook: string;
   linkedin: string;

@@ -1,4 +1,4 @@
-import { FileSystemEntityType, FolderType } from '../../../models/FileSystemEntity';
+import { FileSystemEntityType, FileType, FolderType } from '../../../models/FileSystemEntity';
 
 /**
  * Detects possible cycles after moving a folder. 
@@ -33,28 +33,28 @@ export const detectCycles = (
  * Finds all files and folders a folder contains in all depths (BFS). 
  * 
  * @param fs File system (files and folders from the same provider)
- * @param ancestorId Id of the folder to find descendants
- * @returns Descendant ids of the folder including itself
+ * @param ancestor Id of the folder to find descendants
+ * @returns Descendants of the folder including itself
  */
 export const filterDescendants = (
   fs: FileSystemEntityType[],
-  ancestorId: string
-): { folders: string[]; files: string[] } => {
-  const files = [] as string[];
-  const folders = [] as string[];
+  ancestor: FolderType
+): { folders: FolderType[]; files: FileType[] } => {
+  const files = [] as FileType[];
+  const folders = [] as FolderType[];
 
-  const childIds = [ancestorId];
-  while (childIds.length > 0) {
-    const childId = childIds.shift();
-    folders.push(childId);
+  const children = [ancestor];
+  while (children.length > 0) {
+    const child = children.shift();
+    folders.push(child);
 
     fs
-      .filter((f) => f.parentId === childId)
+      .filter((f) => f.parentId === child._id)
       .forEach((f) => {
         if (f.type === 'File') {
-          files.push(f._id.toString());
+          files.push(f as FileType);
         } else if (f.type === 'Folder') {
-          childIds.push(f._id.toString());
+          children.push(f as FolderType);
         }
       });
   }

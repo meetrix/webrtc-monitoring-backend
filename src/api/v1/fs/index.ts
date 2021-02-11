@@ -4,10 +4,10 @@ import { createFolder, deleteFolder, fetchFileSystem, updateFolder } from './con
 
 const router = express.Router();
 
-router.post('/:id', isAuthenticated, updateFolder);
-router.patch('/:id', isAuthenticated, updateFolder);
-router.delete('/:id', isAuthenticated, deleteFolder);
-router.post('', isAuthenticated, createFolder);
+router.post('/folders/:id', isAuthenticated, updateFolder);
+router.patch('/folders/:id', isAuthenticated, updateFolder);
+router.delete('/folders/:id', isAuthenticated, deleteFolder);
+router.post('/folders', isAuthenticated, createFolder);
 
 router.get('/', isAuthenticated, fetchFileSystem);
 
