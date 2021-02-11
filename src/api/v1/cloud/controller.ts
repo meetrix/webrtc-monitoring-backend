@@ -1,7 +1,7 @@
 import { Request, Response, NextFunction } from 'express';
 
 import { FolderType } from '../../../models/FileSystemEntity';
-import { detectCycles } from './util';
+import { detectCycles, filterDescendants } from './util';
 
 // Fetch flat file system - GET /
 export const fetchFileSystem = async (
@@ -39,7 +39,9 @@ export const createFolder = async (
       req.user.fileSystem = [];
     }
 
-    const parent = parentId ? req.user.fileSystem.find((f) => f._id === parentId) : null;
+    const parent = parentId
+      ? req.user.fileSystem.find((f) => f.type === 'Folder' && f._id.toString() === parentId)
+      : null;
     if (parent === undefined) { // null => orphan/root
       res.status(400).json({ success: false, error: 'Parent folder not found.' });
       return;
@@ -84,7 +86,7 @@ export const updateFolder = async (
 
     const { id } = req.params;
 
-    const source = req.user.fileSystem.find((f) => f._id === id);
+    const source = req.user.fileSystem.find((f) => f._id.toString() === id);
     // Folder does not exist
     if (!source) {
       res.status(404).json({ success: false, error: 'No such source folder exists.' });
@@ -102,7 +104,7 @@ export const updateFolder = async (
       // Cycle detection and destination folder validations are not needed when moving into roow folder
       if (parentId !== null) {
         // Destination folder must exist
-        const destination = folders.find((d) => d._id === parentId);
+        const destination = folders.find((d) => d._id.toString() === parentId);
         if (!destination) {
           res.status(400).json({ success: false, error: 'No such destination folder exists.' });
           return;
@@ -153,7 +155,7 @@ export const updateFolder = async (
     }
 
     const folder = (await req.user.save())
-      .fileSystem.find((f) => f._id = source._id);
+      .fileSystem.find((f) => f._id.toString() === source._id.toString());
 
     res.status(200).json({ success: true, data: { folder } });
   } catch (error) {
@@ -169,6 +171,28 @@ export const deleteFolder = async (
 ): Promise<void> => {
 
   try {
+    // No file system defined yet
+    if (!req.user.fileSystem) {
+      res.status(404).json({ success: false, error: 'No such folder exists.' });
+      return;
+    }
+
+    const { id } = req.params;
+
+    const source = req.user.fileSystem.find((f) => f._id.toString() === id);
+    // Folder does not exist
+    if (!source) {
+      res.status(404).json({ success: false, error: 'No such folder exists.' });
+      return;
+    }
+
+    const { files, folders } = filterDescendants(
+      req.user.fileSystem.filter((f) => f.provider === source.provider),
+      id
+    );
+
+    // TODO Delete folders
+    // TODO Delete files
 
     res.status(200).json({ success: true });
   } catch (error) {
