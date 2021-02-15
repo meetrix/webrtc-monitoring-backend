@@ -42,7 +42,8 @@ const makeFileSystemEntityCreator = (type: 'File' | 'Folder') => async (
     const parent = parentId
       ? req.user.fileSystem.find((f) => f.type === 'Folder' && f._id.toString() === parentId)
       : null;
-    if (parent === undefined) { // Only check undefined because null means orphan/root
+    // Only check undefined because null means orphan/root
+    if (parent === undefined) {
       res.status(400).json({ success: false, error: `Parent ${type} not found.` });
       return;
     }
@@ -220,25 +221,33 @@ const makeFileSystemEntityDeleter = (type: 'File' | 'Folder') => async (
       return;
     }
 
-    if (type === 'Folder') {      
+    let deletedFiles: FileType[] = [];
+    let deletedFolders: FolderType[] = [];
+
+    if (type === 'Folder') {
       const { files, folders } = filterDescendants(
         req.user.fileSystem.filter((f) => f.provider === source.provider),
         source as FolderType
       );
-  
+
       await deleteFilesFromProvider(files);
-  
+
       req.user.fileSystem.pull(...files);
       req.user.fileSystem.pull(...folders);
+
+      deletedFiles = files;
+      deletedFolders = folders;
     } else if (type === 'File') {
       await deleteFilesFromProvider([source as FileDocument]);
+
+      deletedFiles = [source as FileDocument];
 
       req.user.fileSystem.pull(source);
     }
 
     const fileSystem = (await req.user.save()).fileSystem;
 
-    res.status(200).json({ success: true, data: { fileSystem } });
+    res.status(200).json({ success: true, data: { fileSystem, deletedFiles, deletedFolders } });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false });
@@ -256,3 +265,27 @@ export const updateFile = makeFileSystemEntityUpdator('File');
 
 // Delete a file, and its contents - DELETE /:id
 export const deleteFile = makeFileSystemEntityDeleter('File');
+
+// Migrate from locally-saved (Indexed DB filesystem) to MongoDB-saved FS
+export const migrate = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    // The fileSystem might not be defined; Fix it
+    if (!req.user.fileSystem) {
+      req.user.fileSystem = [] as Types.DocumentArray<FileSystemEntityDocument>;
+    }
+
+    const added = req.user.fileSystem.addToSet(...req.body.fileSystem);
+
+    res.status(200).json({
+      success: true,
+      data: { added, fileSystem: (await req.user.save()).fileSystem }
+    });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false });
+  }
+};

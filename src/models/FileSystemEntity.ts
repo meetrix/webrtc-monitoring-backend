@@ -1,4 +1,5 @@
 import { Document, Schema, SchemaOptions } from 'mongoose';
+import { v1 as uuid } from 'uuid';
 
 export interface FileSystemEntityType {
   type: 'File' | 'Folder'; // Discriminator
@@ -11,6 +12,7 @@ export interface FileSystemEntityType {
 }
 
 const fileSystemEntitySchemaDef = {
+  _id: { type: String, default: uuid },
   type: String,
   name: String,
   provider: String,

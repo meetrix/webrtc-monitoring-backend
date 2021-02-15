@@ -6,6 +6,7 @@ import {
   deleteFile,
   deleteFolder,
   fetchFileSystem,
+  migrate,
   updateFile,
   updateFolder
 } from './controller';
@@ -21,6 +22,8 @@ router.post('/files/:id', isAuthenticated, updateFile);
 router.patch('/files/:id', isAuthenticated, updateFile);
 router.delete('/files/:id', isAuthenticated, deleteFile);
 router.post('/files', isAuthenticated, createFile);
+
+router.post('/migrate', isAuthenticated, migrate);
 
 router.get('/', isAuthenticated, fetchFileSystem);
 
