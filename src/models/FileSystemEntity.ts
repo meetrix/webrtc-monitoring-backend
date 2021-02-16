@@ -7,7 +7,7 @@ export interface FileSystemEntityType {
   name: string;
   provider: 'S3' | 'IDB';
   createdAt?: Date; // fse.timestamp
-  modifiedAt?: Date;
+  updatedAt?: Date;
   parentId: null | string; // folder.parentId; file.folderId
 }
 
@@ -17,7 +17,7 @@ const fileSystemEntitySchemaDef = {
   name: String,
   provider: String,
   createdAt: Date,
-  modifiedAt: Date,
+  updatedAt: Date,
   parentId: String,
 };
 
