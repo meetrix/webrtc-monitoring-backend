@@ -8,8 +8,10 @@ import { Feedback } from '../../../models/Feedback';
 import { getMailOptions, getTransporter } from '../../../util/mail';
 import { RECEIVER_EMAIL } from '../../../config/settings';
 
-const validateEmail = async (emailAddress: string): 
-Promise<{ email: string | false; errors: string[] }> => {
+const enableDevFeedback = false;
+
+const validateEmail = async (emailAddress: string):
+  Promise<{ email: string | false; errors: string[] }> => {
   const validationErrors = [];
   if (!validator.isEmail(emailAddress)) {
     validationErrors.push('Please enter a valid email address.');
@@ -19,7 +21,7 @@ Promise<{ email: string | false; errors: string[] }> => {
     gmail_remove_dots: true
   });
 
-  return { email: emailNormalized, errors:validationErrors };
+  return { email: emailNormalized, errors: validationErrors };
 };
 
 export const feedback = async (
@@ -30,8 +32,8 @@ export const feedback = async (
   try {
     const validationErrors = [];
 
-    const { email = '',  } = req.body;
-    const { rating = 0, feedback = '', meta = {} }= req.body;
+    const { email = '', } = req.body;
+    const { rating = 0, feedback = '', meta = {} } = req.body;
 
     // const emailValidated = await validateEmail(email);
     // validationErrors.push(emailValidated.errors);
@@ -66,7 +68,7 @@ export const feedback = async (
     feedbackDocument.save();
 
     // Notify admins/developers only if there's non-empty feedback text
-    if (!!feedback) {
+    if (enableDevFeedback && !!feedback) {
       // console.log(`Feedback: ${feedback}`);
       const transporter = getTransporter();
       const mailOptions = getMailOptions({
