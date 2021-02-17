@@ -3,6 +3,12 @@ import bcrypt from 'bcrypt';
 import mongoose from 'mongoose';
 import UUID from 'uuid/v4';
 import { USER_PACKAGES, USER_ROLES } from '../config/settings';
+import {
+  FileSystemEntityDocument,
+  fileSystemEntitySchema,
+  fileSchema,
+  folderSchema,
+} from './FileSystemEntity';
 
 export interface Profile {
   name?: string;
@@ -57,6 +63,7 @@ export type UserDocument = mongoose.Document & {
   package: string;
   profile: Profile;
   tag: Tag;
+  fileSystem: mongoose.Types.DocumentArray<FileSystemEntityDocument>;
 
   facebook: string;
   linkedin: string;
@@ -103,6 +110,8 @@ const userSchema = new mongoose.Schema(
       createdAt: String,
     },
 
+    fileSystem: [fileSystemEntitySchema],
+
     stripe: {
       customerId: { type: String, default: null },
       priceId: { type: String, default: null },
@@ -114,6 +123,12 @@ const userSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+const fileSystemEntityArray = userSchema.path('fileSystem') as unknown as mongoose.Model<FileSystemEntityDocument>;
+
+export const Folder = fileSystemEntityArray.discriminator('Folder', folderSchema);
+export const File = fileSystemEntityArray.discriminator('File', fileSchema);
+export const FileSystemEntity = mongoose.model('FileSystemEntity', fileSystemEntitySchema);
 
 userSchema.pre('save', async function (next: Function): Promise<void> {
   const user = this as UserDocument;

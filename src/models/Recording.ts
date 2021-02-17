@@ -1,5 +1,7 @@
 import mongoose from 'mongoose';
 
+// This is solely for tracking user recordings and lengths
+
 export interface RecordingType {
   ltid: string;
   email: string;
