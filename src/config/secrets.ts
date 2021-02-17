@@ -1,6 +1,6 @@
 import dotenv from 'dotenv';
 import fs from 'fs';
-import { NODE_ENV, PRODUCTION } from './settings';
+import { NODE_ENV, PRODUCTION, STAGING } from './settings';
 import logger from '../util/logger';
 
 if (!fs.existsSync('.env')) {
@@ -31,7 +31,7 @@ const requiredSecrets = [
   'CORS_REGEX'
 ];
 
-if (NODE_ENV === PRODUCTION) {
+if (NODE_ENV === PRODUCTION || NODE_ENV === STAGING) {
   requiredSecrets.push(...['MONGO_USERNAME', 'MONGO_PASSWORD']);
 }
 
@@ -44,7 +44,7 @@ if (missingSecrets.length > 0) {
 }
 
 const mongoURI =
-  NODE_ENV === PRODUCTION
+  (NODE_ENV === PRODUCTION || NODE_ENV === STAGING)
     ? `mongodb://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/${process.env.MONGO_DATABASE}?authSource=admin`
     : `mongodb://${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/${process.env.MONGO_DATABASE}`;
 
