@@ -1,29 +1,7 @@
 version: "3.8"
 services:
-  mongo:
-    image: mongo:4.0
-    container_name: screenapp-mongodb
-    restart: always
-    volumes:
-      - /opt/screenapp/mongodb/volume:/data/db
-    ports:
-      - 27017:27017
-
-  mongo-express:
-    image: mongo-express
-    container_name: screenapp-mongo-express
-    restart: always
-    environment:
-      ME_CONFIG_BASICAUTH_USERNAME: ${ME_CONFIG_BASICAUTH_USERNAME}
-      ME_CONFIG_BASICAUTH_PASSWORD: ${ME_CONFIG_BASICAUTH_PASSWORD}
-    ports:
-      - 8081:8081
-    depends_on:
-      - mongo
   server:
     build: 
       context: ./
       dockerfile: production.Dockerfile
     restart: always
-    depends_on:
-      - mongo
