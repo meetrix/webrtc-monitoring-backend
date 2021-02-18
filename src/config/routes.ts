@@ -9,6 +9,7 @@ import { recordingRouter } from '../api/v1/recording';
 import { subscriptionRouter } from '../api/v1/subscription';
 import { reportsRouter } from '../api/v1/reports';
 import { fsRouter } from '../api/v1/fs';
+import { miscRouter } from '../api/v1/misc';
 
 export const setupRoutesV1 = (app: Express): void => {
   app.use('/v1/spec', specRouter);
@@ -21,4 +22,5 @@ export const setupRoutesV1 = (app: Express): void => {
   app.use('/v1/subscription', subscriptionRouter);
   app.use('/v1/fs', fsRouter);
   app.use('/v1/reports', reportsRouter);
+  app.use('/v1/misc', miscRouter);
 };

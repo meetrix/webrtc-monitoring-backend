@@ -1,45 +1,32 @@
+variables:
+  CONTAINER_VERSIONED_IMAGE: $CI_REGISTRY_IMAGE:$CI_PIPELINE_ID
+  CONTAINER_RELEASE_IMAGE: $CI_REGISTRY_IMAGE:latest
+
 staging_build:
-  stage: build
-  image: meetrix/docker-compose-sshd
   environment:
     name: staging
+  stage: build
+  image: docker/compose:1.27.0
+  services:
+    - docker:19.03.12-dind
   before_script:
-    - eval $(ssh-agent -s)
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    - export DOCKER_HOST=ssh://$SSH_USER@$SSH_HOST
-    - docker-compose -f docker-compose.yml -f docker-compose.staging.yml --env-file $ENVFILE build
+    - docker-compose --project-name screenapp -f docker-compose.yml -f docker-compose.staging.yml build
+    - docker tag screenapp_server $CONTAINER_VERSIONED_IMAGE
+    - docker tag screenapp_server $CONTAINER_RELEASE_IMAGE
+    - docker push $CONTAINER_VERSIONED_IMAGE
+    - docker push $CONTAINER_RELEASE_IMAGE
   only:
     - master
 
 staging_deploy:
-  stage: deploy
-  image: meetrix/docker-compose-sshd
   environment:
     name: staging
-  before_script:
-    - eval $(ssh-agent -s)
-    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
-    - mkdir -p ~/.ssh
-    - chmod 700 ~/.ssh
-    - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
-    - chmod 644 ~/.ssh/known_hosts
+  stage: deploy
+  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
   script:
-    - export DOCKER_HOST=ssh://$SSH_USER@$SSH_HOST
-    - ssh $SSH_USER@$SSH_HOST "sudo mkdir -p /var/log/screenapp && sudo chmod 777 -R /var/log/screenapp"
-    - ssh $SSH_USER@$SSH_HOST "kill -9 \$(ps aux | grep 'logs -f screenapp-mongodb' | grep 'docker' | awk '{print \$2}') &"
-    - docker-compose -f docker-compose.yml -f docker-compose.staging.yml --env-file $ENVFILE up -d mongo
-    - ssh $SSH_USER@$SSH_HOST "docker logs -f screenapp-mongodb >> /var/log/screenapp/mongo.log 2>&1 &"
-    - ssh $SSH_USER@$SSH_HOST "kill -9 \$(ps aux | grep 'logs -f screenapp-mongo-express' | grep 'docker' | awk '{print \$2}') &"
-    - docker-compose -f docker-compose.yml -f docker-compose.staging.yml --env-file $ENVFILE up -d mongo-express
-    - ssh $SSH_USER@$SSH_HOST "docker logs -f screenapp-mongo-express >> /var/log/screenapp/mongo-express.log 2>&1 &"
-    - ssh $SSH_USER@$SSH_HOST "kill -9 \$(ps aux | grep 'logs -f screenapp-server' | grep 'docker' | awk '{print \$2}') &"
-    - docker-compose -f docker-compose.yml -f docker-compose.staging.yml --env-file $ENVFILE up -d server
-    - ssh $SSH_USER@$SSH_HOST "docker logs -f screenapp-server >> /var/log/screenapp/server.log 2>&1 &"
+    - aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment
   only:
     - master
 
