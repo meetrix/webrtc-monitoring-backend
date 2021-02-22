@@ -48,18 +48,18 @@ const makeFileSystemEntityCreator = (type: 'File' | 'Folder') => async (
       return;
     }
 
+    const provider = parent
+      ? parent.provider
+      : (['IDB', 'S3'].includes(req.body.provider) ? req.body.provider : 'IDB');
+
     // Check whether the parent folder already contains a file or folder by the same name
     if (req.user.fileSystem
-      .filter((f) => f.name === name && f.parentId === parentId)
+      .filter((f) => f.name === name && f.parentId === parentId && f.provider === provider)
       .length > 0) {
 
       res.status(400).json({ success: false, error: 'File/folder already exists.' });
       return;
     }
-
-    const provider = parent
-      ? parent.provider
-      : (['IDB', 'S3'].includes(req.body.provider) ? req.body.provider : 'IDB');
 
     let entityData: { [x: string]: number | string } = { type, name, parentId, provider };
 
