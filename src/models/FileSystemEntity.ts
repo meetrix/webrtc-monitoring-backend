@@ -32,12 +32,14 @@ export interface FileType extends FileSystemEntityType {
   description?: string;
   size: number; // bytes
   providerKey: string; // Storage provider key
+  url?: string;
 }
 
 const fileSchemaDef = {
   description: String,
   size: Number,
   providerKey: String,
+  url: String,
 };
 
 const options: SchemaOptions = { discriminatorKey: 'type', timestamps: true };

@@ -3,11 +3,13 @@ import http from 'http';
 import jwt from 'jsonwebtoken';
 import { URL } from 'url';
 import { Socket } from 'net';
+import { ManagedUpload } from 'aws-sdk/clients/s3';
 
 import { CORS_REGEX, SESSION_SECRET } from './config/secrets';
 import { API_BASE_URL, USER_ROLES, USER_PACKAGES } from './config/settings';
-import { User } from './models/User';
-import { listRecordings, uploadRecordingToS3 } from './api/v1/recording/controller';
+import { User, UserDocument } from './models/User';
+import { FileType } from './models/FileSystemEntity';
+import { getFileSize, listRecordings, uploadRecordingToS3 } from './api/v1/recording/controller';
 
 function abortHandshake(socket: Socket, code: number, message: string, headers: { [x: string]: string | number }): void {
   if (socket.writable) {
@@ -73,7 +75,7 @@ const handleWebSocketEvents = (server: http.Server): void => {
     }
 
     wss.handleUpgrade(request, socket as Socket, head, function done(ws) {
-      wss.emit('connection', ws, request, reqUrl, jwtUser);
+      wss.emit('connection', ws, request, reqUrl, userDoc);
     });
   });
 
@@ -86,7 +88,7 @@ const handleWebSocketEvents = (server: http.Server): void => {
     });
   }, 1000);
 
-  wss.on('connection', async function connection(ws: WebSocket, req: http.IncomingMessage, reqUrl: URL, user: Express.JwtUser) {
+  wss.on('connection', async function connection(ws: WebSocket, req: http.IncomingMessage, reqUrl: URL, user: UserDocument) {
     ws.on('close', function close(code: number, reason: string) {
       // This ends the stream properly, results in an upload. 
       console.log(`WebSocket closed. ${code}: ${reason}`);
@@ -96,7 +98,7 @@ const handleWebSocketEvents = (server: http.Server): void => {
       console.log(`WebSocket error. ${code}: ${reason}`);
     });
 
-    const userId = user.sub;
+    const userId = user._id;
 
     // pathname format: /ws/recordingId
     // e.g.: /ws/04d7bc00-5fa2-11eb-acce-45b0eb5de22d
@@ -108,12 +110,33 @@ const handleWebSocketEvents = (server: http.Server): void => {
 
     console.log(`Receiving file ${userId}/${recordingId}.webm. `);
     const wsStream = WebSocket.createWebSocketStream(ws);
+    let upload: ManagedUpload.SendData = null;
     try {
+      const startTimestamp = Date.now();
       if (prevVideosWithSameKey > 0) {
-        await uploadRecordingToS3(userId, recordingId, wsStream, `_${prevVideosWithSameKey}`);
+        upload = await uploadRecordingToS3(userId, recordingId, wsStream, `_${prevVideosWithSameKey}`);
       } else {
-        await uploadRecordingToS3(userId, recordingId, wsStream);
+        upload = await uploadRecordingToS3(userId, recordingId, wsStream);
       }
+
+      const reqUrl = new URL(req.url, API_BASE_URL);
+      const folderId = reqUrl.searchParams.get('folder_id');
+
+      const file: FileType = {
+        type: 'File',
+        parentId: folderId,
+        name: `Recording_${startTimestamp}`,
+        provider: 'S3',
+        providerKey: upload.Key,
+        description: '',
+        // Need another API call for file size
+        size: await getFileSize(upload.Key),
+        url: upload.Location,
+      };
+
+      // Create file here; no validations done
+      user.fileSystem.push(file);
+      await user.save();
 
       console.log(`File ${userId}/${recordingId}.webm uploaded. `);
     } catch (error) {

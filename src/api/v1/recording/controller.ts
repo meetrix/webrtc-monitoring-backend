@@ -22,6 +22,10 @@ export const uploadRecordingToS3 = async (userId: string, recordingId: string, s
     .promise();
 };
 
+export const getFileSize = async (key: string): Promise<number> => {
+  return (await s3.headObject({ Bucket: S3_USER_RECORDINGS_BUCKET, Key: key }).promise()).ContentLength;
+};
+
 export const listRecordings = async (userId: string, recordingId?: string): Promise<S3.ObjectList> => {
   const prefix = !!recordingId ? `vid/${userId}/${recordingId}` : `vid/${userId}`;
 

@@ -297,7 +297,7 @@ export const getSettings = async (
   try {
     res.status(200).json({
       success: true,
-      data: req.user?.fileSystemSettings || { cloudSync: false },
+      data: req.user?.fileSystemSettings ?? { cloudSync: false },
     });
   } catch (error) {
     console.log(error);
@@ -311,7 +311,7 @@ export const updateSettings = async (
 ): Promise<void> => {
   try {
     const { cloudSync } = req.body;
-    req.user.fileSystemSettings = { ...req.user.fileSystemSettings, cloudSync };
+    req.user.fileSystemSettings = { cloudSync };
 
     res.status(200).json({
       success: true,
