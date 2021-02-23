@@ -6,9 +6,11 @@ import {
   deleteFile,
   deleteFolder,
   fetchFileSystem,
+  getSettings,
   migrate,
   updateFile,
-  updateFolder
+  updateFolder,
+  updateSettings
 } from './controller';
 
 const router = express.Router();
@@ -24,6 +26,9 @@ router.delete('/files/:id', isAuthenticated, deleteFile);
 router.post('/files', isAuthenticated, createFile);
 
 router.post('/migrate', isAuthenticated, migrate);
+
+router.get('/settings', isAuthenticated, getSettings);
+router.post('/settings', isAuthenticated, updateSettings);
 
 router.get('/', isAuthenticated, fetchFileSystem);
 

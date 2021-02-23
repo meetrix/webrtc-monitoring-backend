@@ -289,3 +289,36 @@ export const migrate = async (
     res.status(500).json({ success: false });
   }
 };
+
+export const getSettings = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    res.status(200).json({
+      success: true,
+      data: req.user?.fileSystemSettings || { cloudSync: false },
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false });
+  }
+};
+
+export const updateSettings = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { cloudSync } = req.body;
+    req.user.fileSystemSettings = { ...req.user.fileSystemSettings, cloudSync };
+
+    res.status(200).json({
+      success: true,
+      data: (await req.user?.save()).fileSystemSettings,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false });
+  }
+};
