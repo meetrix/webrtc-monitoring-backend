@@ -34,6 +34,19 @@ export const listRecordings = async (userId: string, recordingId?: string): Prom
   return response.Contents;
 };
 
+export const deleteRecording = async (key: string): Promise<boolean> => {
+  const response = await s3.deleteObject({ Bucket: S3_USER_RECORDINGS_BUCKET, Key: key }).promise();
+  return true;
+};
+
+export const deleteRecordings = async (keys: string[]): Promise<string[]> => {
+  const response = await s3.deleteObjects({
+    Bucket: S3_USER_RECORDINGS_BUCKET,
+    Delete: { Objects: keys.map(key => ({ Key: key })) }
+  }).promise();
+  return response.Deleted.map(obj => obj.Key);
+};
+
 export const trackRecording = async (
   req: Request,
   res: Response,

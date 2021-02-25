@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import { Types } from 'mongoose';
 
 import { FileDocument, FileSystemEntityDocument, FileType, FolderType } from '../../../models/FileSystemEntity';
+import { deleteRecordings } from '../recording/controller';
 import { detectCycles, filterDescendants } from './util';
 
 // Fetch flat file system - GET /
@@ -196,7 +197,7 @@ export const updateFolder = makeFileSystemEntityUpdator('Folder');
 const deleteFilesFromProvider = async (files: FileType[]): Promise<void> => {
   const awsKeys = files.filter((f) => f.provider === 'S3').map((f) => f.providerKey);
   if (awsKeys.length > 0) {
-    // TODO Call API to delete files from AWS S3
+    await deleteRecordings(awsKeys);
   }
 };
 
