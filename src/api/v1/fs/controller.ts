@@ -184,9 +184,9 @@ const makeFileSystemEntityUpdator = (type: 'File' | 'Folder') => async (
 
       source.parentId = parentId;
     } else if (shouldRename) {
-      // The parent folder shouldn't have a file/folder with the provided name
+      // The parent folder shouldn't have a file/folder with the provided name; tolerate same file
       const nameExists = req.user.fileSystem
-        .filter((f) => f.name === name && f.parentId === source.parentId)
+        .filter((f) => f.name === name && f.parentId === source.parentId && f._id != source._id)
         .length > 0;
       if (nameExists) {
         res.status(400).json({
