@@ -2,8 +2,15 @@ import { Request, Response, NextFunction } from 'express';
 import { Types } from 'mongoose';
 
 import { FileDocument, FileSystemEntityDocument, FileType, FolderType } from '../../../models/FileSystemEntity';
-import { deleteRecordings } from '../recording/controller';
+import { deleteRecordings, getPlayUrl } from '../recording/controller';
 import { detectCycles, filterDescendants } from './util';
+
+const isExpiringSoon = (signedUrl: string): boolean => {
+  const parsed = new URL(signedUrl);
+  const now = new Date();
+  const expires = new Date(Number(parsed.searchParams.get('Expires') || 0) * 1000);
+  return (expires.getTime() - now.getTime()) < 1000 * 60 * 60 * 24; // A day in milliseconds
+};
 
 // Fetch flat file system - GET /
 export const fetchFileSystem = async (
@@ -14,7 +21,22 @@ export const fetchFileSystem = async (
   try {
     const fileSystem = req.user.fileSystem || [] as Types.DocumentArray<FileSystemEntityDocument>;
 
-    res.status(200).json({ success: true, data: { fileSystem } });
+    const filesExpiringSoon = req.user.fileSystem
+      .filter(f => f.type === 'File' && f.provider === 'S3')
+      .filter(f => isExpiringSoon((f as FileDocument).url)) as FileDocument[];
+
+    // Update signed URLs
+    if (filesExpiringSoon.length > 0) {
+      await Promise.all(filesExpiringSoon.map(async f => {
+        f.url = await getPlayUrl(f.providerKey);
+        return;
+      }));
+      res.status(200).json({
+        success: true, data: { fileSystem: (await req.user.save()).fileSystem }
+      });
+    } else {
+      res.status(200).json({ success: true, data: { fileSystem } });
+    }
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false });

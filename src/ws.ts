@@ -9,7 +9,7 @@ import { CORS_REGEX, SESSION_SECRET } from './config/secrets';
 import { API_BASE_URL, USER_ROLES, USER_PACKAGES } from './config/settings';
 import { User, UserDocument } from './models/User';
 import { FileType } from './models/FileSystemEntity';
-import { getFileSize, listRecordings, uploadRecordingToS3 } from './api/v1/recording/controller';
+import { getFileSize, getPlayUrl, listRecordings, uploadRecordingToS3 } from './api/v1/recording/controller';
 
 function abortHandshake(socket: Socket, code: number, message: string, headers: { [x: string]: string | number }): void {
   if (socket.writable) {
@@ -131,7 +131,8 @@ const handleWebSocketEvents = (server: http.Server): void => {
         description: '',
         // Need another API call for file size
         size: await getFileSize(upload.Key),
-        url: upload.Location,
+        // And another for signed URL
+        url: await getPlayUrl(upload.Key),
       };
 
       // Create file here; no validations done
