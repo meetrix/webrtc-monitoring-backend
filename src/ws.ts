@@ -106,10 +106,14 @@ const handleWebSocketEvents = (server: http.Server): void => {
       .replace('/ws/', '')
       .split(/\//g);
 
+    // WARNING: Stream must be created before doing anything expensive. 
+    // (Everything websocket receives before the event handler attached, is lost.)
+    // OR: TODO create stream long before trying to upload file. 
+    const wsStream = WebSocket.createWebSocketStream(ws);
+    console.log(`Receiving file ${userId}/${recordingId}.webm. `);
+
     const prevVideosWithSameKey = (await listRecordings(userId, recordingId)).length;
 
-    console.log(`Receiving file ${userId}/${recordingId}.webm. `);
-    const wsStream = WebSocket.createWebSocketStream(ws);
     let upload: ManagedUpload.SendData = null;
     try {
       const startTimestamp = Date.now();
