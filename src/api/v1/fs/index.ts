@@ -5,9 +5,11 @@ import {
   createFolder,
   deleteFile,
   deleteFolder,
+  deleteManyFiles,
   fetchFileSystem,
   getSettings,
   migrate,
+  moveManyFiles,
   updateFile,
   updateFolder,
   updateSettings
@@ -20,6 +22,8 @@ router.patch('/folders/:id', isAuthenticated, updateFolder);
 router.delete('/folders/:id', isAuthenticated, deleteFolder);
 router.post('/folders', isAuthenticated, createFolder);
 
+router.post('/files/move', isAuthenticated, moveManyFiles);
+router.post('/files/delete', isAuthenticated, deleteManyFiles);
 router.post('/files/:id', isAuthenticated, updateFile);
 router.patch('/files/:id', isAuthenticated, updateFile);
 router.delete('/files/:id', isAuthenticated, deleteFile);

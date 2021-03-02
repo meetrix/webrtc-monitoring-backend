@@ -1,16 +1,11 @@
 import { Request, Response, NextFunction } from 'express';
 import { Types } from 'mongoose';
 
-import { FileDocument, FileSystemEntityDocument, FileType, FolderType } from '../../../models/FileSystemEntity';
+import {
+  FileDocument, FileSystemEntityDocument, FileType, FolderDocument, FolderType
+} from '../../../models/FileSystemEntity';
 import { deleteRecordings, getPlayUrl } from '../recording/controller';
-import { detectCycles, filterDescendants } from './util';
-
-const isExpiringSoon = (signedUrl: string): boolean => {
-  const parsed = new URL(signedUrl);
-  const now = new Date();
-  const expires = new Date(Number(parsed.searchParams.get('Expires') || 0) * 1000);
-  return (expires.getTime() - now.getTime()) < 1000 * 60 * 60 * 24; // A day in milliseconds
-};
+import { detectCycles, filterDescendants, isExpiringSoon, suggestName } from './util';
 
 // Fetch flat file system - GET /
 export const fetchFileSystem = async (
@@ -286,8 +281,94 @@ export const createFile = makeFileSystemEntityCreator('File');
 // Update a file (rename, move, change description) - POST /:id
 export const updateFile = makeFileSystemEntityUpdator('File');
 
+export const moveManyFiles = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+
+  try {
+    // No file system defined yet
+    if (!req.user.fileSystem) {
+      res.status(404).json({ success: false, error: 'No such source files exist.' });
+      return;
+    }
+
+    const { fileIds, folderId }: { fileIds: string[]; folderId: string } = req.body;
+
+    let provider: 'S3' | 'IDB' | null;
+    if (folderId !== null) {
+      const destination = req.user.fileSystem.id(folderId) as FolderDocument;
+      if (!destination || destination.type !== 'Folder') {
+        res.status(400).json({ success: false, error: 'No such destination folder exists.' });
+        return;
+      }
+      provider = destination.provider;
+    } else {
+      provider = null;
+    }
+
+    const candidateFiles = fileIds
+      .map(req.user.fileSystem.id, req.user.fileSystem)
+      // Only files, from the same provider, those are not already in the target folder. 
+      // TODO Should we notify about the excluded? 
+      .filter((f) =>
+        !!f && f.type === 'File' && f.parentId !== folderId && (!provider || f.provider === provider)
+      ) as FileDocument[];
+
+    const childrenNamesAtDestination = req.user.fileSystem
+      .filter((f) => f.parentId === folderId)
+      .map((f) => f.name);
+
+    candidateFiles.forEach((f) => {
+      f.parentId = folderId;
+      f.name = suggestName(f.name, childrenNamesAtDestination);
+      childrenNamesAtDestination.push(f.name);
+    });
+
+    const fileSystem = (await req.user.save()).fileSystem;
+
+    res.status(200).json({ success: true, data: { fileSystem } });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, error: 'Unknown server error.' });
+  }
+};
+
 // Delete a file, and its contents - DELETE /:id
 export const deleteFile = makeFileSystemEntityDeleter('File');
+
+export const deleteManyFiles = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+
+  try {
+    // No file system defined yet
+    if (!req.user.fileSystem) {
+      res.status(404).json({ success: false, error: 'No such files exist.' });
+      return;
+    }
+
+    const { fileIds }: { fileIds: string[] } = req.body;
+
+    const candidateFiles = fileIds
+      .map(req.user.fileSystem.id, req.user.fileSystem)
+      // Only files, from the same provider. 
+      .filter((f) =>
+        !!f && f.type === 'File' && f.provider === 'S3'
+      ) as FileDocument[];
+
+    await deleteFilesFromProvider(candidateFiles);
+
+    req.user.fileSystem.pull(...candidateFiles);
+    const fileSystem = (await req.user.save()).fileSystem;
+
+    res.status(200).json({ success: true, data: { fileSystem, deletedFiles: candidateFiles } });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false });
+  }
+};
 
 // Migrate from locally-saved (Indexed DB filesystem) to MongoDB-saved FS
 export const migrate = async (
