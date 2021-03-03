@@ -28,13 +28,14 @@ services:
       - ./:/usr/src/app
     depends_on:
       - mongo
-  
+
   nginx:
     image: jwilder/nginx-proxy
     container_name: screenapp-nginx
     ports:
       - ${PROXY_PORT}:80
     volumes:
+      - ./docker/nginx/nginx.conf:/etc/nginx/conf.d/nginx.conf
       - /var/run/docker.sock:/tmp/docker.sock:ro
     depends_on:
       - server

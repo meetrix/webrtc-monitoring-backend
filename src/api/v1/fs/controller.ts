@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import { createWriteStream } from 'fs';
 import { Types } from 'mongoose';
 
 import {
@@ -274,6 +275,39 @@ const makeFileSystemEntityDeleter = (type: 'File' | 'Folder') => async (
 
 // Delete folder, and its contents - DELETE /:id
 export const deleteFolder = makeFileSystemEntityDeleter('Folder');
+
+export const uploadFile = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+
+  const file: Express.Multer.File & { key?: string }
+    = (req.files as unknown as Express.Multer.File[])[0];
+
+  const fileObj: FileType = {
+    _id: file.originalname,
+    type: 'File',
+    parentId: null,
+    name: req.body.name || '',
+    provider: 'S3',
+    providerKey: file.key,
+    description: req.body.description || '',
+    // Need another API call for file size
+    size: file.size,
+    // And another for signed URL
+    url: await getPlayUrl(file.key),
+  };
+
+  // Create file here; no validations done
+  req.user.fileSystem.push(fileObj);
+
+  res.status(200).json({
+    success: true,
+    data: {
+      file: (await req.user.save()).fileSystem.id(file.originalname)
+    }
+  });
+};
 
 // Create a file - POST /
 export const createFile = makeFileSystemEntityCreator('File');
