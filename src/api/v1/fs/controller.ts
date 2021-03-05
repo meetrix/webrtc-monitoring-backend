@@ -1,10 +1,14 @@
-import { Request, Response, NextFunction } from 'express';
-import { createWriteStream } from 'fs';
+import { Request, Response } from 'express';
 import { Types } from 'mongoose';
+import { v4 as uuid } from 'uuid';
+
+const FOUR_HOURS = 1 * 60 * 60 * 4;
 
 import {
   FileDocument, FileSystemEntityDocument, FileType, FolderDocument, FolderType
 } from '../../../models/FileSystemEntity';
+import { SharedContent } from '../../../models/SharedContent';
+import { User } from '../../../models/User';
 import { deleteRecordings, getPlayUrl } from '../recording/controller';
 import { detectCycles, filterDescendants, isExpiringSoon, suggestName } from './util';
 
@@ -281,32 +285,122 @@ export const uploadFile = async (
   res: Response,
 ): Promise<void> => {
 
-  const file: Express.Multer.File & { key?: string }
-    = (req.files as unknown as Express.Multer.File[])[0];
+  try {
+    const file: Express.Multer.File & { key?: string }
+      = (req.files as unknown as Express.Multer.File[])[0];
 
-  const fileObj: FileType = {
-    _id: file.originalname,
-    type: 'File',
-    parentId: null,
-    name: req.body.name || '',
-    provider: 'S3',
-    providerKey: file.key,
-    description: req.body.description || '',
-    // Need another API call for file size
-    size: file.size,
-    // And another for signed URL
-    url: await getPlayUrl(file.key),
-  };
+    const fileObj: FileType = {
+      _id: file.originalname,
+      type: 'File',
+      parentId: null,
+      name: req.body.name || '',
+      provider: 'S3',
+      providerKey: file.key,
+      description: req.body.description || '',
+      // Need another API call for file size
+      size: file.size,
+      // And another for signed URL
+      url: await getPlayUrl(file.key),
+    };
 
-  // Create file here; no validations done
-  req.user.fileSystem.push(fileObj);
+    // Create file here; no validations done
+    req.user.fileSystem.push(fileObj);
 
-  res.status(200).json({
-    success: true,
-    data: {
-      file: (await req.user.save()).fileSystem.id(file.originalname)
+    res.status(200).json({
+      success: true,
+      data: {
+        file: (await req.user.save()).fileSystem.id(file.originalname)
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, error: 'Unknown server error.' });
+  }
+};
+
+export const getSharedFiles = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+
+  try {
+    const { id } = req.params;
+    if (!id) {
+      res.status(400).json({ success: false, error: 'No id provided.' });
+      return;
     }
-  });
+
+    const sharedContent = await SharedContent.findById(id);
+    if (!SharedContent) {
+      res.status(404).json({ success: false, error: 'Shared content not found.' });
+      return;
+    }
+
+    const owner = await User.findById(sharedContent.ownerId);
+    const files = owner.fileSystem
+      .filter((f) => sharedContent.entityIds.includes(f._id))
+      .filter((f) => f.type === 'File' && f.provider === 'S3') as FileDocument[];
+
+    const sharedFiles = await Promise.all(
+      files.map(async (f) => {
+        return {
+          _id: f._id,
+          name: f.name,
+          description: f.description,
+          url: await getPlayUrl(f.providerKey, FOUR_HOURS),
+          createdAt: f.createdAt,
+        };
+      })
+    );
+
+    res.status(200).json({
+      success: true,
+      data: {
+        sharedFiles
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, error: 'Unknown server error.' });
+  }
+};
+
+export const shareFiles = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+
+  try {
+    if (!req.user.fileSystem) {
+      res.status(404).json({ success: false, error: 'No such source files exist.' });
+      return;
+    }
+
+    const { entityIds }: { entityIds: string[] } = req.body;
+    // N.B.: Currently supports only a single file
+    if (!entityIds || !Array.isArray(entityIds) || entityIds.length < 1) {
+      res.status(400).json({ success: false, error: 'No files provided.' });
+      return;
+    }
+    const file: FileSystemEntityDocument = req.user.fileSystem.id(entityIds[0]);
+    if (file.type !== 'File') {
+      res.status(400).json({ success: false, error: 'Only files are supported.' });
+      return;
+    }
+
+    const sharedContentDocument = new SharedContent({
+      _id: uuid(),
+      ownerId: req.user._id,
+      entityIds: [file._id]
+    });
+
+    await sharedContentDocument.save();
+
+    res.status(200).json({ success: true, data: { id: sharedContentDocument._id } });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, error: 'Unknown server error.' });
+  }
 };
 
 // Create a file - POST /

@@ -34,11 +34,14 @@ export const listRecordings = async (userId: string, recordingId?: string): Prom
   return response.Contents;
 };
 
-export const getPlayUrl = async (key: string): Promise<string> => {
+export const getPlayUrl = async (
+  key: string,
+  lifetime: number = 1 * 60 * 60 * 24 * 5
+): Promise<string> => {
   return await s3.getSignedUrlPromise('getObject', {
     Bucket: S3_USER_RECORDINGS_BUCKET,
     Key: key,
-    Expires: 1 * 60 * 60 * 24 * 5 // 5 days in seconds
+    Expires: lifetime // default: 5 days in seconds
   });
 };
 
