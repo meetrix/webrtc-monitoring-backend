@@ -9,7 +9,7 @@ import { CORS_REGEX, SESSION_SECRET } from './config/secrets';
 import { API_BASE_URL, USER_ROLES, USER_PACKAGES } from './config/settings';
 import { User, UserDocument } from './models/User';
 import { FileType } from './models/FileSystemEntity';
-import { getFileSize, getPlayUrl, listRecordings, uploadRecordingToS3 } from './api/v1/recording/controller';
+import { getFileSize, getPlayUrl, listRecordings, uploadRecordingToS3 } from './util/s3';
 
 function abortHandshake(socket: Socket, code: number, message: string, headers: { [x: string]: string | number }): void {
   if (socket.writable) {
@@ -127,6 +127,7 @@ const handleWebSocketEvents = (server: http.Server): void => {
       const folderId = reqUrl.searchParams.get('folder_id');
 
       const file: FileType = {
+        _id: recordingId,
         type: 'File',
         parentId: folderId,
         name: `Recording_${startTimestamp}`,

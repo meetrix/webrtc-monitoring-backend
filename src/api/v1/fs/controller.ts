@@ -9,7 +9,7 @@ import {
 } from '../../../models/FileSystemEntity';
 import { SharedContent } from '../../../models/SharedContent';
 import { User } from '../../../models/User';
-import { deleteRecordings, getPlayUrl } from '../recording/controller';
+import { deleteRecordings, getPlayUrl } from '../../../util/s3';
 import { detectCycles, filterDescendants, isExpiringSoon, suggestName } from './util';
 
 // Fetch flat file system - GET /
@@ -346,6 +346,7 @@ export const getSharedFiles = async (
         return {
           _id: f._id,
           name: f.name,
+          size: f.size,
           description: f.description,
           url: await getPlayUrl(f.providerKey, FOUR_HOURS),
           createdAt: f.createdAt,
@@ -356,6 +357,7 @@ export const getSharedFiles = async (
     res.status(200).json({
       success: true,
       data: {
+        owner: owner.profile.name || '',
         sharedFiles
       }
     });
