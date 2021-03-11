@@ -64,6 +64,7 @@ export type UserDocument = mongoose.Document & {
   profile: Profile;
   tag: Tag;
   fileSystem: mongoose.Types.DocumentArray<FileSystemEntityDocument>;
+  fileSystemSettings: { cloudSync: boolean };
 
   facebook: string;
   linkedin: string;
@@ -111,6 +112,7 @@ const userSchema = new mongoose.Schema(
     },
 
     fileSystem: [fileSystemEntitySchema],
+    fileSystemSettings: { cloudSync: Boolean, default: false },
 
     stripe: {
       customerId: { type: String, default: null },

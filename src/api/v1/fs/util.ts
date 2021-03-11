@@ -61,3 +61,37 @@ export const filterDescendants = (
 
   return { folders, files };
 };
+
+/**
+ * Checks whether an S3 signed URL is expiring within the next day. 
+ * 
+ * @param signedUrl S3 signed URL
+ * @returns whether the URL is expiring soon
+ */
+export const isExpiringSoon = (signedUrl: string): boolean => {
+  const parsed = new URL(signedUrl);
+  const now = new Date();
+  const expires = new Date(Number(parsed.searchParams.get('Expires') || 0) * 1000);
+  return (expires.getTime() - now.getTime()) < 1000 * 60 * 60 * 24; // A day in milliseconds
+};
+
+/**
+ * Suggests a suffixed name in case if a file with the same name is present inside the target folder.
+ * Useful when moving files as a bulk. 
+ * 
+ * @param fileName Name of the file added to the folder
+ * @param siblingNames Names of other files currently in the target folder
+ * @returns fileName if no conflicts, otherwise suffixed name (counter)
+ */
+export const suggestName = (fileName: string, siblingNames: string[]): string => {
+  if (!siblingNames.includes(fileName)) {
+    return fileName;
+  }
+
+  let i = 1;
+  while (siblingNames.includes(`${fileName}-${i}`)) {
+    i++;
+  }
+
+  return `${fileName}-${i}`;
+};

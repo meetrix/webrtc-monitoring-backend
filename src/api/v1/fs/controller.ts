@@ -1,8 +1,16 @@
-import { Request, Response, NextFunction } from 'express';
+import { Request, Response } from 'express';
 import { Types } from 'mongoose';
+import { v4 as uuid } from 'uuid';
 
-import { FileDocument, FileSystemEntityDocument, FileType, FolderType } from '../../../models/FileSystemEntity';
-import { detectCycles, filterDescendants } from './util';
+const FOUR_HOURS = 1 * 60 * 60 * 4;
+
+import {
+  FileDocument, FileSystemEntityDocument, FileType, FolderDocument, FolderType
+} from '../../../models/FileSystemEntity';
+import { SharedContent } from '../../../models/SharedContent';
+import { User } from '../../../models/User';
+import { deleteRecordings, getPlayUrl } from '../../../util/s3';
+import { detectCycles, filterDescendants, isExpiringSoon, suggestName } from './util';
 
 // Fetch flat file system - GET /
 export const fetchFileSystem = async (
@@ -13,7 +21,22 @@ export const fetchFileSystem = async (
   try {
     const fileSystem = req.user.fileSystem || [] as Types.DocumentArray<FileSystemEntityDocument>;
 
-    res.status(200).json({ success: true, data: { fileSystem } });
+    const filesExpiringSoon = req.user.fileSystem
+      .filter(f => f.type === 'File' && f.provider === 'S3')
+      .filter(f => isExpiringSoon((f as FileDocument).url)) as FileDocument[];
+
+    // Update signed URLs
+    if (filesExpiringSoon.length > 0) {
+      await Promise.all(filesExpiringSoon.map(async f => {
+        f.url = await getPlayUrl(f.providerKey);
+        return;
+      }));
+      res.status(200).json({
+        success: true, data: { fileSystem: (await req.user.save()).fileSystem }
+      });
+    } else {
+      res.status(200).json({ success: true, data: { fileSystem } });
+    }
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false });
@@ -48,18 +71,18 @@ const makeFileSystemEntityCreator = (type: 'File' | 'Folder') => async (
       return;
     }
 
+    const provider = parent
+      ? parent.provider
+      : (['IDB', 'S3'].includes(req.body.provider) ? req.body.provider : 'IDB');
+
     // Check whether the parent folder already contains a file or folder by the same name
     if (req.user.fileSystem
-      .filter((f) => f.name === name && f.parentId === parentId)
+      .filter((f) => f.name === name && f.parentId === parentId && f.provider === provider)
       .length > 0) {
 
       res.status(400).json({ success: false, error: 'File/folder already exists.' });
       return;
     }
-
-    const provider = parent
-      ? parent.provider
-      : (['IDB', 'S3'].includes(req.body.provider) ? req.body.provider : 'IDB');
 
     let entityData: { [x: string]: number | string } = { type, name, parentId, provider };
 
@@ -161,9 +184,9 @@ const makeFileSystemEntityUpdator = (type: 'File' | 'Folder') => async (
 
       source.parentId = parentId;
     } else if (shouldRename) {
-      // The parent folder shouldn't have a file/folder with the provided name
+      // The parent folder shouldn't have a file/folder with the provided name; tolerate same file
       const nameExists = req.user.fileSystem
-        .filter((f) => f.name === name && f.parentId === source.parentId)
+        .filter((f) => f.name === name && f.parentId === source.parentId && f._id != source._id)
         .length > 0;
       if (nameExists) {
         res.status(400).json({
@@ -196,7 +219,7 @@ export const updateFolder = makeFileSystemEntityUpdator('Folder');
 const deleteFilesFromProvider = async (files: FileType[]): Promise<void> => {
   const awsKeys = files.filter((f) => f.provider === 'S3').map((f) => f.providerKey);
   if (awsKeys.length > 0) {
-    // TODO Call API to delete files from AWS S3
+    await deleteRecordings(awsKeys);
   }
 };
 
@@ -257,14 +280,225 @@ const makeFileSystemEntityDeleter = (type: 'File' | 'Folder') => async (
 // Delete folder, and its contents - DELETE /:id
 export const deleteFolder = makeFileSystemEntityDeleter('Folder');
 
+export const uploadFile = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+
+  try {
+    const file: Express.Multer.File & { key?: string }
+      = (req.files as unknown as Express.Multer.File[])[0];
+
+    const fileObj: FileType = {
+      _id: file.originalname,
+      type: 'File',
+      parentId: null,
+      name: req.body.name || '',
+      provider: 'S3',
+      providerKey: file.key,
+      description: req.body.description || '',
+      // Need another API call for file size
+      size: file.size,
+      // And another for signed URL
+      url: await getPlayUrl(file.key),
+    };
+
+    // Create file here; no validations done
+    req.user.fileSystem.push(fileObj);
+
+    res.status(200).json({
+      success: true,
+      data: {
+        file: (await req.user.save()).fileSystem.id(file.originalname)
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, error: 'Unknown server error.' });
+  }
+};
+
+export const getSharedFiles = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+
+  try {
+    const { id } = req.params;
+    if (!id) {
+      res.status(400).json({ success: false, error: 'No id provided.' });
+      return;
+    }
+
+    const sharedContent = await SharedContent.findById(id);
+    if (!SharedContent) {
+      res.status(404).json({ success: false, error: 'Shared content not found.' });
+      return;
+    }
+
+    const owner = await User.findById(sharedContent.ownerId);
+    const files = owner.fileSystem
+      .filter((f) => sharedContent.entityIds.includes(f._id))
+      .filter((f) => f.type === 'File' && f.provider === 'S3') as FileDocument[];
+
+    const sharedFiles = await Promise.all(
+      files.map(async (f) => {
+        return {
+          _id: f._id,
+          name: f.name,
+          size: f.size,
+          description: f.description,
+          url: await getPlayUrl(f.providerKey, FOUR_HOURS),
+          createdAt: f.createdAt,
+        };
+      })
+    );
+
+    res.status(200).json({
+      success: true,
+      data: {
+        owner: owner.profile.name || '',
+        sharedFiles
+      }
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, error: 'Unknown server error.' });
+  }
+};
+
+export const shareFiles = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+
+  try {
+    if (!req.user.fileSystem) {
+      res.status(404).json({ success: false, error: 'No such source files exist.' });
+      return;
+    }
+
+    const { entityIds }: { entityIds: string[] } = req.body;
+    // N.B.: Currently supports only a single file
+    if (!entityIds || !Array.isArray(entityIds) || entityIds.length < 1) {
+      res.status(400).json({ success: false, error: 'No files provided.' });
+      return;
+    }
+    const file: FileSystemEntityDocument = req.user.fileSystem.id(entityIds[0]);
+    if (file.type !== 'File') {
+      res.status(400).json({ success: false, error: 'Only files are supported.' });
+      return;
+    }
+
+    const sharedContentDocument = new SharedContent({
+      _id: uuid(),
+      ownerId: req.user._id,
+      entityIds: [file._id]
+    });
+
+    await sharedContentDocument.save();
+
+    res.status(200).json({ success: true, data: { id: sharedContentDocument._id } });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, error: 'Unknown server error.' });
+  }
+};
+
 // Create a file - POST /
 export const createFile = makeFileSystemEntityCreator('File');
 
 // Update a file (rename, move, change description) - POST /:id
 export const updateFile = makeFileSystemEntityUpdator('File');
 
+export const moveManyFiles = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+
+  try {
+    // No file system defined yet
+    if (!req.user.fileSystem) {
+      res.status(404).json({ success: false, error: 'No such source files exist.' });
+      return;
+    }
+
+    const { fileIds, folderId }: { fileIds: string[]; folderId: string } = req.body;
+
+    let provider: 'S3' | 'IDB' | null;
+    if (folderId !== null) {
+      const destination = req.user.fileSystem.id(folderId) as FolderDocument;
+      if (!destination || destination.type !== 'Folder') {
+        res.status(400).json({ success: false, error: 'No such destination folder exists.' });
+        return;
+      }
+      provider = destination.provider;
+    } else {
+      provider = null;
+    }
+
+    const candidateFiles = fileIds
+      .map(req.user.fileSystem.id, req.user.fileSystem)
+      // Only files, from the same provider, those are not already in the target folder. 
+      // TODO Should we notify about the excluded? 
+      .filter((f) =>
+        !!f && f.type === 'File' && f.parentId !== folderId && (!provider || f.provider === provider)
+      ) as FileDocument[];
+
+    const childrenNamesAtDestination = req.user.fileSystem
+      .filter((f) => f.parentId === folderId)
+      .map((f) => f.name);
+
+    candidateFiles.forEach((f) => {
+      f.parentId = folderId;
+      f.name = suggestName(f.name, childrenNamesAtDestination);
+      childrenNamesAtDestination.push(f.name);
+    });
+
+    const fileSystem = (await req.user.save()).fileSystem;
+
+    res.status(200).json({ success: true, data: { fileSystem } });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, error: 'Unknown server error.' });
+  }
+};
+
 // Delete a file, and its contents - DELETE /:id
 export const deleteFile = makeFileSystemEntityDeleter('File');
+
+export const deleteManyFiles = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+
+  try {
+    // No file system defined yet
+    if (!req.user.fileSystem) {
+      res.status(404).json({ success: false, error: 'No such files exist.' });
+      return;
+    }
+
+    const { fileIds }: { fileIds: string[] } = req.body;
+
+    const candidateFiles = fileIds
+      .map(req.user.fileSystem.id, req.user.fileSystem)
+      // Only files, from the same provider. 
+      .filter((f) =>
+        !!f && f.type === 'File' && f.provider === 'S3'
+      ) as FileDocument[];
+
+    await deleteFilesFromProvider(candidateFiles);
+
+    req.user.fileSystem.pull(...candidateFiles);
+    const fileSystem = (await req.user.save()).fileSystem;
+
+    res.status(200).json({ success: true, data: { fileSystem, deletedFiles: candidateFiles } });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false });
+  }
+};
 
 // Migrate from locally-saved (Indexed DB filesystem) to MongoDB-saved FS
 export const migrate = async (
@@ -284,6 +518,39 @@ export const migrate = async (
       data: { added, fileSystem: (await req.user.save()).fileSystem }
     });
 
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false });
+  }
+};
+
+export const getSettings = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    res.status(200).json({
+      success: true,
+      data: req.user?.fileSystemSettings ?? { cloudSync: false },
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false });
+  }
+};
+
+export const updateSettings = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  try {
+    const { cloudSync } = req.body;
+    req.user.fileSystemSettings = { cloudSync };
+
+    res.status(200).json({
+      success: true,
+      data: (await req.user?.save()).fileSystemSettings,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false });
