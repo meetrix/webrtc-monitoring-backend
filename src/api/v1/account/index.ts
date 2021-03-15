@@ -14,6 +14,7 @@ import {
   resetPassword,
 } from './controller';
 import { isAuthenticated } from '../../../middleware';
+import rateLimiterMiddleware from '../../../middleware/rateLimiterMemory';
 
 const router = express.Router();
 
@@ -21,9 +22,9 @@ const router = express.Router();
 router.get('/jwt/refresh', isAuthenticated, refresh);
 
 // Verify user account via email
-router.get('/verify', verify);
+router.get('/verify', rateLimiterMiddleware, verify);
 
-router.get('/resetpassword', resetPassword);
+router.get('/resetpassword', rateLimiterMiddleware, resetPassword);
 
 
 /**
@@ -92,7 +93,7 @@ router.get('/resetpassword', resetPassword);
  *                      type: string
  *                      example: Something went wrong. Please try again later.
  */
-router.post('/login', login);
+router.post('/login', rateLimiterMiddleware, login);
 
 /**
  * @swagger
@@ -160,7 +161,7 @@ router.post('/login', login);
  *                      type: string
  *                      example:  Account already exists.
  */
-router.post('/register', register);
+router.post('/register', rateLimiterMiddleware, register);
 
 
 /**
@@ -241,7 +242,7 @@ router.post('/register', register);
  *                      type: string
  *                      example: Email address not found in our system.
  */
-router.post('/forgot', forgot);
+router.post('/forgot', rateLimiterMiddleware, forgot);
 
 /**
  * @swagger
@@ -298,7 +299,7 @@ router.post('/forgot', forgot);
  *                      type: string
  *                      example: Something went wrong. Please try again later.
  */
-router.post('/reset/:token', reset);
+router.post('/reset/:token', rateLimiterMiddleware, reset);
 
 /**
  * @swagger
