@@ -143,7 +143,7 @@ const handleWebSocketEvents = (server: http.Server): void => {
       const folderId = reqUrl.searchParams.get('folder_id');
 
       const file: FileType = {
-        _id: recordingId,
+        _id: prevVideosWithSameKey > 0 ? `${recordingId}_${prevVideosWithSameKey}` : recordingId,
         type: 'File',
         parentId: folderId,
         name: `Recording_${startTimestamp}`,
