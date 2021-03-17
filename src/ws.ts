@@ -57,14 +57,16 @@ const handleWebSocketEvents = (server: http.Server): void => {
       return;
     }
 
+    let corsVerified = false;
     let plugin = false;
-    let matcher: RegExp | string = new RegExp(CORS_REGEX); // For main site
-    if ((jwtUser as Express.JwtPluginUser).plugin) {
+    if ((jwtUser as Express.JwtPluginUser).plugin) { // Third-party site
       // In plugin mode, validate the correct third party site
-      matcher = (jwtUser as Express.JwtPluginUser).website;
+      const website = (jwtUser as Express.JwtPluginUser).website;
+      corsVerified = !!request.headers['origin'].toString().includes(website);
       plugin = true;
+    } else { // Main site
+      corsVerified = !!request.headers['origin'].toString().match(new RegExp(CORS_REGEX));
     }
-    const corsVerified = request.headers['origin'].toString().match(matcher) ? true : false;
     if (!corsVerified) {
       abortHandshake(socket, 401, 'CORS verification failed. ', {});
       console.log(`CORS verification failed for origin ${request.headers['origin']}`);
