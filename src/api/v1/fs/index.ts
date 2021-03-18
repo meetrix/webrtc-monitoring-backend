@@ -28,6 +28,10 @@ const upload = multer({
   storage: multerS3({
     s3,
     bucket: S3_USER_RECORDINGS_BUCKET,
+    contentDisposition: function (req, file, cb) {
+      // Allows cross-origin downloads
+      cb(null, `attachment; filename="${file.originalname}.webm"`);
+    },
     key: function (req, file, cb) {
       cb(null, `vid/${req.user._id}/${file.originalname}.webm`);
     }

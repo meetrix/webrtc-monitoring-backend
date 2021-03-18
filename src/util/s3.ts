@@ -19,6 +19,8 @@ export const uploadRecordingToS3 = async (
 
   return await s3
     .upload({
+      // Allows cross-origin downloads
+      ContentDisposition: `attachment; filename="${recordingId}${suffix}.webm"`,
       Bucket: S3_USER_RECORDINGS_BUCKET,
       Key: key,
       ContentType: 'video/webm',
