@@ -11,7 +11,7 @@ export interface SharedContentType {
 
 const sharedContentSchemaDef = {
   _id: { type: String, default: uuid },
-  ownerId: String,
+  ownerId: { type: String, index: true },
   entityIds: [String],
   createdAt: Date,
   updatedAt: Date,

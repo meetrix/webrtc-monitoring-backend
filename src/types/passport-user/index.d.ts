@@ -7,12 +7,21 @@ declare global {
     interface User extends UserDocument {
 
     }
-    interface JwtUser {
-      email: string;
-      role: string;
+
+    interface IJwtUser {
       sub: string;
       iat: number;
       exp: number;
+    }
+
+    interface JwtUser extends IJwtUser {
+      email: string;
+      role: string;
+    }
+
+    interface JwtPluginUser extends IJwtUser {
+      plugin: boolean;
+      website: string;
     }
   }
   namespace Passport {

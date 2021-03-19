@@ -39,19 +39,12 @@ const handleWebSocketEvents = (server: http.Server): void => {
 
   server.on('upgrade', async function upgrade(request: http.IncomingMessage, socket: Socket, head: Buffer) {
 
-    const corsVerified = request.headers['origin'].toString().match(new RegExp(CORS_REGEX)) ? true : false;
-    if (!corsVerified) {
-      abortHandshake(socket, 401, 'CORS verification failed. ', {});
-      console.log(`CORS verification failed for origin ${request.headers['origin']}`);
-      return;
-    }
-
     const reqUrl = new URL(request.url, API_BASE_URL);
     const token = reqUrl.searchParams.get('access_token');
 
-    let jwtUser: Express.JwtUser;
+    let jwtUser: Express.IJwtUser;
     try {
-      jwtUser = jwt.verify(token, SESSION_SECRET) as Express.JwtUser;
+      jwtUser = jwt.verify(token, SESSION_SECRET) as Express.IJwtUser;
     } catch (error) {
       abortHandshake(socket, 401, 'Authentication failed. ', {});
       console.log(`Authentication failed for token ${token}`);
@@ -61,6 +54,22 @@ const handleWebSocketEvents = (server: http.Server): void => {
     if (!jwtUser) {
       abortHandshake(socket, 401, 'Authentication failed. ', {});
       console.log(`Authentication failed for token ${token}`);
+      return;
+    }
+
+    let corsVerified = false;
+    let plugin = false;
+    if ((jwtUser as Express.JwtPluginUser).plugin) { // Third-party site
+      // In plugin mode, validate the correct third party site
+      const website = (jwtUser as Express.JwtPluginUser).website;
+      corsVerified = !!request.headers['origin'].toString().includes(website);
+      plugin = true;
+    } else { // Main site
+      corsVerified = !!request.headers['origin'].toString().match(new RegExp(CORS_REGEX));
+    }
+    if (!corsVerified) {
+      abortHandshake(socket, 401, 'CORS verification failed. ', {});
+      console.log(`CORS verification failed for origin ${request.headers['origin']}`);
       return;
     }
 
@@ -75,7 +84,7 @@ const handleWebSocketEvents = (server: http.Server): void => {
     }
 
     wss.handleUpgrade(request, socket as Socket, head, function done(ws) {
-      wss.emit('connection', ws, request, reqUrl, userDoc);
+      wss.emit('connection', ws, request, reqUrl, userDoc, plugin);
     });
   });
 
@@ -88,7 +97,14 @@ const handleWebSocketEvents = (server: http.Server): void => {
     });
   }, 1000);
 
-  wss.on('connection', async function connection(ws: WebSocket, req: http.IncomingMessage, reqUrl: URL, user: UserDocument) {
+  wss.on('connection', async function connection(
+    ws: WebSocket,
+    req: http.IncomingMessage,
+    reqUrl: URL,
+    user: UserDocument,
+    plugin: boolean
+  ) {
+
     ws.on('close', function close(code: number, reason: string) {
       // This ends the stream properly, results in an upload. 
       console.log(`WebSocket closed. ${code}: ${reason}`);
@@ -127,11 +143,11 @@ const handleWebSocketEvents = (server: http.Server): void => {
       const folderId = reqUrl.searchParams.get('folder_id');
 
       const file: FileType = {
-        _id: recordingId,
+        _id: prevVideosWithSameKey > 0 ? `${recordingId}_${prevVideosWithSameKey}` : recordingId,
         type: 'File',
         parentId: folderId,
         name: `Recording_${startTimestamp}`,
-        provider: 'S3',
+        provider: plugin ? 'S3:plugin' : 'S3',
         providerKey: upload.Key,
         description: '',
         // Need another API call for file size

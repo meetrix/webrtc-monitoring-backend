@@ -2,6 +2,7 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 
 import { feedbackReport, index, logout, usersReport, verifyAdmin } from './controller';
+import rateLimiterMiddleware from '../../../middleware/rateLimiterMemory';
 
 const router = express.Router();
 
@@ -10,13 +11,13 @@ router.use(cookieParser());
 router.get('/feedbacks', verifyAdmin, feedbackReport); // HTML
 router.get('/feedbacks.csv', verifyAdmin, feedbackReport);
 router.get('/feedbacks.json', verifyAdmin, feedbackReport);
-router.post('/feedbacks', feedbackReport);
+router.post('/feedbacks', rateLimiterMiddleware, feedbackReport);
 
 router.get('/users', verifyAdmin, usersReport); // JSON
-router.post('/users', usersReport);
+router.post('/users', rateLimiterMiddleware, usersReport);
 
 router.get('/logout', verifyAdmin, logout);
 
-router.get('/', index);
+router.get('/', rateLimiterMiddleware, index);
 
 export const reportsRouter = router;

@@ -22,6 +22,14 @@ export const handleMissing = (_req: Request, res: Response): void => {
   res.sendStatus(404);
 };
 
+/**
+ * Main authenticator middleware. This rejects plugin authentication tokens. 
+ * 
+ * @param req 
+ * @param res 
+ * @param next 
+ * @returns 
+ */
 export const isAuthenticated = async (
   req: Request,
   res: Response,
@@ -37,6 +45,11 @@ export const isAuthenticated = async (
     }
     const token = req.headers.authorization.split('Bearer ')[1];
     const jwtInfo = jwt.verify(token, SESSION_SECRET) as Express.JwtUser;
+
+    // Reject *plugin* authentication tokens
+    if ((jwtInfo as Express.IJwtUser as Express.JwtPluginUser).plugin) {
+      throw new Error('Plugin authentication tokens cannot be used to log-in.');
+    }
 
     const userDoc = await User.findOne({ _id: jwtInfo.sub });
     if (!userDoc) {

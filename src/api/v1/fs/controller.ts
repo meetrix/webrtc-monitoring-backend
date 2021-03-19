@@ -22,7 +22,7 @@ export const fetchFileSystem = async (
     const fileSystem = req.user.fileSystem || [] as Types.DocumentArray<FileSystemEntityDocument>;
 
     const filesExpiringSoon = req.user.fileSystem
-      .filter(f => f.type === 'File' && f.provider === 'S3')
+      .filter(f => f.type === 'File' && f.provider.startsWith('S3'))
       .filter(f => isExpiringSoon((f as FileDocument).url)) as FileDocument[];
 
     // Update signed URLs
@@ -73,7 +73,7 @@ const makeFileSystemEntityCreator = (type: 'File' | 'Folder') => async (
 
     const provider = parent
       ? parent.provider
-      : (['IDB', 'S3'].includes(req.body.provider) ? req.body.provider : 'IDB');
+      : (['IDB', 'S3', 'S3:plugin'].includes(req.body.provider) ? req.body.provider : 'IDB');
 
     // Check whether the parent folder already contains a file or folder by the same name
     if (req.user.fileSystem
@@ -217,7 +217,7 @@ const makeFileSystemEntityUpdator = (type: 'File' | 'Folder') => async (
 export const updateFolder = makeFileSystemEntityUpdator('Folder');
 
 const deleteFilesFromProvider = async (files: FileType[]): Promise<void> => {
-  const awsKeys = files.filter((f) => f.provider === 'S3').map((f) => f.providerKey);
+  const awsKeys = files.filter((f) => f.provider.startsWith('S3')).map((f) => f.providerKey);
   if (awsKeys.length > 0) {
     await deleteRecordings(awsKeys);
   }
@@ -339,7 +339,7 @@ export const getSharedFiles = async (
     const owner = await User.findById(sharedContent.ownerId);
     const files = owner.fileSystem
       .filter((f) => sharedContent.entityIds.includes(f._id))
-      .filter((f) => f.type === 'File' && f.provider === 'S3') as FileDocument[];
+      .filter((f) => f.type === 'File' && f.provider.startsWith('S3')) as FileDocument[];
 
     const sharedFiles = await Promise.all(
       files.map(async (f) => {
@@ -425,7 +425,7 @@ export const moveManyFiles = async (
 
     const { fileIds, folderId }: { fileIds: string[]; folderId: string } = req.body;
 
-    let provider: 'S3' | 'IDB' | null;
+    let provider: 'S3' | 'S3:plugin' | 'IDB' | null;
     if (folderId !== null) {
       const destination = req.user.fileSystem.id(folderId) as FolderDocument;
       if (!destination || destination.type !== 'Folder') {
@@ -485,7 +485,7 @@ export const deleteManyFiles = async (
       .map(req.user.fileSystem.id, req.user.fileSystem)
       // Only files, from the same provider. 
       .filter((f) =>
-        !!f && f.type === 'File' && f.provider === 'S3'
+        !!f && f.type === 'File' && f.provider.startsWith('S3')
       ) as FileDocument[];
 
     await deleteFilesFromProvider(candidateFiles);

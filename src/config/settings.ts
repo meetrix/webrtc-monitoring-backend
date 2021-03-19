@@ -6,6 +6,7 @@ export const PRODUCTION = 'production';
 export const STAGING = 'staging';
 export const TEST = 'test';
 export const JWT_EXPIRATION = '7d';
+export const JWT_EXPIRATION_PLUGIN = '2h';
 export const APP_PORT = 9100;
 export const UNSUBSCRIBE_LANDING = '';
 export const CONFIRMATION_LANDING =
