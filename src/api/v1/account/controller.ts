@@ -150,12 +150,13 @@ export const register = async (req: any, res: Response, next: NextFunction): Pro
         // res.status(201).json({ token: signToken(user) });
       });
       // console.log(emailToken);
-      
+
       res.status(200).json({
         success: true,
         // data: { emailToken },
         message: 'Confirmation email has been sent successfully. Please check your inbox to proceed.'
       });
+      return;
     }
 
     if (!selectedUser.isVerified) {
@@ -214,7 +215,7 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
     user.emailToken = null;
     user.isVerified = true,
 
-    await user.save();
+      await user.save();
 
     const clientName = user.profile.name;
 
@@ -241,7 +242,7 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
 
     // A new email signin token issued to get user details to verify at signin
     user.accessToken = signToken(user),
-    await user.save();
+      await user.save();
 
     res.status(200).json({
       success: true,
@@ -553,8 +554,8 @@ export const reset = async (
 };
 
 const uploadProfilePicture = async (
-  key: string, 
-  imgBuffer: Buffer, 
+  key: string,
+  imgBuffer: Buffer,
   imgMime: string
 ): Promise<string> => {
   const s3 = new S3({
@@ -562,9 +563,9 @@ const uploadProfilePicture = async (
   });
 
   const s3Response = await s3.upload({
-    Bucket: S3_USER_META_BUCKET, 
-    Key: key, 
-    Body: imgBuffer, 
+    Bucket: S3_USER_META_BUCKET,
+    Key: key,
+    Body: imgBuffer,
     ContentType: imgMime,
     ACL: 'public-read',
   }).promise();
@@ -604,7 +605,7 @@ export const postProfile = async (
           message: 'Current password entered is incorrect.'
         });
         return;
-      } 
+      }
 
       // Validate new password
       if (!validator.isLength(req.body.password, { min: 6 })) {
