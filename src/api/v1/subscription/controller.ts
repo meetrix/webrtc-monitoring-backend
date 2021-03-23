@@ -296,6 +296,8 @@ export const stripeEventHandler = async (
       }
 
       break;
+    // case 'invoice.updated':
+    //   break;
     case 'invoice.payment_failed':
       console.log(eventType);
       console.log(data);
@@ -303,7 +305,20 @@ export const stripeEventHandler = async (
       // The subscription becomes past_due. Notify your customer and send them to the
       // customer portal to update their payment information.
       break;
-    case 'customer.subscription.updated':
+    case 'customer.subscription.updated': // fall-through
+    case 'customer.subscription.deleted':
+      // Valid for: collection_method=charge_automatically
+      // ┌────────────────────────────────────────────────┐
+      // │ Subscription                                   │
+      // ├────────────────────────────────────────────────┤
+      // │ status: incomplete (after first attempt fails) │
+      // │         incomplete_expired (after 23h)         │
+      // │         active (if payment collected)          │
+      // │         past_due (renewal fails - unclear)     │
+      // │         canceled^/unpaid (all attempts failed) │
+      // └────────────────────────────────────────────────┘
+      // ^ as of configured settings
+
       console.log(eventType);
       console.log(data);
 
@@ -322,10 +337,21 @@ export const stripeEventHandler = async (
         user.stripe.priceId = subscribedPriceId;
         user.stripe.subscriptionId = data.object.id;
         user.stripe.subscriptionItemId = data.object.items.data[0].id;
-        user.package = planId;
+
+        if (['canceled', 'unpaid', 'past_due'].includes(data.object.status)) {
+          // Deactivate user package
+          user.package = getPlanIdByPriceId(STRIPE_FREE_PRICE_ID);
+          user.stripe.subscriptionStatus = 'inactive';
+        } else if (['incomplete', 'incomplete_expired'].includes(data.object.status)) {
+          // Do nothing
+        } else { // active
+          user.package = planId;
+        }
         await user.save();
 
       } catch (err) {
+        console.log(err);
+
         return res.status(500).json({
           success: false,
           error: err.message
@@ -333,6 +359,10 @@ export const stripeEventHandler = async (
       }
 
       break;
+    case 'charge.refunded':
+    // NOT handled
+    // Cancel subscription from the dashboard to remove the subscription AND while doing that,
+    // either choose to refund the user, or end the subscription at the end of the current period. 
     default:
       console.log('unknown event type : ' + eventType);
       console.log(data);
