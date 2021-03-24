@@ -662,6 +662,27 @@ export const postProfile = async (
   }
 };
 
+const subscriptionStatuses = ['pending', 'inactive', 'active'];
+
+/**
+ * Find the subscription provider and the status
+ */
+function getSubscriptionStatus(user: UserDocument): {
+  subscriptionStatus: string;
+  subscriptionProvider: string;
+} {
+  // Take the best subscription status from both paypal and stripe
+  // active > inactive > pending
+  // stripe > paypal
+  const stripeStatus = user.stripe?.subscriptionStatus || 'pending';
+  const paypalStatus = user.paypal?.subscriptionStatus || 'pending';
+  if (subscriptionStatuses.indexOf(paypalStatus) <= subscriptionStatuses.indexOf(stripeStatus)) {
+    return { subscriptionStatus: stripeStatus, subscriptionProvider: 'stripe' };
+  } else {
+    return { subscriptionStatus: paypalStatus, subscriptionProvider: 'paypal' };
+  }
+}
+
 // Get Profile
 export const getProfile = async (
   req: Request,
@@ -682,7 +703,7 @@ export const getProfile = async (
         package: user.package,
         avatar: user.gravatar,
         profile: user.profile,
-        subscriptionStatus: user.stripe.subscriptionStatus,
+        ...getSubscriptionStatus(user),
         tag: user.tag,
       },
       message: 'Get profile successful.'

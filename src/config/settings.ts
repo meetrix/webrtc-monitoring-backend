@@ -32,3 +32,5 @@ export const STRIPE_SECRET_KEY = process.env['STRIPE_SECRET_KEY'];
 export const STRIPE_STANDARD_PRICE_ID = process.env['STRIPE_STANDARD_PRICE_ID'];
 export const STRIPE_FREE_PRICE_ID = process.env['STRIPE_FREE_PRICE_ID'];
 export const STRIPE_WEBHOOK_SECRET = process.env['STRIPE_WEBHOOK_SECRET'];
+export const PAYPAL_FREE_PLAN_ID = process.env['PAYPAL_FREE_PLAN_ID'];
+export const PAYPAL_STANDARD_PLAN_ID = process.env['PAYPAL_STANDARD_PLAN_ID'];
