@@ -463,7 +463,7 @@ export const paypalEventHandler = async (
         if (['ACTIVE'].includes(subscription.status)) {
           user.package = getPlanIdByPayPalPlanId(subscription.plan_id);
           user.paypal.subscriptionStatus = 'active';
-        } else if ([['SUSPENDED', 'CANCELLED', 'EXPIRED']].includes(subscription.status)) {
+        } else if (['SUSPENDED', 'CANCELLED', 'EXPIRED'].includes(subscription.status)) {
           // Downgrade user package
           user.package = getPlanIdByPayPalPlanId(PAYPAL_FREE_PLAN_ID);
           user.paypal.subscriptionStatus = 'inactive';
