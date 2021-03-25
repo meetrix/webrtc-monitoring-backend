@@ -507,17 +507,20 @@ export const paypalEventHandler = async (
           }
 
           const subscriptionId = sale.billing_agreement_id;
-          const payment = await Payment.findOne(
+          let payment = await Payment.findOne(
             { subscriptionId, userId }, {}, { sort: { createdAt: -1 } }
           );
-          if (payment) {
-            payment.invoiceId = sale.id;
-            payment.subtotal = sale.amount.details.subtotal;
-            payment.total = sale.amount.total;
-            payment.paid = true;
-
-            await payment.save();
+          // Sometimes, we don't receive BILLING.SUBSCRIPTION.CREATED so payment is not still created
+          if (!payment) {
+            payment = new Payment({ subscriptionId, userId });
           }
+
+          payment.invoiceId = sale.id;
+          payment.subtotal = sale.amount.details.subtotal;
+          payment.total = sale.amount.total;
+          payment.paid = true;
+
+          await payment.save();
 
         } catch (err) {
           console.log(err);
