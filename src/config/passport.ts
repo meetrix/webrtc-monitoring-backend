@@ -27,10 +27,15 @@ passport.deserializeUser((id, done) => {
 
 const findUserOrCreateUser = async (profile: Passport.ExtendedProfile, accessToken: string, refreshToken: string): Promise<UserDocument> => {
   try {
-    const { provider, id, name, emails, photos } = profile;
-    const { givenName, familyName } = name;
+    const { provider, id, name, emails, photos, displayName } = profile;
+    const { givenName, middleName, familyName } = name;
 
-    const fullName = givenName + ' ' + familyName;
+    // Sometimes, a name might be empty. 
+    const fullName = displayName
+      || [givenName, familyName].filter(s => !!s).join(' ')
+      || middleName
+      || '';
+
     const email = emails[0].value;
     //let email = '';
     let picture = null;
