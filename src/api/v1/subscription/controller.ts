@@ -3,12 +3,19 @@
 import { Response, Request, NextFunction } from 'express';
 import _ from 'lodash';
 import {
-  AUTH_LANDING, STRIPE_SECRET_KEY, STRIPE_FREE_PRICE_ID, STRIPE_STANDARD_PRICE_ID, STRIPE_WEBHOOK_SECRET, USER_PACKAGES
+  AUTH_LANDING,
+  STRIPE_SECRET_KEY,
+  STRIPE_FREE_PRICE_ID,
+  STRIPE_STANDARD_PRICE_ID,
+  STRIPE_WEBHOOK_SECRET,
+  PAYPAL_FREE_PLAN_ID,
+  PAYPAL_STANDARD_PLAN_ID,
+  USER_PACKAGES
 } from '../../../config/settings';
 
 import Stripe from 'stripe';
 import { User } from '../../../models/User';
-import { Payment } from '../../../models/Payment';
+import { Payment, PaymentDocument } from '../../../models/Payment';
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
   apiVersion: '2020-08-27',
 });
@@ -35,6 +42,20 @@ const getPlanIdByPriceId = (
   } else if (priceId == STRIPE_STANDARD_PRICE_ID) {
     return USER_PACKAGES[1];
   } else if (priceId == STRIPE_STANDARD_PRICE_ID) {   //STRIPE_PREMIUM_PRICE_ID   //update with PREMIUM LATER
+    return USER_PACKAGES[2];
+  } else {
+    throw Error('invalid plan');
+  }
+};
+
+const getPlanIdByPayPalPlanId = (
+  planId: string,
+): string => {
+  if (planId == PAYPAL_FREE_PLAN_ID) {
+    return USER_PACKAGES[0];
+  } else if (planId == PAYPAL_STANDARD_PLAN_ID) {
+    return USER_PACKAGES[1];
+  } else if (planId == PAYPAL_STANDARD_PLAN_ID) {   //PAYPAL_PREMIUM_PLAN_ID   //update with PREMIUM LATER
     return USER_PACKAGES[2];
   } else {
     throw Error('invalid plan');
@@ -156,7 +177,7 @@ export const checkoutSessionStatus = async (
       success: false,
       error: err.message
     });
-    next(err);
+    // next(err);
   }
 };
 
@@ -265,6 +286,7 @@ export const stripeEventHandler = async (
         const total = data.object.total;
 
         const payment = new Payment({
+          provider: 'stripe',
           invoiceId,
           subscriptionId,
           attemptCount,
@@ -373,6 +395,151 @@ export const stripeEventHandler = async (
     success: true,
     data: {
       event: eventType
+    },
+    message: 'Webhook updated successfully'
+  });
+};
+
+const fillPaymentDetailsFromPayPalSubscription = async (
+  eventType: string,
+  subscription: any,
+  payment: PaymentDocument,
+): Promise<void> => {
+  switch (eventType) {
+    case 'BILLING.SUBSCRIPTION.ACTIVATED':
+      payment.provider = 'paypal';
+      payment.customerId = subscription.subscriber.payer_id;
+      payment.customerEmail = subscription.subscriber.email_address;
+      payment.amountDue = subscription.billing_info.outstanding_balance.value;
+      payment.amountPaid = subscription.billing_info.last_payment.amount.value;
+    // fall-through
+    case 'BILLING.SUBSCRIPTION.CREATED':
+      payment.subscriptionId = subscription.id;
+      payment.priceId = subscription.plan_id;
+      payment.plan = getPlanIdByPayPalPlanId(subscription.plan_id);
+      payment.userId = subscription.custom_id;
+      payment.status = subscription.status;
+      break;
+    default:
+      break;
+  }
+};
+
+export const paypalEventHandler = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<any> => {
+  const eventType = req.body.event_type;
+  const resourceType = req.body.resource_type;
+
+  console.log('PayPal Event: ', eventType);
+  console.log(req.body);
+
+  switch (resourceType) {
+    case 'subscription':
+      try {
+        const subscription = req.body.resource;
+        const customerId = subscription.custom_id;
+
+        let user;
+        if (customerId) {
+          user = await User.findById(customerId);
+        } else if (subscription.subscriber?.payer_id) {
+          user = await User.findOne({ 'paypal.payerId': subscription.subscriber.payer_id });
+        }
+        if (!user) {
+          throw Error('user not found');
+        }
+
+        // Subscriber does not exist when BILLING.SUBSCRIPTION.CREATED
+        user.paypal.payerId = subscription.subscriber?.payer_id || user.paypal?.payerId;
+        user.paypal.emailAddress = subscription.subscriber?.email_address || user.paypal?.emailAddress;
+
+        user.paypal.planId = subscription.plan_id;
+        user.paypal.subscriptionId = subscription.id;
+
+        // Status = APPROVAL_PENDING, APPROVED, ACTIVE, SUSPENDED, CANCELLED, EXPIRED
+        if (['ACTIVE'].includes(subscription.status)) {
+          user.package = getPlanIdByPayPalPlanId(subscription.plan_id);
+          user.paypal.subscriptionStatus = 'active';
+        } else if (['SUSPENDED', 'CANCELLED', 'EXPIRED'].includes(subscription.status)) {
+          // Downgrade user package
+          user.package = getPlanIdByPayPalPlanId(PAYPAL_FREE_PLAN_ID);
+          user.paypal.subscriptionStatus = 'inactive';
+        } else {
+          user.paypal.subscriptionStatus = 'pending';
+        }
+
+        await user.save();
+
+        // Store payment details
+        let payment = await Payment.findOne(
+          { subscriptionId: subscription.id, userId: user._id }, {}, { sort: { createdAt: -1 } }
+        );
+        if (!payment) {
+          payment = new Payment();
+        }
+        fillPaymentDetailsFromPayPalSubscription(eventType, subscription, payment);
+        await payment.save();
+
+        break;
+      } catch (err) {
+        console.log(err);
+
+        return res.status(500).json({
+          success: false,
+          error: err.message
+        });
+      }
+    case 'sale':
+      if (eventType === 'PAYMENT.SALE.COMPLETED') {
+        try {
+          const sale = req.body.resource;
+          const userId = sale.custom; // N.B.: Here this is `custom`; not `custom_id`. 
+
+          let user;
+          if (userId) {
+            user = await User.findById(userId);
+          }
+          if (!user) {
+            throw Error('user not found');
+          }
+
+          const subscriptionId = sale.billing_agreement_id;
+          let payment = await Payment.findOne(
+            { subscriptionId, userId }, {}, { sort: { createdAt: -1 } }
+          );
+          // Sometimes, we don't receive BILLING.SUBSCRIPTION.CREATED so payment is not still created
+          if (!payment) {
+            payment = new Payment({ subscriptionId, userId });
+          }
+
+          payment.invoiceId = sale.id;
+          payment.subtotal = sale.amount.details.subtotal;
+          payment.total = sale.amount.total;
+          payment.paid = true;
+
+          await payment.save();
+
+        } catch (err) {
+          console.log(err);
+
+          return res.status(500).json({
+            success: false,
+            error: err.message
+          });
+        }
+      } else {
+        break;
+      }
+    default:
+      break;
+  }
+
+  res.status(200).json({
+    success: true,
+    data: {
     },
     message: 'Webhook updated successfully'
   });

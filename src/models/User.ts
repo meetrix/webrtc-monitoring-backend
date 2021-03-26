@@ -51,6 +51,14 @@ export interface Stripe {
   subscriptionStatus: string;
 }
 
+export interface PayPal {
+  payerId: string;
+  emailAddress: string;
+  planId: string;
+  subscriptionId: string;
+  subscriptionStatus: string;
+}
+
 export type UserDocument = mongoose.Document & {
   email: string;
   password: string;
@@ -71,6 +79,7 @@ export type UserDocument = mongoose.Document & {
   google: string;
   tokens: AuthToken[];
   stripe: Stripe;
+  paypal: PayPal;
 
   authenticate: (candidatePassword: string) => Promise<boolean>;
   gravatar: (size: number) => string;
@@ -120,6 +129,15 @@ const userSchema = new mongoose.Schema(
       checkoutSessionId: { type: String, default: null },
       subscriptionId: { type: String, default: null },
       subscriptionItemId: { type: String, default: null },
+      subscriptionStatus: { type: String, default: 'pending' },
+    },
+
+    paypal: {
+      payerId: { type: String, default: null }, // subscription.subscriber.payer_id
+      emailAddress: { type: String, default: null }, // subscription.subscriber.email_address
+      planId: { type: String, default: null }, // subscription.plan_id
+      subscriptionId: { type: String, default: null }, // subscription.id
+      // pending: [APPROVAL_PENDING, APPROVED], active: [ACTIVE], inactive: [SUSPENDED, CANCELLED, EXPIRED]
       subscriptionStatus: { type: String, default: 'pending' },
     }
   },
@@ -193,6 +211,13 @@ userSchema.methods = {
         subscriptionId: this.stripe.subscriptionId,
         subscriptionItemId: this.stripe.subscriptionItemId,
         subscriptionStatus: this.stripe.subscriptionStatus,
+      },
+      paypal: {
+        payerId: this.paypal.payerId,
+        emailAddress: this.paypal.emailAddress,
+        planId: this.paypal.planId,
+        subscriptionId: this.paypal.subscriptionId,
+        subscriptionStatus: this.paypal.subscriptionStatus,
       }
     };
 
