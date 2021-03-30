@@ -1,7 +1,8 @@
 import { Request, Response } from 'express';
 
 import { Plugin } from '../../../models/Plugin';
-import { signPluginToken } from '../../../util/auth';
+import { User } from '../../../models/User';
+import { getSubscriptionStatus, signPluginToken } from '../../../util/auth';
 
 export const init = async (
   req: Request,
@@ -16,6 +17,18 @@ export const init = async (
     const plugin = await Plugin.findById(req.params.key);
     if (!plugin) {
       res.status(401).json({ success: false, error: 'No such key registered.' });
+      return;
+    }
+
+    const user = await User.findById(plugin.ownerId);
+    if (!user) {
+      res.status(401).json({ success: false, error: 'No plugin owner found.' });
+      return;
+    }
+
+    // Doing this without the authorization middleware since the function is invoked by an anonymous user
+    if (user.package !== 'PREMIUM' || getSubscriptionStatus(user).subscriptionStatus !== 'active') {
+      res.status(403).json({ success: false, error: 'Forbidden (no valid subscription).' });
       return;
     }
 

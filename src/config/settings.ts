@@ -22,6 +22,7 @@ export const FACEBOOK_CALLBACK_URL = process.env['FACEBOOK_CALLBACK_URL'];
 export const LINKEDIN_CALLBACK_URL = process.env['LINKEDIN_CALLBACK_URL'];
 export const USER_ROLES = ['user', 'admin', 'owner'];
 export const USER_PACKAGES = ['FREE_LOGGEDIN', 'STANDARD', 'PREMIUM'];
+export const SUBSCRIPTION_STATUSES = ['pending', 'inactive', 'active']; // DO NOT CHANGE THE ORDER
 export const S3_CONTENT_BUCKET = 'starter-content';
 export const S3_USER_META_BUCKET = process.env['USER_META_BUCKET'];
 export const S3_USER_RECORDINGS_BUCKET = process.env['USER_RECORDINGS_BUCKET'];

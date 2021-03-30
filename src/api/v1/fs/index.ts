@@ -23,6 +23,7 @@ import {
 } from './controller';
 import { S3_USER_RECORDINGS_BUCKET } from '../../../config/settings';
 import rateLimiterMiddleware from '../../../middleware/rateLimiterMemory';
+import { hasPackageOrHigher } from '../../../middleware/authorization';
 
 const upload = multer({
   storage: multerS3({
@@ -45,21 +46,21 @@ router.patch('/folders/:id', isAuthenticated, updateFolder);
 router.delete('/folders/:id', isAuthenticated, deleteFolder);
 router.post('/folders', isAuthenticated, createFolder);
 
-router.post('/files/upload', [isAuthenticated, upload.any()], uploadFile);
-router.post('/files/move', isAuthenticated, moveManyFiles);
-router.post('/files/delete', isAuthenticated, deleteManyFiles);
-router.post('/files/:id', isAuthenticated, updateFile);
-router.patch('/files/:id', isAuthenticated, updateFile);
-router.delete('/files/:id', isAuthenticated, deleteFile);
-router.post('/files', isAuthenticated, createFile);
+router.post('/files/upload', [isAuthenticated, hasPackageOrHigher('PREMIUM', 'active'), upload.any()], uploadFile);
+router.post('/files/move', [isAuthenticated, hasPackageOrHigher('PREMIUM', 'inactive')], moveManyFiles);
+router.post('/files/delete', [isAuthenticated, hasPackageOrHigher('PREMIUM', 'inactive')], deleteManyFiles);
+router.post('/files/:id', [isAuthenticated, hasPackageOrHigher('PREMIUM', 'active')], updateFile);
+router.patch('/files/:id', [isAuthenticated, hasPackageOrHigher('PREMIUM', 'active')], updateFile);
+router.delete('/files/:id', [isAuthenticated, hasPackageOrHigher('PREMIUM', 'inactive')], deleteFile);
+router.post('/files', [isAuthenticated, hasPackageOrHigher('PREMIUM', 'active')], createFile);
 
 router.get('/share/:id', rateLimiterMiddleware, getSharedFiles);
-router.post('/share', isAuthenticated, shareFiles);
+router.post('/share', [isAuthenticated, hasPackageOrHigher('PREMIUM', 'active')], shareFiles);
 
 router.post('/migrate', isAuthenticated, migrate);
 
-router.get('/settings', isAuthenticated, getSettings);
-router.post('/settings', isAuthenticated, updateSettings);
+router.get('/settings', [isAuthenticated, hasPackageOrHigher('PREMIUM', 'inactive')], getSettings);
+router.post('/settings', [isAuthenticated, hasPackageOrHigher('PREMIUM', 'inactive')], updateSettings);
 
 router.get('/', isAuthenticated, fetchFileSystem);
 

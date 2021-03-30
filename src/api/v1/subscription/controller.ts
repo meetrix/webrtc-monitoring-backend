@@ -113,7 +113,11 @@ export const checkoutSession = async (
   }
 };
 
-
+/**
+ * @see Stripe [customer portal settings](https://dashboard.stripe.com/test/settings/billing/portal) 
+ * to change the products included when changing subscription
+ * 
+ */
 export const customerPortalUrl = async (
   req: Request,
   res: Response,

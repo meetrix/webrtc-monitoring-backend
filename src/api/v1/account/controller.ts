@@ -7,7 +7,7 @@ import { Response, Request, NextFunction } from 'express';
 import { IVerifyOptions } from 'passport-local';
 import { getMailOptions, getTransporter } from '../../../util/mail';
 import {
-  AUTH_LANDING, API_BASE_URL, SUPPORT_URL, STRIPE_SECRET_KEY, S3_USER_META_BUCKET
+  AUTH_LANDING, API_BASE_URL, SUPPORT_URL, STRIPE_SECRET_KEY, S3_USER_META_BUCKET,
 } from '../../../config/settings';
 const log = console.log;
 
@@ -18,7 +18,7 @@ import { UserDocument, User } from '../../../models/User';
 // } from '../../../config/settings';
 import { formatError } from '../../../util/error';
 import { SUCCESSFUL_RESPONSE } from '../../../util/success';
-import { signToken } from '../../../util/auth';
+import { getSubscriptionStatus, signToken } from '../../../util/auth';
 import Stripe from 'stripe';
 import S3 from 'aws-sdk/clients/s3';
 import { AWS_ACCESS_KEY, AWS_ACCESS_KEY_SECRET } from '../../../config/secrets';
@@ -661,27 +661,6 @@ export const postProfile = async (
     next(error);
   }
 };
-
-const subscriptionStatuses = ['pending', 'inactive', 'active'];
-
-/**
- * Find the subscription provider and the status
- */
-function getSubscriptionStatus(user: UserDocument): {
-  subscriptionStatus: string;
-  subscriptionProvider: string;
-} {
-  // Take the best subscription status from both paypal and stripe
-  // active > inactive > pending
-  // stripe > paypal
-  const stripeStatus = user.stripe?.subscriptionStatus || 'pending';
-  const paypalStatus = user.paypal?.subscriptionStatus || 'pending';
-  if (subscriptionStatuses.indexOf(paypalStatus) <= subscriptionStatuses.indexOf(stripeStatus)) {
-    return { subscriptionStatus: stripeStatus, subscriptionProvider: 'stripe' };
-  } else {
-    return { subscriptionStatus: paypalStatus, subscriptionProvider: 'paypal' };
-  }
-}
 
 // Get Profile
 export const getProfile = async (
