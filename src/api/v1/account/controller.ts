@@ -573,6 +573,32 @@ const uploadProfilePicture = async (
   return s3Response.Location;
 };
 
+export const clearFirstTimeUserFlag = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const user = req.user;
+
+    user.isFirstTimeUser = false;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      data: null,
+      message: 'Profile successfully updated.'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: 'Something went wrong. Please try again later.'
+    });
+    next(error);
+  }
+};
+
 // Post Profile
 export const postProfile = async (
   req: Request,
@@ -676,6 +702,7 @@ export const getProfile = async (
       data: {
         id: user.id,
         isVerified: user.isVerified,
+        isFirstTimeUser: user.isFirstTimeUser,
         hasPasswordSet: !!user.password,
         email: user.email,
         role: user.role,
