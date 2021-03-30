@@ -9,7 +9,7 @@ import { CORS_REGEX, SESSION_SECRET } from './config/secrets';
 import { API_BASE_URL, USER_ROLES, USER_PACKAGES } from './config/settings';
 import { User, UserDocument } from './models/User';
 import { FileType } from './models/FileSystemEntity';
-import { getFileSize, getPlayUrl, listRecordings, uploadRecordingToS3 ,deleteRecording} from './util/s3';
+import { getFileSize, getPlayUrl, listRecordings, uploadRecordingToS3, deleteRecording } from './util/s3';
 
 function abortHandshake(socket: Socket, code: number, message: string, headers: { [x: string]: string | number }): void {
   if (socket.writable) {
@@ -156,12 +156,12 @@ const handleWebSocketEvents = (server: http.Server): void => {
         url: await getPlayUrl(upload.Key),
       };
 
-      if(file?.size>0){
+      if (file?.size > 0) {
         // Create file here; no validations done
         user.fileSystem.push(file);
         await user.save();
         console.log(`File ${userId}/${recordingId}.webm uploaded. `);
-      }else{
+      } else {
         await deleteRecording(file.providerKey);
       }
     } catch (error) {
