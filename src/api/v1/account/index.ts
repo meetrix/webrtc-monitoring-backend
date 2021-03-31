@@ -12,6 +12,7 @@ import {
   password,
   verify,
   resetPassword,
+  clearFirstTimeUserFlag,
 } from './controller';
 import { isAuthenticated } from '../../../middleware';
 import rateLimiterMiddleware from '../../../middleware/rateLimiterMemory';
@@ -368,5 +369,6 @@ router.get('/profile', isAuthenticated, getProfile);
 router.post('/profile', isAuthenticated, postProfile);
 router.post('/password', isAuthenticated, password);
 router.post('/delete', isAuthenticated, deleteAccount);
+router.post('/first-time', isAuthenticated, clearFirstTimeUserFlag);
 
 export const accountRouter = router;

@@ -7,7 +7,7 @@ import { Response, Request, NextFunction } from 'express';
 import { IVerifyOptions } from 'passport-local';
 import { getMailOptions, getTransporter } from '../../../util/mail';
 import {
-  AUTH_LANDING, API_BASE_URL, SUPPORT_URL, STRIPE_SECRET_KEY, S3_USER_META_BUCKET
+  AUTH_LANDING, API_BASE_URL, SUPPORT_URL, STRIPE_SECRET_KEY, S3_USER_META_BUCKET,
 } from '../../../config/settings';
 const log = console.log;
 
@@ -18,7 +18,7 @@ import { UserDocument, User } from '../../../models/User';
 // } from '../../../config/settings';
 import { formatError } from '../../../util/error';
 import { SUCCESSFUL_RESPONSE } from '../../../util/success';
-import { signToken } from '../../../util/auth';
+import { getSubscriptionStatus, signToken } from '../../../util/auth';
 import Stripe from 'stripe';
 import S3 from 'aws-sdk/clients/s3';
 import { AWS_ACCESS_KEY, AWS_ACCESS_KEY_SECRET } from '../../../config/secrets';
@@ -573,6 +573,32 @@ const uploadProfilePicture = async (
   return s3Response.Location;
 };
 
+export const clearFirstTimeUserFlag = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const user = req.user;
+
+    user.isFirstTimeUser = false;
+    await user.save();
+
+    res.status(200).json({
+      success: true,
+      data: null,
+      message: 'Profile successfully updated.'
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: 'Something went wrong. Please try again later.'
+    });
+    next(error);
+  }
+};
+
 // Post Profile
 export const postProfile = async (
   req: Request,
@@ -662,27 +688,6 @@ export const postProfile = async (
   }
 };
 
-const subscriptionStatuses = ['pending', 'inactive', 'active'];
-
-/**
- * Find the subscription provider and the status
- */
-function getSubscriptionStatus(user: UserDocument): {
-  subscriptionStatus: string;
-  subscriptionProvider: string;
-} {
-  // Take the best subscription status from both paypal and stripe
-  // active > inactive > pending
-  // stripe > paypal
-  const stripeStatus = user.stripe?.subscriptionStatus || 'pending';
-  const paypalStatus = user.paypal?.subscriptionStatus || 'pending';
-  if (subscriptionStatuses.indexOf(paypalStatus) <= subscriptionStatuses.indexOf(stripeStatus)) {
-    return { subscriptionStatus: stripeStatus, subscriptionProvider: 'stripe' };
-  } else {
-    return { subscriptionStatus: paypalStatus, subscriptionProvider: 'paypal' };
-  }
-}
-
 // Get Profile
 export const getProfile = async (
   req: Request,
@@ -697,6 +702,7 @@ export const getProfile = async (
       data: {
         id: user.id,
         isVerified: user.isVerified,
+        isFirstTimeUser: user.isFirstTimeUser,
         hasPasswordSet: !!user.password,
         email: user.email,
         role: user.role,

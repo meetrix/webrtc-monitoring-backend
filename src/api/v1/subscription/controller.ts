@@ -7,9 +7,11 @@ import {
   STRIPE_SECRET_KEY,
   STRIPE_FREE_PRICE_ID,
   STRIPE_STANDARD_PRICE_ID,
+  STRIPE_PREMIUM_PRICE_ID,
   STRIPE_WEBHOOK_SECRET,
   PAYPAL_FREE_PLAN_ID,
   PAYPAL_STANDARD_PLAN_ID,
+  PAYPAL_PREMIUM_PLAN_ID,
   USER_PACKAGES
 } from '../../../config/settings';
 
@@ -28,7 +30,7 @@ const getPriceIdbyPlanId = (
   } else if (planId === USER_PACKAGES[1]) {
     return STRIPE_STANDARD_PRICE_ID;
   } else if (planId === USER_PACKAGES[2]) {
-    return STRIPE_STANDARD_PRICE_ID;       //STRIPE_PREMIUM_PRICE_ID   //update with PREMIUM LATER
+    return STRIPE_PREMIUM_PRICE_ID;
   } else {
     throw Error('invalid plan');
   }
@@ -41,7 +43,7 @@ const getPlanIdByPriceId = (
     return USER_PACKAGES[0];
   } else if (priceId == STRIPE_STANDARD_PRICE_ID) {
     return USER_PACKAGES[1];
-  } else if (priceId == STRIPE_STANDARD_PRICE_ID) {   //STRIPE_PREMIUM_PRICE_ID   //update with PREMIUM LATER
+  } else if (priceId == STRIPE_PREMIUM_PRICE_ID) {
     return USER_PACKAGES[2];
   } else {
     throw Error('invalid plan');
@@ -55,7 +57,7 @@ const getPlanIdByPayPalPlanId = (
     return USER_PACKAGES[0];
   } else if (planId == PAYPAL_STANDARD_PLAN_ID) {
     return USER_PACKAGES[1];
-  } else if (planId == PAYPAL_STANDARD_PLAN_ID) {   //PAYPAL_PREMIUM_PLAN_ID   //update with PREMIUM LATER
+  } else if (planId == PAYPAL_PREMIUM_PLAN_ID) {
     return USER_PACKAGES[2];
   } else {
     throw Error('invalid plan');
@@ -111,7 +113,11 @@ export const checkoutSession = async (
   }
 };
 
-
+/**
+ * @see Stripe [customer portal settings](https://dashboard.stripe.com/test/settings/billing/portal) 
+ * to change the products included when changing subscription
+ * 
+ */
 export const customerPortalUrl = async (
   req: Request,
   res: Response,

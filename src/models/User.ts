@@ -66,6 +66,7 @@ export type UserDocument = mongoose.Document & {
   passwordResetExpires: Date;
   emailToken: string;
   isVerified: boolean;
+  isFirstTimeUser: boolean;
   accessToken: string;
   role: string;
   package: string;
@@ -94,6 +95,7 @@ const userSchema = new mongoose.Schema(
     passwordResetExpires: Date,
     emailToken: String,
     isVerified: Boolean,
+    isFirstTimeUser: { type: Boolean, default: true },
     accessToken: String,
     role: { type: String, default: 'user', enum: USER_ROLES },
     package: { type: String, default: 'FREE_LOGGEDIN', enum: USER_PACKAGES },
@@ -121,7 +123,7 @@ const userSchema = new mongoose.Schema(
     },
 
     fileSystem: [fileSystemEntitySchema],
-    fileSystemSettings: { cloudSync: Boolean, default: false },
+    fileSystemSettings: { cloudSync: { type: Boolean, default: false } },
 
     stripe: {
       customerId: { type: String, default: null },
@@ -187,6 +189,7 @@ userSchema.methods = {
       package: this.package,
       emailToken: this.emailToken,
       isVerified: this.isVerified,
+      isFirstTimeUser: this.isFirstTimeUser,
       accessToken: this.accessToken,
       avatar: this.gravatar(),
       profile: {

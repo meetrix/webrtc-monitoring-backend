@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 
 import { SESSION_SECRET } from '../config/secrets';
-import { JWT_EXPIRATION, JWT_EXPIRATION_PLUGIN } from '../config/settings';
+import { JWT_EXPIRATION, JWT_EXPIRATION_PLUGIN, SUBSCRIPTION_STATUSES } from '../config/settings';
 import { PluginDocument } from '../models/Plugin';
 import { UserDocument } from '../models/User';
 
@@ -33,3 +33,22 @@ export const signPluginToken = (plugin: PluginDocument): string => {
     }
   );
 };
+
+/**
+ * Find the subscription provider and the status
+ */
+export function getSubscriptionStatus(user: UserDocument): {
+  subscriptionStatus: string;
+  subscriptionProvider: string;
+} {
+  // Take the best subscription status from both paypal and stripe
+  // active > inactive > pending
+  // stripe > paypal
+  const stripeStatus = user.stripe?.subscriptionStatus || 'pending';
+  const paypalStatus = user.paypal?.subscriptionStatus || 'pending';
+  if (SUBSCRIPTION_STATUSES.indexOf(paypalStatus) <= SUBSCRIPTION_STATUSES.indexOf(stripeStatus)) {
+    return { subscriptionStatus: stripeStatus, subscriptionProvider: 'stripe' };
+  } else {
+    return { subscriptionStatus: paypalStatus, subscriptionProvider: 'paypal' };
+  }
+}

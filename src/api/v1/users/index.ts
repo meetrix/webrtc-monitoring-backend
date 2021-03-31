@@ -1,9 +1,9 @@
 import express from 'express';
-import { hasPermission } from '../../../middleware';
+import { hasRoleOrHigher } from '../../../middleware';
 import { index } from './controller';
 
 const router = express.Router();
 
-router.get('/', hasPermission('admin'), index);
+router.get('/', hasRoleOrHigher('admin'), index);
 
 export const usersRouter = router;

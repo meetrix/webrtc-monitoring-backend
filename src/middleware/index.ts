@@ -67,7 +67,7 @@ export const isAuthenticated = async (
   }
 };
 
-export const hasPermission = (level: string): RequestHandler => {
+export const hasRoleOrHigher = (level: string): RequestHandler => {
   return (req: Request, res: Response, next: NextFunction): void => {
     try {
       if (!req.headers.authorization) {
