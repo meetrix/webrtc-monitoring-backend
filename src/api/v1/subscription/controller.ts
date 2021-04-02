@@ -18,10 +18,16 @@ import {
 import Stripe from 'stripe';
 import { User } from '../../../models/User';
 import { Payment, PaymentDocument } from '../../../models/Payment';
+import { getSubscriptionStatus } from '../../../util/auth';
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
   apiVersion: '2020-08-27',
 });
 
+/**
+ * For Stripe
+ * @param planId plan/package
+ * @returns Stripe price id
+ */
 const getPriceIdbyPlanId = (
   planId: string,
 ): string => {
@@ -36,6 +42,11 @@ const getPriceIdbyPlanId = (
   }
 };
 
+/**
+ * For Stripe
+ * @param priceId Stripe price id
+ * @returns plan/package
+ */
 const getPlanIdByPriceId = (
   priceId: string,
 ): string => {
@@ -51,14 +62,28 @@ const getPlanIdByPriceId = (
 };
 
 const getPlanIdByPayPalPlanId = (
-  planId: string,
+  payPalPlanId: string,
 ): string => {
-  if (planId == PAYPAL_FREE_PLAN_ID) {
+  if (payPalPlanId == PAYPAL_FREE_PLAN_ID) {
     return USER_PACKAGES[0];
-  } else if (planId == PAYPAL_STANDARD_PLAN_ID) {
+  } else if (payPalPlanId == PAYPAL_STANDARD_PLAN_ID) {
     return USER_PACKAGES[1];
-  } else if (planId == PAYPAL_PREMIUM_PLAN_ID) {
+  } else if (payPalPlanId == PAYPAL_PREMIUM_PLAN_ID) {
     return USER_PACKAGES[2];
+  } else {
+    throw Error('invalid plan');
+  }
+};
+
+const getPayPalPlanIdByPlanId = (
+  planId: string
+): string => {
+  if (planId === USER_PACKAGES[0]) {
+    return PAYPAL_FREE_PLAN_ID;
+  } else if (planId === USER_PACKAGES[1]) {
+    return PAYPAL_STANDARD_PLAN_ID;
+  } else if (planId === USER_PACKAGES[2]) {
+    return PAYPAL_PREMIUM_PLAN_ID;
   } else {
     throw Error('invalid plan');
   }
@@ -92,6 +117,11 @@ export const checkoutSession = async (
           quantity: 1
         }
       ],
+      ...(req.body.freeTrial && {
+        subscription_data: {
+          trial_period_days: 14,
+        }
+      }),
       // {CHECKOUT_SESSION_ID} is a string literal; do not change it!
       // the actual Session ID is returned in the query parameter when your customer
       // is redirected to the success page.
@@ -141,10 +171,76 @@ export const customerPortalUrl = async (
       success: false,
       error: err.message
     });
-    next(err);
   }
 };
 
+export const changeSubscriptionPackage = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { subscriptionProvider } = getSubscriptionStatus(req.user);
+
+    if (subscriptionProvider === 'stripe') {
+      const subscriptionId = req.user.stripe.subscriptionId;
+      const planId = req.body.plan;
+      const priceId = getPriceIdbyPlanId(planId);
+
+      if (!subscriptionId || !planId || !priceId) {
+        res.status(404).json({
+          success: false,
+          error: 'No existing subscription found. '
+        });
+      }
+
+      const subscription = await stripe.subscriptions.retrieve(subscriptionId);
+
+      const response = await stripe.subscriptions.update(subscriptionId, {
+        cancel_at_period_end: false,
+        proration_behavior: 'always_invoice',
+        items: [{
+          id: subscription.items.data[0].id,
+          price: priceId,
+        }]
+      });
+    } else if (subscriptionProvider === 'paypal') {
+      const subscriptionId = req.user.paypal.subscriptionId;
+      const planId = req.body.plan;
+      const priceId = getPayPalPlanIdByPlanId(planId);
+
+      if (!subscriptionId || !planId || !priceId) {
+        res.status(404).json({
+          success: false,
+          error: 'No existing subscription found. '
+        });
+      }
+
+      // TODO: [PAYPAL] Handle either with /revise here or, remove this block of code and 
+      // /cancel the previous subscription and do the refund manually when the webhook receives 
+      // the details of the new subscription. 
+      // /v1/billing/subscriptions/{id}/revise 
+      //  --  Activates the new plan at the next billing date; have to provide a link to the user
+      //      to approve. No proration done. 
+      // /v1/billing/subscriptions/{id}/cancel 
+      //  --  Cancels the subscription without user confirmation. BILLING.SUBSCRIPTION.CANCELLED.
+      //      No proration done. 
+
+    } else {
+      // Ureachable
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Package changed successfully.'
+    });
+  } catch (err) {
+    res.status(500).json({
+      success: false,
+      error: err.message
+    });
+  }
+};
 
 export const checkoutSessionStatus = async (
   req: Request,
@@ -367,13 +463,14 @@ export const stripeEventHandler = async (
         user.stripe.subscriptionItemId = data.object.items.data[0].id;
 
         if (['canceled', 'unpaid', 'past_due'].includes(data.object.status)) {
-          // Deactivate user package
+          // Downgrade user package
           user.package = getPlanIdByPriceId(STRIPE_FREE_PRICE_ID);
-          user.stripe.subscriptionStatus = 'inactive';
         } else if (['incomplete', 'incomplete_expired'].includes(data.object.status)) {
-          // Do nothing
-        } else { // active
+          // Deactivate user package
+          user.stripe.subscriptionStatus = 'inactive';
+        } else { // active, trialing
           user.package = planId;
+          user.stripe.subscriptionStatus = 'active';
         }
         await user.save();
 
@@ -431,6 +528,11 @@ const fillPaymentDetailsFromPayPalSubscription = async (
   }
 };
 
+/**
+ * N.B.: Webhooks are asynchronous, their **order is not guaranteed**, 
+ * and idempotency **might lead to a duplicate notification** of the same event type. 
+ * @see [PAYPAL REST API](https://developer.paypal.com/docs/api-basics/notifications/webhooks/rest/)
+ */
 export const paypalEventHandler = async (
   req: Request,
   res: Response,
@@ -472,7 +574,6 @@ export const paypalEventHandler = async (
         } else if (['SUSPENDED', 'CANCELLED', 'EXPIRED'].includes(subscription.status)) {
           // Downgrade user package
           user.package = getPlanIdByPayPalPlanId(PAYPAL_FREE_PLAN_ID);
-          user.paypal.subscriptionStatus = 'inactive';
         } else {
           user.paypal.subscriptionStatus = 'pending';
         }
