@@ -1,5 +1,5 @@
 import express from 'express';
-import { checkoutSession, checkoutSessionStatus, customerPortalUrl, paypalEventHandler, stripeEventHandler } from './controller';
+import { changeSubscriptionPackage, checkoutSession, checkoutSessionStatus, customerPortalUrl, paypalEventHandler, stripeEventHandler } from './controller';
 import { isAuthenticated } from '../../../middleware';
 
 const router = express.Router();
@@ -157,6 +157,8 @@ router.post('/checkoutsessionstatus', isAuthenticated, checkoutSessionStatus);
  * 
  */
 router.get('/customerportalurl', isAuthenticated, customerPortalUrl);
+
+router.post('/update', isAuthenticated, changeSubscriptionPackage);
 
 //dont put swagger here
 router.post('/stripeeventhandler/sr5h5vym2ayvft4fzkcgx6xbbrk53h3yshqzrm6xgqhdwr3k457754q2dta3dx8f', stripeEventHandler);
