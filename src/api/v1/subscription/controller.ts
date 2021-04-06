@@ -12,6 +12,8 @@ import {
   PAYPAL_FREE_PLAN_ID,
   PAYPAL_STANDARD_PLAN_ID,
   PAYPAL_PREMIUM_PLAN_ID,
+  PAYPAL_STANDARD_TRIAL_PLAN_ID,
+  PAYPAL_PREMIUM_TRIAL_PLAN_ID,
   USER_PACKAGES
 } from '../../../config/settings';
 
@@ -64,29 +66,51 @@ const getPlanIdByPriceId = (
 const getPlanIdByPayPalPlanId = (
   payPalPlanId: string,
 ): string => {
-  if (payPalPlanId == PAYPAL_FREE_PLAN_ID) {
-    return USER_PACKAGES[0];
-  } else if (payPalPlanId == PAYPAL_STANDARD_PLAN_ID) {
-    return USER_PACKAGES[1];
-  } else if (payPalPlanId == PAYPAL_PREMIUM_PLAN_ID) {
-    return USER_PACKAGES[2];
-  } else {
-    throw Error('invalid plan');
+  switch (payPalPlanId) {
+    case PAYPAL_FREE_PLAN_ID:
+      return USER_PACKAGES[0];
+    case PAYPAL_STANDARD_PLAN_ID: // fall-through
+    case PAYPAL_STANDARD_TRIAL_PLAN_ID:
+      return USER_PACKAGES[1];
+    case PAYPAL_PREMIUM_PLAN_ID: // fall-through
+    case PAYPAL_PREMIUM_TRIAL_PLAN_ID:
+      return USER_PACKAGES[2];
+    default:
+      break;
   }
+
+  throw Error('invalid plan');
 };
 
 const getPayPalPlanIdByPlanId = (
-  planId: string
+  planId: string,
+  freeTrial: boolean = false
 ): string => {
-  if (planId === USER_PACKAGES[0]) {
-    return PAYPAL_FREE_PLAN_ID;
-  } else if (planId === USER_PACKAGES[1]) {
-    return PAYPAL_STANDARD_PLAN_ID;
-  } else if (planId === USER_PACKAGES[2]) {
-    return PAYPAL_PREMIUM_PLAN_ID;
+  if (freeTrial) {
+    switch (planId) {
+      case USER_PACKAGES[0]:
+        return PAYPAL_FREE_PLAN_ID;
+      case USER_PACKAGES[1]:
+        return PAYPAL_STANDARD_TRIAL_PLAN_ID;
+      case USER_PACKAGES[2]:
+        return PAYPAL_PREMIUM_TRIAL_PLAN_ID;
+      default:
+        break;
+    }
   } else {
-    throw Error('invalid plan');
+    switch (planId) {
+      case USER_PACKAGES[0]:
+        return PAYPAL_FREE_PLAN_ID;
+      case USER_PACKAGES[1]:
+        return PAYPAL_STANDARD_PLAN_ID;
+      case USER_PACKAGES[2]:
+        return PAYPAL_PREMIUM_PLAN_ID;
+      default:
+        break;
+    }
   }
+
+  throw Error('invalid plan');
 };
 
 export const checkoutSession = async (
@@ -467,6 +491,7 @@ export const stripeEventHandler = async (
           user.package = getPlanIdByPriceId(STRIPE_FREE_PRICE_ID);
         } else if (['incomplete', 'incomplete_expired'].includes(data.object.status)) {
           // Deactivate user package
+          // TODO Allow user read only access based on the features he has already used. 
           user.stripe.subscriptionStatus = 'inactive';
         } else { // active, trialing
           user.package = planId;
@@ -573,6 +598,7 @@ export const paypalEventHandler = async (
           user.paypal.subscriptionStatus = 'active';
         } else if (['SUSPENDED', 'CANCELLED', 'EXPIRED'].includes(subscription.status)) {
           // Downgrade user package
+          // TODO Allow user read only access based on the features he has already used. 
           user.package = getPlanIdByPayPalPlanId(PAYPAL_FREE_PLAN_ID);
         } else {
           user.paypal.subscriptionStatus = 'pending';

@@ -37,3 +37,5 @@ export const STRIPE_WEBHOOK_SECRET = process.env['STRIPE_WEBHOOK_SECRET'];
 export const PAYPAL_FREE_PLAN_ID = process.env['PAYPAL_FREE_PLAN_ID'];
 export const PAYPAL_STANDARD_PLAN_ID = process.env['PAYPAL_STANDARD_PLAN_ID'];
 export const PAYPAL_PREMIUM_PLAN_ID = process.env['PAYPAL_PREMIUM_PLAN_ID'];
+export const PAYPAL_STANDARD_TRIAL_PLAN_ID = process.env['PAYPAL_STANDARD_TRIAL_PLAN_ID'];
+export const PAYPAL_PREMIUM_TRIAL_PLAN_ID = process.env['PAYPAL_PREMIUM_TRIAL_PLAN_ID'];
