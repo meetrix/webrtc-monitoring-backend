@@ -46,21 +46,21 @@ router.patch('/folders/:id', isAuthenticated, updateFolder);
 router.delete('/folders/:id', isAuthenticated, deleteFolder);
 router.post('/folders', isAuthenticated, createFolder);
 
-router.post('/files/upload', [isAuthenticated, hasPackageOrHigher('PREMIUM', 'active'), upload.any()], uploadFile);
-router.post('/files/move', [isAuthenticated, hasPackageOrHigher('PREMIUM', 'inactive')], moveManyFiles);
-router.post('/files/delete', [isAuthenticated, hasPackageOrHigher('PREMIUM', 'inactive')], deleteManyFiles);
-router.post('/files/:id', [isAuthenticated, hasPackageOrHigher('PREMIUM', 'active')], updateFile);
-router.patch('/files/:id', [isAuthenticated, hasPackageOrHigher('PREMIUM', 'active')], updateFile);
-router.delete('/files/:id', [isAuthenticated, hasPackageOrHigher('PREMIUM', 'inactive')], deleteFile);
-router.post('/files', [isAuthenticated, hasPackageOrHigher('PREMIUM', 'active')], createFile);
+router.post('/files/upload', [isAuthenticated, hasPackageOrHigher('PREMIUM'), upload.any()], uploadFile);
+router.post('/files/move', [isAuthenticated, hasPackageOrHigher('PREMIUM', true)], moveManyFiles);
+router.post('/files/delete', [isAuthenticated, hasPackageOrHigher('PREMIUM', true)], deleteManyFiles);
+router.post('/files/:id', [isAuthenticated, hasPackageOrHigher('PREMIUM', true)], updateFile);
+router.patch('/files/:id', [isAuthenticated, hasPackageOrHigher('PREMIUM', true)], updateFile);
+router.delete('/files/:id', [isAuthenticated, hasPackageOrHigher('PREMIUM', true)], deleteFile);
+router.post('/files', [isAuthenticated, hasPackageOrHigher('PREMIUM')], createFile);
 
 router.get('/share/:id', rateLimiterMiddleware, getSharedFiles);
-router.post('/share', [isAuthenticated, hasPackageOrHigher('PREMIUM', 'active')], shareFiles);
+router.post('/share', [isAuthenticated, hasPackageOrHigher('PREMIUM')], shareFiles);
 
 router.post('/migrate', isAuthenticated, migrate);
 
-router.get('/settings', [isAuthenticated, hasPackageOrHigher('PREMIUM', 'inactive')], getSettings);
-router.post('/settings', [isAuthenticated, hasPackageOrHigher('PREMIUM', 'inactive')], updateSettings);
+router.get('/settings', [isAuthenticated, hasPackageOrHigher('PREMIUM', true)], getSettings);
+router.post('/settings', [isAuthenticated, hasPackageOrHigher('PREMIUM')], updateSettings);
 
 router.get('/', isAuthenticated, fetchFileSystem);
 
