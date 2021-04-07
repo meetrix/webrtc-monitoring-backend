@@ -22,6 +22,7 @@ export const setupExpress = (app: Express): void => {
 
   setupPassport(app);
 
+  app.use(['/v1/plugin/init/*', '/v1/recording'], cors());
   app.use(cors(corsOptions));
   app.use(bodyParser.json({ limit: '2mb' }));
   app.use(bodyParser.urlencoded({ limit: '2mb', extended: true }));
