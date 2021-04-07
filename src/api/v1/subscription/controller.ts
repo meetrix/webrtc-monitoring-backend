@@ -492,8 +492,8 @@ export const stripeEventHandler = async (
 
         if (['canceled', 'unpaid', 'past_due'].includes(data.object.status)) {
           // Provide read-only functionality to the highest package the user ever had
-          user.readOnlyPackage = getBetterPackage(
-            user.readOnlyPackage || USER_PACKAGES[0],
+          user.limitedPackage = getBetterPackage(
+            user.limitedPackage || USER_PACKAGES[0],
             user.package || USER_PACKAGES[0]
           );
           // Downgrade user package
@@ -505,8 +505,8 @@ export const stripeEventHandler = async (
           user.package = planId;
           user.stripe.subscriptionStatus = 'active';
           // Provide read-only functionality to the highest package the user ever had
-          user.readOnlyPackage = getBetterPackage(
-            user.readOnlyPackage || USER_PACKAGES[0],
+          user.limitedPackage = getBetterPackage(
+            user.limitedPackage || USER_PACKAGES[0],
             user.package || USER_PACKAGES[0]
           );
         }
@@ -609,14 +609,14 @@ export const paypalEventHandler = async (
         if (['ACTIVE'].includes(subscription.status)) {
           user.package = getPlanIdByPayPalPlanId(subscription.plan_id);
           user.paypal.subscriptionStatus = 'active';
-          user.readOnlyPackage = getBetterPackage(
-            user.readOnlyPackage || USER_PACKAGES[0],
+          user.limitedPackage = getBetterPackage(
+            user.limitedPackage || USER_PACKAGES[0],
             user.package || USER_PACKAGES[0]
           );
         } else if (['SUSPENDED', 'CANCELLED', 'EXPIRED'].includes(subscription.status)) {
           // Downgrade user package
-          user.readOnlyPackage = getBetterPackage(
-            user.readOnlyPackage || USER_PACKAGES[0],
+          user.limitedPackage = getBetterPackage(
+            user.limitedPackage || USER_PACKAGES[0],
             user.package || USER_PACKAGES[0]
           );
           user.package = getPlanIdByPayPalPlanId(PAYPAL_FREE_PLAN_ID);
