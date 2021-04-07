@@ -18,7 +18,7 @@ import {
 } from '../../../config/settings';
 
 import Stripe from 'stripe';
-import { User } from '../../../models/User';
+import { User, UserDocument } from '../../../models/User';
 import { Payment, PaymentDocument } from '../../../models/Payment';
 import { getSubscriptionStatus } from '../../../util/auth';
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
@@ -311,6 +311,26 @@ const getBetterPackage = (package1: string, package2: string): string => {
   return USER_PACKAGES.indexOf(package1) > USER_PACKAGES.indexOf(package2) ? package1 : package2;
 };
 
+/**
+ * Handles misc. changes needed when changing plans such as the below. 
+ * 
+ * Downgrade PREMIUM: Turning off cloud auto upload 
+ * 
+ * @param oldPackage 
+ * @param newPackage 
+ * @param user 
+ */
+const handlePackageTransition = (
+  oldPackage: string,
+  newPackage: string,
+  user: UserDocument
+): void => {
+  if (oldPackage === 'PREMIUM'
+    && USER_PACKAGES.indexOf(newPackage) < USER_PACKAGES.indexOf('PREMIUM')) {
+    user.fileSystemSettings.cloudSync = false;
+  }
+};
+
 export const stripeEventHandler = async (
   req: Request,
   res: Response,
@@ -498,10 +518,12 @@ export const stripeEventHandler = async (
           );
           // Downgrade user package
           user.package = USER_PACKAGES[0];
+          handlePackageTransition(planId, USER_PACKAGES[0], user);
         } else if (['incomplete', 'incomplete_expired'].includes(data.object.status)) {
           // Mark package as inactive but still provide the functionality
           user.stripe.subscriptionStatus = 'inactive';
         } else { // active, trialing
+          handlePackageTransition(user.package, planId, user);
           user.package = planId;
           user.stripe.subscriptionStatus = 'active';
           // Provide read-only functionality to the highest package the user ever had
@@ -607,7 +629,9 @@ export const paypalEventHandler = async (
 
         // Status = APPROVAL_PENDING, APPROVED, ACTIVE, SUSPENDED, CANCELLED, EXPIRED
         if (['ACTIVE'].includes(subscription.status)) {
-          user.package = getPlanIdByPayPalPlanId(subscription.plan_id);
+          const newPackage = getPlanIdByPayPalPlanId(subscription.plan_id);
+          handlePackageTransition(user.package, newPackage, user);
+          user.package = newPackage;
           user.paypal.subscriptionStatus = 'active';
           user.limitedPackage = getBetterPackage(
             user.limitedPackage || USER_PACKAGES[0],
@@ -619,7 +643,8 @@ export const paypalEventHandler = async (
             user.limitedPackage || USER_PACKAGES[0],
             user.package || USER_PACKAGES[0]
           );
-          user.package = getPlanIdByPayPalPlanId(PAYPAL_FREE_PLAN_ID);
+          handlePackageTransition(user.package, USER_PACKAGES[0], user);
+          user.package = USER_PACKAGES[0];
         } else { // APPROVAL_PENDING, APPROVED
           // Mark package as inactive but still provide the functionality
           user.stripe.subscriptionStatus = 'inactive';
