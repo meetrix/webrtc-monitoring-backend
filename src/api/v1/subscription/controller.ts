@@ -307,6 +307,10 @@ export const checkoutSessionStatus = async (
   }
 };
 
+const getBetterPackage = (package1: string, package2: string): string => {
+  return USER_PACKAGES.indexOf(package1) > USER_PACKAGES.indexOf(package2) ? package1 : package2;
+};
+
 export const stripeEventHandler = async (
   req: Request,
   res: Response,
@@ -487,15 +491,24 @@ export const stripeEventHandler = async (
         user.stripe.subscriptionItemId = data.object.items.data[0].id;
 
         if (['canceled', 'unpaid', 'past_due'].includes(data.object.status)) {
+          // Provide read-only functionality to the highest package the user ever had
+          user.readOnlyPackage = getBetterPackage(
+            user.readOnlyPackage || USER_PACKAGES[0],
+            user.package || USER_PACKAGES[0]
+          );
           // Downgrade user package
-          user.package = getPlanIdByPriceId(STRIPE_FREE_PRICE_ID);
+          user.package = USER_PACKAGES[0];
         } else if (['incomplete', 'incomplete_expired'].includes(data.object.status)) {
-          // Deactivate user package
-          // TODO Allow user read only access based on the features he has already used. 
+          // Mark package as inactive but still provide the functionality
           user.stripe.subscriptionStatus = 'inactive';
         } else { // active, trialing
           user.package = planId;
           user.stripe.subscriptionStatus = 'active';
+          // Provide read-only functionality to the highest package the user ever had
+          user.readOnlyPackage = getBetterPackage(
+            user.readOnlyPackage || USER_PACKAGES[0],
+            user.package || USER_PACKAGES[0]
+          );
         }
         await user.save();
 
@@ -596,12 +609,20 @@ export const paypalEventHandler = async (
         if (['ACTIVE'].includes(subscription.status)) {
           user.package = getPlanIdByPayPalPlanId(subscription.plan_id);
           user.paypal.subscriptionStatus = 'active';
+          user.readOnlyPackage = getBetterPackage(
+            user.readOnlyPackage || USER_PACKAGES[0],
+            user.package || USER_PACKAGES[0]
+          );
         } else if (['SUSPENDED', 'CANCELLED', 'EXPIRED'].includes(subscription.status)) {
           // Downgrade user package
-          // TODO Allow user read only access based on the features he has already used. 
+          user.readOnlyPackage = getBetterPackage(
+            user.readOnlyPackage || USER_PACKAGES[0],
+            user.package || USER_PACKAGES[0]
+          );
           user.package = getPlanIdByPayPalPlanId(PAYPAL_FREE_PLAN_ID);
-        } else {
-          user.paypal.subscriptionStatus = 'pending';
+        } else { // APPROVAL_PENDING, APPROVED
+          // Mark package as inactive but still provide the functionality
+          user.stripe.subscriptionStatus = 'inactive';
         }
 
         await user.save();

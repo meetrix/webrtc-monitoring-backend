@@ -36,6 +36,8 @@ export interface UserAPIFormat {
   email: string;
   role: string;
   package: string;
+  /** Maximum package that the user ever had access to. */
+  readOnlyPackage: string;
   profile?: Profile;
   tag?: Tag;
   avatar: string;
@@ -70,6 +72,7 @@ export type UserDocument = mongoose.Document & {
   accessToken: string;
   role: string;
   package: string;
+  readOnlyPackage: string;
   profile: Profile;
   tag: Tag;
   fileSystem: mongoose.Types.DocumentArray<FileSystemEntityDocument>;
@@ -99,7 +102,7 @@ const userSchema = new mongoose.Schema(
     accessToken: String,
     role: { type: String, default: 'user', enum: USER_ROLES },
     package: { type: String, default: 'FREE_LOGGEDIN', enum: USER_PACKAGES },
-
+    readOnlyPackage: { type: String, default: 'FREE_LOGGEDIN', enum: USER_PACKAGES },
     facebook: String,
     linkedin: String,
     google: String,
@@ -187,6 +190,7 @@ userSchema.methods = {
       email: this.email,
       role: this.role,
       package: this.package,
+      readOnlyPackage: this.readOnlyPackage,
       emailToken: this.emailToken,
       isVerified: this.isVerified,
       isFirstTimeUser: this.isFirstTimeUser,
