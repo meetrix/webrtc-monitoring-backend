@@ -8,12 +8,18 @@ import {
   STRIPE_FREE_PRICE_ID,
   STRIPE_STANDARD_PRICE_ID,
   STRIPE_PREMIUM_PRICE_ID,
+  STRIPE_STANDARD_MONTHLY_PRICE_ID,
+  STRIPE_PREMIUM_MONTHLY_PRICE_ID,
   STRIPE_WEBHOOK_SECRET,
   PAYPAL_FREE_PLAN_ID,
   PAYPAL_STANDARD_PLAN_ID,
   PAYPAL_PREMIUM_PLAN_ID,
   PAYPAL_STANDARD_TRIAL_PLAN_ID,
   PAYPAL_PREMIUM_TRIAL_PLAN_ID,
+  PAYPAL_STANDARD_MONTHLY_PLAN_ID,
+  PAYPAL_PREMIUM_MONTHLY_PLAN_ID,
+  PAYPAL_STANDARD_MONTHLY_TRIAL_PLAN_ID,
+  PAYPAL_PREMIUM_MONTHLY_TRIAL_PLAN_ID,
   USER_PACKAGES
 } from '../../../config/settings';
 
@@ -32,13 +38,30 @@ const stripe = new Stripe(STRIPE_SECRET_KEY, {
  */
 const getPriceIdbyPlanId = (
   planId: string,
+  period: 'yearly' | 'monthly' = 'yearly'
 ): string => {
   if (planId === USER_PACKAGES[0]) {
     return STRIPE_FREE_PRICE_ID;
-  } else if (planId === USER_PACKAGES[1]) {
-    return STRIPE_STANDARD_PRICE_ID;
-  } else if (planId === USER_PACKAGES[2]) {
-    return STRIPE_PREMIUM_PRICE_ID;
+  }
+
+  if (period === 'monthly') {
+    switch (planId) {
+      case USER_PACKAGES[1]:
+        return STRIPE_STANDARD_MONTHLY_PRICE_ID;
+      case USER_PACKAGES[2]:
+        return STRIPE_PREMIUM_MONTHLY_PRICE_ID;
+      default:
+        throw Error('invalid plan');
+    }
+  } else if (period === 'yearly') {
+    switch (planId) {
+      case USER_PACKAGES[1]:
+        return STRIPE_STANDARD_PRICE_ID;
+      case USER_PACKAGES[2]:
+        return STRIPE_PREMIUM_PRICE_ID;
+      default:
+        throw Error('invalid plan');
+    }
   } else {
     throw Error('invalid plan');
   }
@@ -52,14 +75,17 @@ const getPriceIdbyPlanId = (
 const getPlanIdByPriceId = (
   priceId: string,
 ): string => {
-  if (priceId == STRIPE_FREE_PRICE_ID) {
-    return USER_PACKAGES[0];
-  } else if (priceId == STRIPE_STANDARD_PRICE_ID) {
-    return USER_PACKAGES[1];
-  } else if (priceId == STRIPE_PREMIUM_PRICE_ID) {
-    return USER_PACKAGES[2];
-  } else {
-    throw Error('invalid plan');
+  switch (priceId) {
+    case STRIPE_FREE_PRICE_ID:
+      return USER_PACKAGES[0];
+    case STRIPE_STANDARD_PRICE_ID: // fall-through
+    case STRIPE_STANDARD_MONTHLY_PRICE_ID:
+      return USER_PACKAGES[1];
+    case STRIPE_PREMIUM_PRICE_ID: // fall-through
+    case STRIPE_PREMIUM_MONTHLY_PRICE_ID:
+      return USER_PACKAGES[2];
+    default:
+      throw Error('invalid plan');
   }
 };
 
@@ -70,10 +96,14 @@ const getPlanIdByPayPalPlanId = (
     case PAYPAL_FREE_PLAN_ID:
       return USER_PACKAGES[0];
     case PAYPAL_STANDARD_PLAN_ID: // fall-through
-    case PAYPAL_STANDARD_TRIAL_PLAN_ID:
+    case PAYPAL_STANDARD_TRIAL_PLAN_ID: // fall-through
+    case PAYPAL_STANDARD_MONTHLY_PLAN_ID: // fall-through
+    case PAYPAL_STANDARD_MONTHLY_TRIAL_PLAN_ID:
       return USER_PACKAGES[1];
     case PAYPAL_PREMIUM_PLAN_ID: // fall-through
-    case PAYPAL_PREMIUM_TRIAL_PLAN_ID:
+    case PAYPAL_PREMIUM_TRIAL_PLAN_ID: // fall-through
+    case PAYPAL_PREMIUM_MONTHLY_PLAN_ID: // fall-through
+    case PAYPAL_PREMIUM_MONTHLY_TRIAL_PLAN_ID:
       return USER_PACKAGES[2];
     default:
       break;
@@ -84,33 +114,58 @@ const getPlanIdByPayPalPlanId = (
 
 const getPayPalPlanIdByPlanId = (
   planId: string,
-  freeTrial: boolean = false
+  freeTrial: boolean = false,
+  period: 'yearly' | 'monthly' = 'yearly'
 ): string => {
-  if (freeTrial) {
-    switch (planId) {
-      case USER_PACKAGES[0]:
-        return PAYPAL_FREE_PLAN_ID;
-      case USER_PACKAGES[1]:
-        return PAYPAL_STANDARD_TRIAL_PLAN_ID;
-      case USER_PACKAGES[2]:
-        return PAYPAL_PREMIUM_TRIAL_PLAN_ID;
-      default:
-        break;
-    }
-  } else {
-    switch (planId) {
-      case USER_PACKAGES[0]:
-        return PAYPAL_FREE_PLAN_ID;
-      case USER_PACKAGES[1]:
-        return PAYPAL_STANDARD_PLAN_ID;
-      case USER_PACKAGES[2]:
-        return PAYPAL_PREMIUM_PLAN_ID;
-      default:
-        break;
-    }
+  if (planId === USER_PACKAGES[0]) {
+    return PAYPAL_FREE_PLAN_ID;
   }
 
-  throw Error('invalid plan');
+  if (freeTrial) {
+    if (period === 'monthly') {
+      switch (planId) {
+        case USER_PACKAGES[1]:
+          return PAYPAL_STANDARD_MONTHLY_TRIAL_PLAN_ID;
+        case USER_PACKAGES[2]:
+          return PAYPAL_PREMIUM_MONTHLY_TRIAL_PLAN_ID;
+        default:
+          throw Error('invalid plan');
+      }
+    } else if (period === 'yearly') {
+      switch (planId) {
+        case USER_PACKAGES[1]:
+          return PAYPAL_STANDARD_TRIAL_PLAN_ID;
+        case USER_PACKAGES[2]:
+          return PAYPAL_PREMIUM_TRIAL_PLAN_ID;
+        default:
+          throw Error('invalid plan');
+      }
+    } else {
+      throw Error('invalid plan');
+    }
+  } else {
+    if (period === 'monthly') {
+      switch (planId) {
+        case USER_PACKAGES[1]:
+          return PAYPAL_STANDARD_MONTHLY_PLAN_ID;
+        case USER_PACKAGES[2]:
+          return PAYPAL_PREMIUM_MONTHLY_PLAN_ID;
+        default:
+          throw Error('invalid plan');
+      }
+    } else if (period === 'yearly') {
+      switch (planId) {
+        case USER_PACKAGES[1]:
+          return PAYPAL_STANDARD_MONTHLY_PLAN_ID;
+        case USER_PACKAGES[2]:
+          return PAYPAL_PREMIUM_MONTHLY_PLAN_ID;
+        default:
+          throw Error('invalid plan');
+      }
+    } else {
+      throw Error('invalid plan');
+    }
+  }
 };
 
 export const checkoutSession = async (
@@ -123,7 +178,7 @@ export const checkoutSession = async (
       throw Error('invalid plan');
     }
     const planId = req.body.plan;
-    const priceId = getPriceIdbyPlanId(planId);
+    const priceId = getPriceIdbyPlanId(planId, req.body.period || 'yearly');
 
     const user = req.user;
 
@@ -209,7 +264,7 @@ export const changeSubscriptionPackage = async (
     if (subscriptionProvider === 'stripe') {
       const subscriptionId = req.user.stripe.subscriptionId;
       const planId = req.body.plan;
-      const priceId = getPriceIdbyPlanId(planId);
+      const priceId = getPriceIdbyPlanId(planId, req.body.period || 'yearly');
 
       if (!subscriptionId || !planId || !priceId) {
         res.status(404).json({
@@ -229,16 +284,16 @@ export const changeSubscriptionPackage = async (
         }]
       });
     } else if (subscriptionProvider === 'paypal') {
-      const subscriptionId = req.user.paypal.subscriptionId;
-      const planId = req.body.plan;
-      const priceId = getPayPalPlanIdByPlanId(planId);
+      // const subscriptionId = req.user.paypal.subscriptionId;
+      // const planId = req.body.plan;
+      // const priceId = getPayPalPlanIdByPlanId(planId);
 
-      if (!subscriptionId || !planId || !priceId) {
-        res.status(404).json({
-          success: false,
-          error: 'No existing subscription found. '
-        });
-      }
+      // if (!subscriptionId || !planId || !priceId) {
+      //   res.status(404).json({
+      //     success: false,
+      //     error: 'No existing subscription found. '
+      //   });
+      // }
 
       // TODO: [PAYPAL] Handle either with /revise here or, remove this block of code and 
       // /cancel the previous subscription and do the refund manually when the webhook receives 
