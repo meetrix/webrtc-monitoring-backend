@@ -8,8 +8,8 @@ import { setup, getPlugin, init } from './controller';
 
 const router = express.Router();
 
-router.post('/setup', [isAuthenticated, hasPackageOrHigher('PREMIUM', 'active')], setup);
-router.get('/setup', [isAuthenticated, hasPackageOrHigher('PREMIUM', 'inactive')], getPlugin);
+router.post('/setup', [isAuthenticated, hasPackageOrHigher('PREMIUM')], setup);
+router.get('/setup', [isAuthenticated, hasPackageOrHigher('PREMIUM', true)], getPlugin);
 
 router.get('/init/:key', rateLimiterMiddleware, init);
 

@@ -12,11 +12,13 @@ import {
   PAYPAL_FREE_PLAN_ID,
   PAYPAL_STANDARD_PLAN_ID,
   PAYPAL_PREMIUM_PLAN_ID,
+  PAYPAL_STANDARD_TRIAL_PLAN_ID,
+  PAYPAL_PREMIUM_TRIAL_PLAN_ID,
   USER_PACKAGES
 } from '../../../config/settings';
 
 import Stripe from 'stripe';
-import { User } from '../../../models/User';
+import { User, UserDocument } from '../../../models/User';
 import { Payment, PaymentDocument } from '../../../models/Payment';
 import { getSubscriptionStatus } from '../../../util/auth';
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
@@ -64,29 +66,51 @@ const getPlanIdByPriceId = (
 const getPlanIdByPayPalPlanId = (
   payPalPlanId: string,
 ): string => {
-  if (payPalPlanId == PAYPAL_FREE_PLAN_ID) {
-    return USER_PACKAGES[0];
-  } else if (payPalPlanId == PAYPAL_STANDARD_PLAN_ID) {
-    return USER_PACKAGES[1];
-  } else if (payPalPlanId == PAYPAL_PREMIUM_PLAN_ID) {
-    return USER_PACKAGES[2];
-  } else {
-    throw Error('invalid plan');
+  switch (payPalPlanId) {
+    case PAYPAL_FREE_PLAN_ID:
+      return USER_PACKAGES[0];
+    case PAYPAL_STANDARD_PLAN_ID: // fall-through
+    case PAYPAL_STANDARD_TRIAL_PLAN_ID:
+      return USER_PACKAGES[1];
+    case PAYPAL_PREMIUM_PLAN_ID: // fall-through
+    case PAYPAL_PREMIUM_TRIAL_PLAN_ID:
+      return USER_PACKAGES[2];
+    default:
+      break;
   }
+
+  throw Error('invalid plan');
 };
 
 const getPayPalPlanIdByPlanId = (
-  planId: string
+  planId: string,
+  freeTrial: boolean = false
 ): string => {
-  if (planId === USER_PACKAGES[0]) {
-    return PAYPAL_FREE_PLAN_ID;
-  } else if (planId === USER_PACKAGES[1]) {
-    return PAYPAL_STANDARD_PLAN_ID;
-  } else if (planId === USER_PACKAGES[2]) {
-    return PAYPAL_PREMIUM_PLAN_ID;
+  if (freeTrial) {
+    switch (planId) {
+      case USER_PACKAGES[0]:
+        return PAYPAL_FREE_PLAN_ID;
+      case USER_PACKAGES[1]:
+        return PAYPAL_STANDARD_TRIAL_PLAN_ID;
+      case USER_PACKAGES[2]:
+        return PAYPAL_PREMIUM_TRIAL_PLAN_ID;
+      default:
+        break;
+    }
   } else {
-    throw Error('invalid plan');
+    switch (planId) {
+      case USER_PACKAGES[0]:
+        return PAYPAL_FREE_PLAN_ID;
+      case USER_PACKAGES[1]:
+        return PAYPAL_STANDARD_PLAN_ID;
+      case USER_PACKAGES[2]:
+        return PAYPAL_PREMIUM_PLAN_ID;
+      default:
+        break;
+    }
   }
+
+  throw Error('invalid plan');
 };
 
 export const checkoutSession = async (
@@ -283,6 +307,30 @@ export const checkoutSessionStatus = async (
   }
 };
 
+const getBetterPackage = (package1: string, package2: string): string => {
+  return USER_PACKAGES.indexOf(package1) > USER_PACKAGES.indexOf(package2) ? package1 : package2;
+};
+
+/**
+ * Handles misc. changes needed when changing plans such as the below. 
+ * 
+ * Downgrade PREMIUM: Turning off cloud auto upload 
+ * 
+ * @param oldPackage 
+ * @param newPackage 
+ * @param user 
+ */
+const handlePackageTransition = (
+  oldPackage: string,
+  newPackage: string,
+  user: UserDocument
+): void => {
+  if (oldPackage === 'PREMIUM'
+    && USER_PACKAGES.indexOf(newPackage) < USER_PACKAGES.indexOf('PREMIUM')) {
+    user.fileSystemSettings.cloudSync = false;
+  }
+};
+
 export const stripeEventHandler = async (
   req: Request,
   res: Response,
@@ -463,14 +511,26 @@ export const stripeEventHandler = async (
         user.stripe.subscriptionItemId = data.object.items.data[0].id;
 
         if (['canceled', 'unpaid', 'past_due'].includes(data.object.status)) {
+          // Provide read-only functionality to the highest package the user ever had
+          user.limitedPackage = getBetterPackage(
+            user.limitedPackage || USER_PACKAGES[0],
+            user.package || USER_PACKAGES[0]
+          );
           // Downgrade user package
-          user.package = getPlanIdByPriceId(STRIPE_FREE_PRICE_ID);
+          user.package = USER_PACKAGES[0];
+          handlePackageTransition(planId, USER_PACKAGES[0], user);
         } else if (['incomplete', 'incomplete_expired'].includes(data.object.status)) {
-          // Deactivate user package
+          // Mark package as inactive but still provide the functionality
           user.stripe.subscriptionStatus = 'inactive';
         } else { // active, trialing
+          handlePackageTransition(user.package, planId, user);
           user.package = planId;
           user.stripe.subscriptionStatus = 'active';
+          // Provide read-only functionality to the highest package the user ever had
+          user.limitedPackage = getBetterPackage(
+            user.limitedPackage || USER_PACKAGES[0],
+            user.package || USER_PACKAGES[0]
+          );
         }
         await user.save();
 
@@ -569,13 +629,25 @@ export const paypalEventHandler = async (
 
         // Status = APPROVAL_PENDING, APPROVED, ACTIVE, SUSPENDED, CANCELLED, EXPIRED
         if (['ACTIVE'].includes(subscription.status)) {
-          user.package = getPlanIdByPayPalPlanId(subscription.plan_id);
+          const newPackage = getPlanIdByPayPalPlanId(subscription.plan_id);
+          handlePackageTransition(user.package, newPackage, user);
+          user.package = newPackage;
           user.paypal.subscriptionStatus = 'active';
+          user.limitedPackage = getBetterPackage(
+            user.limitedPackage || USER_PACKAGES[0],
+            user.package || USER_PACKAGES[0]
+          );
         } else if (['SUSPENDED', 'CANCELLED', 'EXPIRED'].includes(subscription.status)) {
           // Downgrade user package
-          user.package = getPlanIdByPayPalPlanId(PAYPAL_FREE_PLAN_ID);
-        } else {
-          user.paypal.subscriptionStatus = 'pending';
+          user.limitedPackage = getBetterPackage(
+            user.limitedPackage || USER_PACKAGES[0],
+            user.package || USER_PACKAGES[0]
+          );
+          handlePackageTransition(user.package, USER_PACKAGES[0], user);
+          user.package = USER_PACKAGES[0];
+        } else { // APPROVAL_PENDING, APPROVED
+          // Mark package as inactive but still provide the functionality
+          user.stripe.subscriptionStatus = 'inactive';
         }
 
         await user.save();
