@@ -281,7 +281,8 @@ export const changeSubscriptionPackage = async (
         items: [{
           id: subscription.items.data[0].id,
           price: priceId,
-        }]
+        }],
+        ...(req.body.freeTrial && { trial_end: Math.ceil(Date.now() / 1000) + 14 * 24 * 3600 }),
       });
     } else if (subscriptionProvider === 'paypal') {
       // const subscriptionId = req.user.paypal.subscriptionId;
