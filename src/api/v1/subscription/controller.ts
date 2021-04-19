@@ -112,6 +112,26 @@ const getPlanIdByPayPalPlanId = (
   throw Error('invalid plan');
 };
 
+const isATrialPlan = (
+  payPalPlanId: string
+): boolean => {
+  switch (payPalPlanId) {
+    case PAYPAL_STANDARD_TRIAL_PLAN_ID: // fall-through
+    case PAYPAL_STANDARD_MONTHLY_TRIAL_PLAN_ID: // fall-through
+    case PAYPAL_PREMIUM_TRIAL_PLAN_ID: // fall-through
+    case PAYPAL_PREMIUM_MONTHLY_TRIAL_PLAN_ID:
+      return true;
+
+    case PAYPAL_FREE_PLAN_ID: // fall-through
+    case PAYPAL_STANDARD_PLAN_ID: // fall-through
+    case PAYPAL_STANDARD_MONTHLY_PLAN_ID: // fall-through
+    case PAYPAL_PREMIUM_PLAN_ID: // fall-through
+    case PAYPAL_PREMIUM_MONTHLY_PLAN_ID: // fall-through
+    default:
+      return false;
+  }
+};
+
 const getPayPalPlanIdByPlanId = (
   planId: string,
   freeTrial: boolean = false,
@@ -184,6 +204,18 @@ export const checkoutSession = async (
 
     // See https://stripe.com/docs/api/checkout/sessions/create
     // for additional parameters to pass.
+
+    if (
+      req.body.freeTrial
+      && req.user.trialsConsumed
+      && req.user.trialsConsumed.includes(planId)
+    ) {
+      res.status(403).json({
+        success: false,
+        error: 'Trial for this package has already been consumed.'
+      });
+      return;
+    }
 
     const session = await stripe.checkout.sessions.create({
       mode: 'subscription',
@@ -271,6 +303,18 @@ export const changeSubscriptionPackage = async (
           success: false,
           error: 'No existing subscription found. '
         });
+      }
+
+      if (
+        req.body.freeTrial
+        && req.user.trialsConsumed
+        && req.user.trialsConsumed.includes(planId)
+      ) {
+        res.status(403).json({
+          success: false,
+          error: 'Trial for this package has already been consumed.'
+        });
+        return;
       }
 
       const subscription = await stripe.subscriptions.retrieve(subscriptionId);
@@ -587,6 +631,12 @@ export const stripeEventHandler = async (
             user.limitedPackage || USER_PACKAGES[0],
             user.package || USER_PACKAGES[0]
           );
+
+          // Allow only one trial for one email address
+          if (data.object.status === 'trialing') {
+            req.user.trialsConsumed = req.user.trialsConsumed || [];
+            req.user.trialsConsumed.push(planId);
+          }
         }
         await user.save();
 
@@ -693,6 +743,11 @@ export const paypalEventHandler = async (
             user.limitedPackage || USER_PACKAGES[0],
             user.package || USER_PACKAGES[0]
           );
+
+          if (isATrialPlan(subscription.plan_id)) {
+            req.user.trialsConsumed = req.user.trialsConsumed || [];
+            req.user.trialsConsumed.push(newPackage);
+          }
         } else if (['SUSPENDED', 'CANCELLED', 'EXPIRED'].includes(subscription.status)) {
           // Downgrade user package
           user.limitedPackage = getBetterPackage(
