@@ -634,8 +634,8 @@ export const stripeEventHandler = async (
 
           // Allow only one trial for one email address
           if (data.object.status === 'trialing') {
-            req.user.trialsConsumed = req.user.trialsConsumed || [];
-            req.user.trialsConsumed.push(planId);
+            user.trialsConsumed = user.trialsConsumed || [];
+            user.trialsConsumed.push(planId);
           }
         }
         await user.save();
@@ -745,8 +745,8 @@ export const paypalEventHandler = async (
           );
 
           if (isATrialPlan(subscription.plan_id)) {
-            req.user.trialsConsumed = req.user.trialsConsumed || [];
-            req.user.trialsConsumed.push(newPackage);
+            user.trialsConsumed = user.trialsConsumed || [];
+            user.trialsConsumed.push(newPackage);
           }
         } else if (['SUSPENDED', 'CANCELLED', 'EXPIRED'].includes(subscription.status)) {
           // Downgrade user package
