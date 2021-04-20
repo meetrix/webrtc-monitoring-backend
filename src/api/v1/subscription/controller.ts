@@ -619,6 +619,16 @@ export const stripeEventHandler = async (
           // Downgrade user package
           user.package = USER_PACKAGES[0];
           handlePackageTransition(planId, USER_PACKAGES[0], user);
+          if (data.object.status.status === 'canceled') {
+            user.stripe = {
+              ...user.stripe,
+              priceId: null,
+              checkoutSessionId: null,
+              subscriptionId: null,
+              subscriptionItemId: null,
+              subscriptionStatus: 'pending'
+            };
+          }
         } else if (['incomplete', 'incomplete_expired'].includes(data.object.status)) {
           // Mark package as inactive but still provide the functionality
           user.stripe.subscriptionStatus = 'inactive';
@@ -756,6 +766,15 @@ export const paypalEventHandler = async (
           );
           handlePackageTransition(user.package, USER_PACKAGES[0], user);
           user.package = USER_PACKAGES[0];
+          if (subscription.status === 'CANCELLED') {
+            user.paypal = {
+              payerId: null,
+              emailAddress: null,
+              planId: null,
+              subscriptionId: null,
+              subscriptionStatus: 'pending'
+            };
+          }
         } else { // APPROVAL_PENDING, APPROVED
           // Mark package as inactive but still provide the functionality
           user.stripe.subscriptionStatus = 'inactive';
