@@ -322,6 +322,7 @@ export const changeSubscriptionPackage = async (
       const response = await stripe.subscriptions.update(subscriptionId, {
         cancel_at_period_end: false,
         proration_behavior: 'always_invoice',
+        payment_behavior: 'pending_if_incomplete',
         items: [{
           id: subscription.items.data[0].id,
           price: priceId,
@@ -853,3 +854,67 @@ export const paypalEventHandler = async (
     message: 'Webhook updated successfully'
   });
 };
+
+// Cancel and refund only when 
+// -- the user is currently on a non-FREE subscription (consider trial periods as free subscriptions), 
+// -- and is cancelling it or switching to a FREE subscription. 
+
+// User might have first subscribed to a package (STANDARD), then upgraded (PREMIUM) and then
+// cancelled the package; in which case we need to consider non-refunded amounts of all the 
+// payments he made, related to the subscription and refund in the reverse-chronological order. 
+const makeStripeRefund = async (
+  customerId: string,
+  requestedAmount: number
+): Promise<{ refunds: Stripe.Response<Stripe.Refund>[]; remaining: number }> => {
+  const refunds: Stripe.Response<Stripe.Refund>[] = [];
+
+  const paymentIntents = (
+    await stripe.paymentIntents.list({ customer: customerId })
+  ).data.filter(pi => pi.status === 'succeeded');
+  paymentIntents.sort((a, b) => b.created - a.created); // descending 
+
+  for (let i = 0; i < paymentIntents.length; i++) {
+    const paymentIntent = paymentIntents[i];
+    const lastCharge = paymentIntent.charges.data[0];
+    if (!lastCharge) {
+      continue;
+    }
+
+    // Amount that can be refunded from this payment
+    const refundableAmount = lastCharge.amount_captured > requestedAmount
+      ? requestedAmount
+      : lastCharge.amount_captured;
+
+    try {
+      const refund = await stripe.refunds.create({
+        reason: 'requested_by_customer', amount: refundableAmount, payment_intent: paymentIntent.id
+      });
+      refunds.push(refund);
+    } catch (error) {
+      console.log(`Refund failed for: ${error}`);
+
+      continue; // not properly refunded so keep requestedAmount unchanged. 
+    }
+
+    // Remaining amount to be refunded
+    requestedAmount = requestedAmount - refundableAmount;
+    if (requestedAmount <= 0) {
+      break; // Refunded the total requested amount. 
+    }
+  }
+
+  return { refunds, remaining: requestedAmount };
+};
+
+const adjustStripeCustomerBalance = async (
+  customerId: string,
+  newBalance: number
+) => {
+  try {
+    // balance = how much the customer owes screenapp
+    const customer = await stripe.customers.update(customerId, { balance: newBalance });
+  } catch (error) {
+    console.log(`Error adjusting balance of customer ${customerId} to ${newBalance}.`);
+  }
+};
+
