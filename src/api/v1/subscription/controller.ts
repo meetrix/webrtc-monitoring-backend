@@ -1,15 +1,10 @@
 /* eslint-disable @typescript-eslint/camelcase */
 
 import { Response, Request, NextFunction } from 'express';
+import Stripe from 'stripe';
 import _ from 'lodash';
 import {
   AUTH_LANDING,
-  STRIPE_SECRET_KEY,
-  STRIPE_FREE_PRICE_ID,
-  STRIPE_STANDARD_PRICE_ID,
-  STRIPE_PREMIUM_PRICE_ID,
-  STRIPE_STANDARD_MONTHLY_PRICE_ID,
-  STRIPE_PREMIUM_MONTHLY_PRICE_ID,
   STRIPE_WEBHOOK_SECRET,
   PAYPAL_FREE_PLAN_ID,
   PAYPAL_STANDARD_PLAN_ID,
@@ -23,71 +18,10 @@ import {
   USER_PACKAGES
 } from '../../../config/settings';
 
-import Stripe from 'stripe';
 import { User, UserDocument } from '../../../models/User';
 import { Payment, PaymentDocument } from '../../../models/Payment';
 import { getSubscriptionStatus } from '../../../util/auth';
-const stripe = new Stripe(STRIPE_SECRET_KEY, {
-  apiVersion: '2020-08-27',
-});
-
-/**
- * For Stripe
- * @param planId plan/package
- * @returns Stripe price id
- */
-const getPriceIdbyPlanId = (
-  planId: string,
-  period: 'yearly' | 'monthly' = 'yearly'
-): string => {
-  if (planId === USER_PACKAGES[0]) {
-    return STRIPE_FREE_PRICE_ID;
-  }
-
-  if (period === 'monthly') {
-    switch (planId) {
-      case USER_PACKAGES[1]:
-        return STRIPE_STANDARD_MONTHLY_PRICE_ID;
-      case USER_PACKAGES[2]:
-        return STRIPE_PREMIUM_MONTHLY_PRICE_ID;
-      default:
-        throw Error('invalid plan');
-    }
-  } else if (period === 'yearly') {
-    switch (planId) {
-      case USER_PACKAGES[1]:
-        return STRIPE_STANDARD_PRICE_ID;
-      case USER_PACKAGES[2]:
-        return STRIPE_PREMIUM_PRICE_ID;
-      default:
-        throw Error('invalid plan');
-    }
-  } else {
-    throw Error('invalid plan');
-  }
-};
-
-/**
- * For Stripe
- * @param priceId Stripe price id
- * @returns plan/package
- */
-const getPlanIdByPriceId = (
-  priceId: string,
-): string => {
-  switch (priceId) {
-    case STRIPE_FREE_PRICE_ID:
-      return USER_PACKAGES[0];
-    case STRIPE_STANDARD_PRICE_ID: // fall-through
-    case STRIPE_STANDARD_MONTHLY_PRICE_ID:
-      return USER_PACKAGES[1];
-    case STRIPE_PREMIUM_PRICE_ID: // fall-through
-    case STRIPE_PREMIUM_MONTHLY_PRICE_ID:
-      return USER_PACKAGES[2];
-    default:
-      throw Error('invalid plan');
-  }
-};
+import { getPriceIdbyPlanId, getPlanIdByPriceId, stripe } from '../../../util/stripe';
 
 const getPlanIdByPayPalPlanId = (
   payPalPlanId: string,

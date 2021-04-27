@@ -1,7 +1,7 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 
-import { feedbackReport, index, logout, usersReport, verifyAdmin } from './controller';
+import { feedbackReport, index, logout, paymentAlerts, usersReport, verifyAdmin } from './controller';
 import rateLimiterMiddleware from '../../../middleware/rateLimiterMemory';
 
 const router = express.Router();
@@ -15,6 +15,8 @@ router.post('/feedbacks', rateLimiterMiddleware, feedbackReport);
 
 router.get('/users', verifyAdmin, usersReport); // JSON
 router.post('/users', rateLimiterMiddleware, usersReport);
+
+router.get('/payments/alerts', paymentAlerts);
 
 router.get('/logout', verifyAdmin, logout);
 

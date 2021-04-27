@@ -110,3 +110,57 @@ export const feedbacksTemplate = `<!DOCTYPE html>
 
 </html>
 `;
+
+export const paymentAlertsTemplate = `<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Payments</title>
+  <style>
+    table,
+    th,
+    td {
+      padding: 10px;
+      border: 1px solid black;
+      border-collapse: collapse;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Needs manual intervention</h1>
+
+  <h2>Stripe</h2>
+  <table>
+    <thead>
+      <tr>
+        <th>Subscription Id</th>
+        <th>Package</th>
+        <th>Customer Id</th>
+        <th>Name</th>
+        <th>Email</th>
+        <th>Currency</th>
+        <th>Balance</th>
+        <th>User Id (DB)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each records}}
+      <tr>
+        <td><a href="https://dashboard.stripe.com/{{#unless livemode}}test/{{/unless}}subscriptions/{{subscriptionId}}">{{subscriptionId}}</a></td>
+        <td>{{package}}</td>
+        <td><a href="https://dashboard.stripe.com/{{#unless livemode}}test/{{/unless}}customers/{{customerId}}">{{customerId}}</a></td>
+        <td>{{name}}</td>
+        <td><a href="mailto:{{email}}">{{email}}</a></td>
+        <td>{{currency}}</td>
+        <td>{{balance}}</td>
+        <td>{{userId}}</td>
+      </tr>
+      {{/each}}
+    </tbody>
+  </table>
+
+</body>
+
+</html>
+`;

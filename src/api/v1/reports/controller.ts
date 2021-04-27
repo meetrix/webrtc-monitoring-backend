@@ -1,4 +1,5 @@
 import { Response, Request, NextFunction } from 'express';
+import Stripe from 'stripe';
 import jwt from 'jsonwebtoken';
 import Handlebars from 'handlebars';
 import validator from 'validator';
@@ -7,13 +8,15 @@ import stringify from 'csv-stringify/lib/sync';
 import { Feedback } from '../../../models/Feedback';
 import { SESSION_SECRET } from '../../../config/secrets';
 import { USER_ROLES } from '../../../config/settings';
-import { indexTemplate, feedbacksTemplate } from './templates';
 import { signToken } from '../../../util/auth';
 import { User } from '../../../models/User';
 import { Recording } from '../../../models/Recording';
+import { getPlanIdByPriceId, stripe } from '../../../util/stripe';
+import { indexTemplate, feedbacksTemplate, paymentAlertsTemplate } from './templates';
 
 const indexView = Handlebars.compile(indexTemplate);
 const feedbackView = Handlebars.compile(feedbacksTemplate);
+const paymentAlertsView = Handlebars.compile(paymentAlertsTemplate);
 
 const COOKIE_MAX_AGE = 1000 * 60 * 60 * 8; // 8 Hours
 
@@ -221,4 +224,35 @@ export const usersReport = async (
   } catch (error) {
     nextFunc(error);
   }
+};
+
+export const paymentAlerts = async (
+  req: Request,
+  res: Response,
+  nextFunc: NextFunction
+): Promise<void> => {
+  const subscriptions = await stripe.subscriptions.list({ expand: ['data.customer'] });
+
+  const records = subscriptions.data
+    .map(s => ({ customer: s.customer as Stripe.Customer, subscription: s }))
+    .filter(o => o.customer.balance !== 0)
+    .map(o => {
+      const {
+        customer: { id: customerId, name, email, currency, balance, livemode, metadata: { userId } },
+        subscription: { id: subscriptionId, items: { data: [{ price: { id: priceId } }] } }
+      } = o;
+      return {
+        subscriptionId,
+        package: getPlanIdByPriceId(priceId),
+        customerId,
+        userId,
+        name,
+        email,
+        currency,
+        balance: (balance / 100).toFixed(2),
+        livemode
+      };
+    });
+
+  res.status(200).send(paymentAlertsView({ records }));
 };
