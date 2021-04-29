@@ -22,6 +22,7 @@ import { User, UserDocument } from '../../../models/User';
 import { Payment, PaymentDocument } from '../../../models/Payment';
 import { getSubscriptionStatus } from '../../../util/auth';
 import { getPriceIdbyPlanId, getPlanIdByPriceId, stripe } from '../../../util/stripe';
+import { payPalClient } from '../../../util/paypalRest';
 
 const getPlanIdByPayPalPlanId = (
   payPalPlanId: string,
@@ -264,16 +265,6 @@ export const changeSubscriptionPackage = async (
         ...(req.body.freeTrial && { trial_end: Math.ceil(Date.now() / 1000) + 14 * 24 * 3600 }),
       });
     } else if (subscriptionProvider === 'paypal') {
-      // const subscriptionId = req.user.paypal.subscriptionId;
-      // const planId = req.body.plan;
-      // const priceId = getPayPalPlanIdByPlanId(planId);
-
-      // if (!subscriptionId || !planId || !priceId) {
-      //   res.status(404).json({
-      //     success: false,
-      //     error: 'No existing subscription found. '
-      //   });
-      // }
 
       // TODO: [PAYPAL] Handle either with /revise here or, remove this block of code and 
       // /cancel the previous subscription and do the refund manually when the webhook receives 
@@ -620,6 +611,7 @@ const fillPaymentDetailsFromPayPalSubscription = async (
   payment: PaymentDocument,
 ): Promise<void> => {
   switch (eventType) {
+    case '': // fall-through -- confirming subscription via paypal REST API
     case 'BILLING.SUBSCRIPTION.ACTIVATED':
       payment.provider = 'paypal';
       payment.customerId = subscription.subscriber.payer_id;
@@ -639,9 +631,114 @@ const fillPaymentDetailsFromPayPalSubscription = async (
   }
 };
 
+const processPayPalSubscriptionObject = async (
+  user: UserDocument,
+  subscription: any,
+  eventType: string = ''
+): Promise<void> => {
+  // Subscriber does not exist when BILLING.SUBSCRIPTION.CREATED
+  user.paypal.payerId = subscription.subscriber?.payer_id || user.paypal?.payerId;
+  user.paypal.emailAddress = subscription.subscriber?.email_address || user.paypal?.emailAddress;
+
+  user.paypal.planId = subscription.plan_id;
+  user.paypal.subscriptionId = subscription.id;
+
+  // Status = APPROVAL_PENDING, APPROVED, ACTIVE, SUSPENDED, CANCELLED, EXPIRED
+  if (['ACTIVE'].includes(subscription.status)) {
+    const newPackage = getPlanIdByPayPalPlanId(subscription.plan_id);
+    handlePackageTransition(user.package, newPackage, user);
+    user.package = newPackage;
+    user.paypal.subscriptionStatus = 'active';
+    user.limitedPackage = getBetterPackage(
+      user.limitedPackage || USER_PACKAGES[0],
+      user.package || USER_PACKAGES[0]
+    );
+
+    if (isATrialPlan(subscription.plan_id)) {
+      user.trialsConsumed = user.trialsConsumed || [];
+      user.trialsConsumed.push(newPackage);
+    }
+  } else if (['SUSPENDED', 'CANCELLED', 'EXPIRED'].includes(subscription.status)) {
+    // Downgrade user package
+    user.limitedPackage = getBetterPackage(
+      user.limitedPackage || USER_PACKAGES[0],
+      user.package || USER_PACKAGES[0]
+    );
+    handlePackageTransition(user.package, USER_PACKAGES[0], user);
+    user.package = USER_PACKAGES[0];
+    if (subscription.status === 'CANCELLED') {
+      user.paypal = {
+        payerId: null,
+        emailAddress: null,
+        planId: null,
+        subscriptionId: null,
+        subscriptionStatus: 'pending'
+      };
+    }
+  } else { // APPROVAL_PENDING, APPROVED
+    // Mark package as inactive but still provide the functionality
+    // i.e.: Doesn't change package
+    user.stripe.subscriptionStatus = 'inactive';
+  }
+
+  await user.save();
+
+  // Store payment details
+  let payment = await Payment.findOne(
+    { subscriptionId: subscription.id, userId: user._id }, {}, { sort: { createdAt: -1 } }
+  );
+  if (!payment) {
+    payment = new Payment();
+  }
+  fillPaymentDetailsFromPayPalSubscription(eventType, subscription, payment);
+  await payment.save();
+};
+
+/**
+ * Called by frontend with subscriptionId so the payment/subscription information can be fetched via 
+ * PayPal REST API and added to the database. This method was added to mitigate the long delays
+ * caused by paypal webhook calls. N.B.: Hooks are still working but since the same data we fetch
+ * inside this function are received via hooks, there should be no impact. 
+ * 
+ * @param req 
+ * @param res 
+ * @param next 
+ */
+export const confirmPayPalSubscription = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<any> => {
+  try {
+    const subscriptionId = req.body.subscriptionId;
+    const subscription = await payPalClient.getSubscription(subscriptionId);
+    console.log(subscription);
+
+    const success = subscription && subscription.custom_id === req.user._id.toString();
+
+    if (success) {
+      await processPayPalSubscriptionObject(req.user, subscription);
+    }
+
+    res.status(200).json({
+      success: success,
+      data: {
+        // subscription,
+      },
+      message: `Subscription validity: ${success}`
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      error: error.message
+    });
+  }
+};
+
 /**
  * N.B.: Webhooks are asynchronous, their **order is not guaranteed**, 
  * and idempotency **might lead to a duplicate notification** of the same event type. 
+ * Developer note: PayPal webhooks messages take a long time to arrive and are possibly not in order.
  * @see [PAYPAL REST API](https://developer.paypal.com/docs/api-basics/notifications/webhooks/rest/)
  */
 export const paypalEventHandler = async (
@@ -671,61 +768,7 @@ export const paypalEventHandler = async (
           throw Error('user not found');
         }
 
-        // Subscriber does not exist when BILLING.SUBSCRIPTION.CREATED
-        user.paypal.payerId = subscription.subscriber?.payer_id || user.paypal?.payerId;
-        user.paypal.emailAddress = subscription.subscriber?.email_address || user.paypal?.emailAddress;
-
-        user.paypal.planId = subscription.plan_id;
-        user.paypal.subscriptionId = subscription.id;
-
-        // Status = APPROVAL_PENDING, APPROVED, ACTIVE, SUSPENDED, CANCELLED, EXPIRED
-        if (['ACTIVE'].includes(subscription.status)) {
-          const newPackage = getPlanIdByPayPalPlanId(subscription.plan_id);
-          handlePackageTransition(user.package, newPackage, user);
-          user.package = newPackage;
-          user.paypal.subscriptionStatus = 'active';
-          user.limitedPackage = getBetterPackage(
-            user.limitedPackage || USER_PACKAGES[0],
-            user.package || USER_PACKAGES[0]
-          );
-
-          if (isATrialPlan(subscription.plan_id)) {
-            user.trialsConsumed = user.trialsConsumed || [];
-            user.trialsConsumed.push(newPackage);
-          }
-        } else if (['SUSPENDED', 'CANCELLED', 'EXPIRED'].includes(subscription.status)) {
-          // Downgrade user package
-          user.limitedPackage = getBetterPackage(
-            user.limitedPackage || USER_PACKAGES[0],
-            user.package || USER_PACKAGES[0]
-          );
-          handlePackageTransition(user.package, USER_PACKAGES[0], user);
-          user.package = USER_PACKAGES[0];
-          if (subscription.status === 'CANCELLED') {
-            user.paypal = {
-              payerId: null,
-              emailAddress: null,
-              planId: null,
-              subscriptionId: null,
-              subscriptionStatus: 'pending'
-            };
-          }
-        } else { // APPROVAL_PENDING, APPROVED
-          // Mark package as inactive but still provide the functionality
-          user.stripe.subscriptionStatus = 'inactive';
-        }
-
-        await user.save();
-
-        // Store payment details
-        let payment = await Payment.findOne(
-          { subscriptionId: subscription.id, userId: user._id }, {}, { sort: { createdAt: -1 } }
-        );
-        if (!payment) {
-          payment = new Payment();
-        }
-        fillPaymentDetailsFromPayPalSubscription(eventType, subscription, payment);
-        await payment.save();
+        await processPayPalSubscriptionObject(user, subscription, eventType);
 
         break;
       } catch (err) {

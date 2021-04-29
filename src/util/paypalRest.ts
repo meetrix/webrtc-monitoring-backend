@@ -89,10 +89,8 @@ class PayPalRESTClient {
     });
   }
 
-  // getSubscription = async (id: string): Promise<any> =>
-  //   this.request('GET', `/v1/billing/subscriptions/${id}`, null);
-  // getTransactions = async (subscriptionId: string, startTime: Date, endTime: Date): Promise<any> =>
-  //   this.request('GET', `/v1/billing/subscriptions/${subscriptionId}/transactions?start_time=${startTime.toISOString()}&end_time=${endTime.toISOString()}`, null);
+  getSubscription = async (id: string): Promise<any> =>
+    this.request('GET', `/v1/billing/subscriptions/${id}`, null);
 }
 
 export const payPalClient
