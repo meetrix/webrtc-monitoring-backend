@@ -11,7 +11,7 @@ class PayPalRESTClient {
     private readonly apiUrl: string
   ) { }
 
-  getOAuth = () => {
+  private getOAuth = (): Promise<any> => {
     return new Promise(resolve => {
 
       const data = 'grant_type=client_credentials';
@@ -28,7 +28,7 @@ class PayPalRESTClient {
         }
       };
 
-      const processResponse = function (res: any) {
+      const processResponse = function (res: any): void {
         let str = '';
 
         res.on('data', function (chunk: string) {
@@ -46,12 +46,12 @@ class PayPalRESTClient {
     });
   };
 
-  retrieveAccessToken = async (): Promise<void> => {
+  private retrieveAccessToken = async (): Promise<void> => {
     const { expires_in: expiry, access_token: token } = await this.getOAuth() as never;
     this.tokenDetails = { expiry: new Date(Date.now() + expiry * 1000 - 60000), token };
   };
 
-  request = async (method: string, path: string, obj: any): Promise<any> => {
+  private request = async (method: string, path: string, obj: any): Promise<any> => {
     // Refresh access token if needed
     if (!this.tokenDetails || this.tokenDetails.expiry < new Date()) {
       await this.retrieveAccessToken();

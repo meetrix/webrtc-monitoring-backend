@@ -636,6 +636,12 @@ const processPayPalSubscriptionObject = async (
   subscription: any,
   eventType: string = ''
 ): Promise<void> => {
+  // Do nothing on cancellation/expiry of an old subscription
+  if (['SUSPENDED', 'CANCELLED', 'EXPIRED'].includes(subscription.status)
+    && user.paypal?.subscriptionId !== subscription.id) {
+    return;
+  }
+
   // Subscriber does not exist when BILLING.SUBSCRIPTION.CREATED
   user.paypal.payerId = subscription.subscriber?.payer_id || user.paypal?.payerId;
   user.paypal.emailAddress = subscription.subscriber?.email_address || user.paypal?.emailAddress;
