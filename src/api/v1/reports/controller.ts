@@ -7,12 +7,13 @@ import stringify from 'csv-stringify/lib/sync';
 
 import { Feedback } from '../../../models/Feedback';
 import { SESSION_SECRET } from '../../../config/secrets';
-import { USER_ROLES } from '../../../config/settings';
+import { NODE_ENV, PRODUCTION, USER_ROLES } from '../../../config/settings';
 import { signToken } from '../../../util/auth';
 import { User } from '../../../models/User';
 import { Recording } from '../../../models/Recording';
 import { getPlanIdByPriceId, stripe } from '../../../util/stripe';
 import { indexTemplate, feedbacksTemplate, paymentAlertsTemplate } from './templates';
+import { Payment } from '../../../models/Payment';
 
 const indexView = Handlebars.compile(indexTemplate);
 const feedbackView = Handlebars.compile(feedbacksTemplate);
@@ -231,28 +232,69 @@ export const paymentAlerts = async (
   res: Response,
   nextFunc: NextFunction
 ): Promise<void> => {
-  const subscriptions = await stripe.subscriptions.list({ expand: ['data.customer'] });
+  let token: string = null;
+  if (req.body.email) {
+    token = await authenticateAdmin(req.body.email, req.body.password);
+  } else {
+    token = req.cookies.token as string;
+  }
 
-  const records = subscriptions.data
-    .map(s => ({ customer: s.customer as Stripe.Customer, subscription: s }))
-    .filter(o => o.customer.balance !== 0)
-    .map(o => {
-      const {
-        customer: { id: customerId, name, email, currency, balance, livemode, metadata: { userId } },
-        subscription: { id: subscriptionId, items: { data: [{ price: { id: priceId } }] } }
-      } = o;
-      return {
-        subscriptionId,
-        package: getPlanIdByPriceId(priceId),
-        customerId,
-        userId,
-        name,
-        email,
-        currency,
-        balance: (balance / 100).toFixed(2),
-        livemode
-      };
-    });
+  if (!token) {
+    res.status(401).send('unauthorized');
+    return;
+  }
 
-  res.status(200).send(paymentAlertsView({ records }));
+  try {
+    const subscriptions = await stripe.subscriptions.list({ expand: ['data.customer'] });
+
+    const stripeBalanceRecords = subscriptions.data
+      .map(s => ({ customer: s.customer as Stripe.Customer, subscription: s }))
+      .filter(o => o.customer.balance !== 0)
+      .map(o => {
+        const {
+          customer: { id: customerId, name, email, currency, balance, livemode, metadata: { userId } },
+          subscription: { id: subscriptionId, items: { data: [{ price: { id: priceId } }] } }
+        } = o;
+        return {
+          subscriptionId,
+          package: getPlanIdByPriceId(priceId),
+          customerId,
+          userId,
+          name,
+          email,
+          currency,
+          balance: (balance / 100).toFixed(2),
+          livemode
+        };
+      });
+
+    // The proper way would be to get all subscriptions from PayPal, but unfortunately
+    // PayPal doesn't support this. https://github.com/paypal/PayPal-REST-API-issues/issues/5
+    const paypalRecords = await Payment.aggregate()
+      .match({ provider: 'paypal' })
+      .sort('-createdAt')
+      .group({
+        _id: '$userId',
+        subscriptions: {
+          $push: {
+            subscriptionId: '$subscriptionId',
+            package: '$plan',
+            customerId: '$customerId',
+            userId: '$userId',
+            invoiceId: '$invoiceId',
+            createdAt: '$createdAt'
+          }
+        },
+        subscriptionsCount: { $sum: 1 },
+      })
+      .match({ subscriptionsCount: { $gte: 2 } });
+
+    res.status(200).send(paymentAlertsView({
+      stripeBalanceRecords,
+      paypalRecords,
+      live: NODE_ENV === PRODUCTION,
+    }));
+  } catch (error) {
+    nextFunc(error);
+  }
 };

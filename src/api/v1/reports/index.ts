@@ -16,7 +16,8 @@ router.post('/feedbacks', rateLimiterMiddleware, feedbackReport);
 router.get('/users', verifyAdmin, usersReport); // JSON
 router.post('/users', rateLimiterMiddleware, usersReport);
 
-router.get('/payments/alerts', paymentAlerts);
+router.get('/payments/alerts', verifyAdmin, paymentAlerts);
+router.post('/payments/alerts', rateLimiterMiddleware, paymentAlerts);
 
 router.get('/logout', verifyAdmin, logout);
 
