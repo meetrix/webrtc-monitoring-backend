@@ -1,15 +1,10 @@
 /* eslint-disable @typescript-eslint/camelcase */
 
 import { Response, Request, NextFunction } from 'express';
+import Stripe from 'stripe';
 import _ from 'lodash';
 import {
   AUTH_LANDING,
-  STRIPE_SECRET_KEY,
-  STRIPE_FREE_PRICE_ID,
-  STRIPE_STANDARD_PRICE_ID,
-  STRIPE_PREMIUM_PRICE_ID,
-  STRIPE_STANDARD_MONTHLY_PRICE_ID,
-  STRIPE_PREMIUM_MONTHLY_PRICE_ID,
   STRIPE_WEBHOOK_SECRET,
   PAYPAL_FREE_PLAN_ID,
   PAYPAL_STANDARD_PLAN_ID,
@@ -23,71 +18,10 @@ import {
   USER_PACKAGES
 } from '../../../config/settings';
 
-import Stripe from 'stripe';
 import { User, UserDocument } from '../../../models/User';
 import { Payment, PaymentDocument } from '../../../models/Payment';
 import { getSubscriptionStatus } from '../../../util/auth';
-const stripe = new Stripe(STRIPE_SECRET_KEY, {
-  apiVersion: '2020-08-27',
-});
-
-/**
- * For Stripe
- * @param planId plan/package
- * @returns Stripe price id
- */
-const getPriceIdbyPlanId = (
-  planId: string,
-  period: 'yearly' | 'monthly' = 'yearly'
-): string => {
-  if (planId === USER_PACKAGES[0]) {
-    return STRIPE_FREE_PRICE_ID;
-  }
-
-  if (period === 'monthly') {
-    switch (planId) {
-      case USER_PACKAGES[1]:
-        return STRIPE_STANDARD_MONTHLY_PRICE_ID;
-      case USER_PACKAGES[2]:
-        return STRIPE_PREMIUM_MONTHLY_PRICE_ID;
-      default:
-        throw Error('invalid plan');
-    }
-  } else if (period === 'yearly') {
-    switch (planId) {
-      case USER_PACKAGES[1]:
-        return STRIPE_STANDARD_PRICE_ID;
-      case USER_PACKAGES[2]:
-        return STRIPE_PREMIUM_PRICE_ID;
-      default:
-        throw Error('invalid plan');
-    }
-  } else {
-    throw Error('invalid plan');
-  }
-};
-
-/**
- * For Stripe
- * @param priceId Stripe price id
- * @returns plan/package
- */
-const getPlanIdByPriceId = (
-  priceId: string,
-): string => {
-  switch (priceId) {
-    case STRIPE_FREE_PRICE_ID:
-      return USER_PACKAGES[0];
-    case STRIPE_STANDARD_PRICE_ID: // fall-through
-    case STRIPE_STANDARD_MONTHLY_PRICE_ID:
-      return USER_PACKAGES[1];
-    case STRIPE_PREMIUM_PRICE_ID: // fall-through
-    case STRIPE_PREMIUM_MONTHLY_PRICE_ID:
-      return USER_PACKAGES[2];
-    default:
-      throw Error('invalid plan');
-  }
-};
+import { getPriceIdbyPlanId, getPlanIdByPriceId, stripe } from '../../../util/stripe';
 
 const getPlanIdByPayPalPlanId = (
   payPalPlanId: string,
@@ -322,6 +256,7 @@ export const changeSubscriptionPackage = async (
       const response = await stripe.subscriptions.update(subscriptionId, {
         cancel_at_period_end: false,
         proration_behavior: 'always_invoice',
+        payment_behavior: 'pending_if_incomplete',
         items: [{
           id: subscription.items.data[0].id,
           price: priceId,
@@ -853,3 +788,67 @@ export const paypalEventHandler = async (
     message: 'Webhook updated successfully'
   });
 };
+
+// Cancel and refund only when 
+// -- the user is currently on a non-FREE subscription (consider trial periods as free subscriptions), 
+// -- and is cancelling it or switching to a FREE subscription. 
+
+// User might have first subscribed to a package (STANDARD), then upgraded (PREMIUM) and then
+// cancelled the package; in which case we need to consider non-refunded amounts of all the 
+// payments he made, related to the subscription and refund in the reverse-chronological order. 
+const makeStripeRefund = async (
+  customerId: string,
+  requestedAmount: number
+): Promise<{ refunds: Stripe.Response<Stripe.Refund>[]; remaining: number }> => {
+  const refunds: Stripe.Response<Stripe.Refund>[] = [];
+
+  const paymentIntents = (
+    await stripe.paymentIntents.list({ customer: customerId })
+  ).data.filter(pi => pi.status === 'succeeded');
+  paymentIntents.sort((a, b) => b.created - a.created); // descending 
+
+  for (let i = 0; i < paymentIntents.length; i++) {
+    const paymentIntent = paymentIntents[i];
+    const lastCharge = paymentIntent.charges.data[0];
+    if (!lastCharge) {
+      continue;
+    }
+
+    // Amount that can be refunded from this payment
+    const refundableAmount = lastCharge.amount_captured > requestedAmount
+      ? requestedAmount
+      : lastCharge.amount_captured;
+
+    try {
+      const refund = await stripe.refunds.create({
+        reason: 'requested_by_customer', amount: refundableAmount, payment_intent: paymentIntent.id
+      });
+      refunds.push(refund);
+    } catch (error) {
+      console.log(`Refund failed for: ${error}`);
+
+      continue; // not properly refunded so keep requestedAmount unchanged. 
+    }
+
+    // Remaining amount to be refunded
+    requestedAmount = requestedAmount - refundableAmount;
+    if (requestedAmount <= 0) {
+      break; // Refunded the total requested amount. 
+    }
+  }
+
+  return { refunds, remaining: requestedAmount };
+};
+
+const adjustStripeCustomerBalance = async (
+  customerId: string,
+  newBalance: number
+) => {
+  try {
+    // balance = how much the customer owes screenapp
+    const customer = await stripe.customers.update(customerId, { balance: newBalance });
+  } catch (error) {
+    console.log(`Error adjusting balance of customer ${customerId} to ${newBalance}.`);
+  }
+};
+
