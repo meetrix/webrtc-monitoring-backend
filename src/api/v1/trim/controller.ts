@@ -1,10 +1,10 @@
 import { Request, Response } from 'express';
 import ffmpeg from 'fluent-ffmpeg';
-import { Duplex } from 'stream';
+import { PassThrough } from 'stream';
 import { v4 } from 'uuid';
-import { FileType } from '../../../models/FileSystemEntity';
 
 import { getAsStream, getFileSize, getPlayUrl, uploadRecordingToS3 } from '../../../util/s3';
+import { FileType } from '../../../models/FileSystemEntity';
 
 export const trim = async (
   req: Request,
@@ -24,20 +24,26 @@ export const trim = async (
     return;
   }
 
-  const stream = new Duplex();
+  if (begin === undefined || end === undefined) {
+    res.status(400).json({ success: false, error: 'Both begin and end positions must be specified.' });
+    return;
+  }
 
-  const command = ffmpeg()
-    .input(getAsStream(userId, id))
+  const input = getAsStream(userId, id);
+  const output = new PassThrough();
+
+  const command = ffmpeg(input)
+    .format('webm')
     .setStartTime((begin / 1000).toFixed(3))
     .setDuration(((end - begin) / 1000).toFixed(3))
     .audioCodec('copy')
     .videoCodec('copy')
-    .output(stream);
+    .output(output, { end: true });
 
   command.run();
 
   if (replace) {
-    await uploadRecordingToS3(userId, id, stream);
+    await uploadRecordingToS3(userId, id, output);
 
     res.status(200).json({
       success: true,
@@ -47,7 +53,7 @@ export const trim = async (
     });
   } else {
     const newId = v4();
-    const upload = await uploadRecordingToS3(userId, newId, stream);
+    const upload = await uploadRecordingToS3(userId, newId, output);
 
     const newFile: FileType = {
       _id: newId,

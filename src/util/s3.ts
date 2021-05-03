@@ -1,5 +1,5 @@
 import { S3 } from 'aws-sdk';
-import { Duplex, Readable } from 'stream';
+import { Readable } from 'stream';
 import { AWS_ACCESS_KEY, AWS_ACCESS_KEY_SECRET } from '../config/secrets';
 import { S3_USER_RECORDINGS_BUCKET } from '../config/settings';
 
@@ -12,7 +12,7 @@ export const s3 = new S3({
 export const uploadRecordingToS3 = async (
   userId: string,
   recordingId: string,
-  stream: Duplex,
+  stream: Readable,
   suffix: string = ''
 ): Promise<S3.ManagedUpload.SendData> => {
   const key = `vid/${userId}/${recordingId}${suffix}.webm`;
@@ -35,7 +35,7 @@ export const getAsStream = (
   suffix: string = ''
 ): Readable => {
   return s3.getObject({
-    Key: `vid${userId}/${recordingId}${suffix}.webm`, Bucket: S3_USER_RECORDINGS_BUCKET
+    Key: `vid/${userId}/${recordingId}${suffix}.webm`, Bucket: S3_USER_RECORDINGS_BUCKET
   }).createReadStream();
 };
 
