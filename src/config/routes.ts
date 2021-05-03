@@ -11,6 +11,7 @@ import { reportsRouter } from '../api/v1/reports';
 import { fsRouter } from '../api/v1/fs';
 import { pluginRouter } from '../api/v1/plugin';
 import { miscRouter } from '../api/v1/misc';
+import { trimRouter } from '../api/v1/trim';
 
 export const setupRoutesV1 = (app: Express): void => {
   app.use('/v1/spec', specRouter);
@@ -25,4 +26,5 @@ export const setupRoutesV1 = (app: Express): void => {
   app.use('/v1/plugin', pluginRouter);
   app.use('/v1/reports', reportsRouter);
   app.use('/v1/misc', miscRouter);
+  app.use('/v1/trim', trimRouter);
 };
