@@ -4,7 +4,7 @@ import { PassThrough } from 'stream';
 import { v4 } from 'uuid';
 
 import { getAsStream, getFileSize, getPlayUrl, uploadRecordingToS3 } from '../../../util/s3';
-import { FileType } from '../../../models/FileSystemEntity';
+import { FileDocument, FileType } from '../../../models/FileSystemEntity';
 
 export const trim = async (
   req: Request,
@@ -19,7 +19,7 @@ export const trim = async (
   } = req.body;
 
   const file = req.user.fileSystem.id(id);
-  if (!file) {
+  if (!file || file.type === 'Folder') {
     res.status(404).json({ success: false, error: 'No such source file.' });
     return;
   }
@@ -43,7 +43,12 @@ export const trim = async (
   command.run();
 
   if (replace) {
-    await uploadRecordingToS3(userId, id, output);
+    const upload = await uploadRecordingToS3(userId, id, output);
+
+    (file as FileDocument).size = await getFileSize(upload.Key);
+    (file as FileDocument).url = await getPlayUrl(upload.Key);
+
+    await req.user.save();
 
     res.status(200).json({
       success: true,
@@ -74,7 +79,7 @@ export const trim = async (
     res.status(200).json({
       success: true,
       data: {
-        file: (await req.user.save()).fileSystem.id(newId)
+        file: newFile
       }
     });
   }
