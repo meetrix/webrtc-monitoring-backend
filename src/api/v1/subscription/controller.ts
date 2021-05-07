@@ -351,9 +351,12 @@ const handlePackageTransition = (
   newPackage: string,
   user: UserDocument
 ): void => {
-  if (oldPackage === 'PREMIUM'
-    && USER_PACKAGES.indexOf(newPackage) < USER_PACKAGES.indexOf('PREMIUM')) {
+  if (oldPackage === 'PREMIUM' || oldPackage === 'STANDARD'
+    && USER_PACKAGES.indexOf(newPackage) < USER_PACKAGES.indexOf('STANDARD')) {
     user.fileSystemSettings.cloudSync = false;
+  }
+  if (USER_PACKAGES.indexOf(newPackage) >= USER_PACKAGES.indexOf('STANDARD')) {
+    user.fileSystemSettings = { ...user.fileSystemSettings, cloudSync: true };
   }
 };
 

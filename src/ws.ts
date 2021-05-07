@@ -76,8 +76,9 @@ const handleWebSocketEvents = (server: http.Server): void => {
     const userDoc = await User.findOne({ _id: jwtUser.sub });
     if (!userDoc
       || USER_ROLES.indexOf(userDoc.role) < USER_ROLES.indexOf('user')
-      || USER_PACKAGES.indexOf(userDoc.package) < USER_PACKAGES.indexOf('PREMIUM')) {
-      // Check for PREMIUM user package 
+      || USER_PACKAGES.indexOf(userDoc.package) < USER_PACKAGES.indexOf('STANDARD')) {
+      // Check for at least STANDARD user package 
+      // N.B.: Added to include STANDATD on 2021 May 7 after user complaints of missing files
       abortHandshake(socket, 403, 'Unauthorized. ', {});
       console.log(`Authorization failed for user ${userDoc.id} (${userDoc.role}, ${userDoc.package})`);
       return;

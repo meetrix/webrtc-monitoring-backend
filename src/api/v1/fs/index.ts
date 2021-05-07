@@ -59,7 +59,7 @@ router.post('/share', [isAuthenticated, hasPackageOrHigher('PREMIUM')], shareFil
 
 router.post('/migrate', isAuthenticated, migrate);
 
-router.get('/settings', [isAuthenticated, hasPackageOrHigher('PREMIUM', true)], getSettings);
+router.get('/settings', [isAuthenticated, hasPackageOrHigher('STANDARD', true)], getSettings);
 router.post('/settings', [isAuthenticated, hasPackageOrHigher('PREMIUM')], updateSettings);
 
 router.get('/', isAuthenticated, fetchFileSystem);
