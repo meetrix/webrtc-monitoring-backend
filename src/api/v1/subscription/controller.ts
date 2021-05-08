@@ -257,7 +257,6 @@ export const changeSubscriptionPackage = async (
       const response = await stripe.subscriptions.update(subscriptionId, {
         cancel_at_period_end: false,
         proration_behavior: 'always_invoice',
-        payment_behavior: 'pending_if_incomplete',
         items: [{
           id: subscription.items.data[0].id,
           price: priceId,
