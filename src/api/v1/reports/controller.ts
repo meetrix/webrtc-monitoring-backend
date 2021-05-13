@@ -14,6 +14,7 @@ import { Recording } from '../../../models/Recording';
 import { getPlanIdByPriceId, stripe } from '../../../util/stripe';
 import { indexTemplate, feedbacksTemplate, paymentAlertsTemplate } from './templates';
 import { Payment } from '../../../models/Payment';
+import { getUserReport } from './userReports';
 
 const indexView = Handlebars.compile(indexTemplate);
 const feedbackView = Handlebars.compile(feedbacksTemplate);
@@ -173,7 +174,7 @@ const parseDate = (date: string): Date | null => {
   return null;
 };
 
-export const usersReport = async (
+export const usageReport = async (
   req: Request,
   res: Response,
   nextFunc: NextFunction
@@ -297,4 +298,18 @@ export const paymentAlerts = async (
   } catch (error) {
     nextFunc(error);
   }
+};
+
+export const users = async (
+  req: Request,
+  res: Response,
+  nextFunc: NextFunction
+): Promise<void> => {
+  const beginTime = new Date('2021-02-01');
+  const endTime = new Date();
+  const userReport = await getUserReport({ beginTime, endTime });
+
+  console.log(beginTime, endTime, userReport);
+
+  res.json(userReport);
 };
