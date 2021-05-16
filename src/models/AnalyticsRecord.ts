@@ -7,6 +7,7 @@ export interface AnalyticsRecordType {
   a: string; // action
   d: { [key: string]: string }; // additional data -- recording length, devices etc.
   u: string; // user (userId or local tracking id)
+  p: number; // user plan; free = 0, free_loggedin = 10, standard = 100, premium = 1000 
   t: number; // timestamp
 }
 
@@ -17,6 +18,7 @@ const analyticsRecordSchema = new mongoose.Schema({
   a: String,
   d: { type: Map, of: String },
   u: String,
+  p: { type: Number, default: 0 },
   t: Number,
 }, { timestamps: false });
 
