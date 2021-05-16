@@ -6,6 +6,7 @@ interface GetUserReportParams {
   beginTime: Date;
   endTime: Date;
 }
+
 export const getUserReport = async ({ beginTime, endTime }: GetUserReportParams) => {
   const userEmails: { email: string; createdAt: string; _id: string }[] = await User
     .aggregate()

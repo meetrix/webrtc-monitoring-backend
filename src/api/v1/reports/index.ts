@@ -9,6 +9,7 @@ import {
   usageReport,
   verifyAdmin,
   users,
+  events,
 } from './controller';
 import rateLimiterMiddleware from '../../../middleware/rateLimiterMemory';
 
@@ -25,6 +26,7 @@ router.get('/usage', verifyAdmin, usageReport); // JSON
 router.post('/usage', rateLimiterMiddleware, usageReport);
 
 router.get('/users', users); // JSON
+router.get('/events', events); // JSON
 
 router.get('/payments/alerts', verifyAdmin, paymentAlerts);
 router.post('/payments/alerts', rateLimiterMiddleware, paymentAlerts);
