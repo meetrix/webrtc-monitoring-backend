@@ -1,5 +1,3 @@
-// TODO Handle granularity in the front-end;
-
 import { Payment } from '../../../models/Payment';
 import { User } from '../../../models/User';
 import { domains } from './emailProviderList';
@@ -7,7 +5,6 @@ import { domains } from './emailProviderList';
 interface GetUserReportParams {
   beginTime: Date;
   endTime: Date;
-  // granularity: 'H' | 'D' | 'W' | 'M' | 'Y';
 }
 export const getUserReport = async ({ beginTime, endTime }: GetUserReportParams) => {
   const userEmails: { email: string; createdAt: string; _id: string }[] = await User
@@ -21,7 +18,7 @@ export const getUserReport = async ({ beginTime, endTime }: GetUserReportParams)
     _id: user._id,
     email: user.email,
     createdAt: user.createdAt,
-    isCorporate: !domains.includes(user.email.split('@')[1])
+    isCorporate: !domains.has(user.email.split('@')[1])
   }));
 
   const subscriptions = await Payment

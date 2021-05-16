@@ -305,11 +305,16 @@ export const users = async (
   res: Response,
   nextFunc: NextFunction
 ): Promise<void> => {
-  const beginTime = new Date('2021-02-01');
-  const endTime = new Date();
-  const userReport = await getUserReport({ beginTime, endTime });
+  const { from, to } = req.query;
 
-  console.log(beginTime, endTime, userReport);
+  try {
+    const endTime = to && parseDate(to as string) || new Date();
+    const beginTime = from && parseDate(from as string)
+      || new Date(endTime.getFullYear(), endTime.getMonth(), endTime.getDate() - 30);
+    const userReport = await getUserReport({ beginTime, endTime });
 
-  res.json(userReport);
+    res.json(userReport);
+  } catch (error) {
+    nextFunc(error);
+  }
 };

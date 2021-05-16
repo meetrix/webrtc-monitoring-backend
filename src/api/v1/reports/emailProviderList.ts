@@ -1,7 +1,7 @@
 // Obtained from: https://github.com/mailcheck/mailcheck/wiki/List-of-Popular-Domains
 // Remove 'google.com' because it is meant for google employees
 
-export const domains = [
+export const domains = new Set([
   /* Default domains included */
   'aol.com', 'att.net', 'comcast.net', 'facebook.com', 'gmail.com', 'gmx.com', 'googlemail.com',
   'hotmail.com', 'hotmail.co.uk', 'mac.com', 'me.com', 'mail.com', 'msn.com',
@@ -50,4 +50,4 @@ export const domains = [
 
   /* Domains used in Brazil */
   'yahoo.com.br', 'hotmail.com.br', 'outlook.com.br', 'uol.com.br', 'bol.com.br', 'terra.com.br', 'ig.com.br', 'r7.com', 'zipmail.com.br', 'globo.com', 'globomail.com', 'oi.com.br'
-];
+]);
