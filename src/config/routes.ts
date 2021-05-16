@@ -6,6 +6,7 @@ import { uploadRouter } from '../api/v1/upload';
 import { authRouter } from '../api/v1/auth';
 import { feedbackRouter } from '../api/v1/feedback';
 import { recordingRouter } from '../api/v1/recording';
+import { analyticsRouter } from '../api/v1/analytics';
 import { subscriptionRouter } from '../api/v1/subscription';
 import { reportsRouter } from '../api/v1/reports';
 import { fsRouter } from '../api/v1/fs';
@@ -21,6 +22,7 @@ export const setupRoutesV1 = (app: Express): void => {
   app.use('/v1/auth', authRouter);
   app.use('/v1/feedback', feedbackRouter);
   app.use('/v1/recording', recordingRouter);
+  app.use('/v1/analytics', analyticsRouter);
   app.use('/v1/subscription', subscriptionRouter);
   app.use('/v1/fs', fsRouter);
   app.use('/v1/plugin', pluginRouter);
