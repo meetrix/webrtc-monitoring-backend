@@ -12,6 +12,7 @@ import {
   events,
 } from './controller';
 import rateLimiterMiddleware from '../../../middleware/rateLimiterMemory';
+import { hasRoleOrHigher } from '../../../middleware';
 
 const router = express.Router();
 
@@ -25,8 +26,8 @@ router.post('/feedbacks', rateLimiterMiddleware, feedbackReport);
 router.get('/usage', verifyAdmin, usageReport); // JSON
 router.post('/usage', rateLimiterMiddleware, usageReport);
 
-router.get('/users', users); // JSON
-router.get('/events', events); // JSON
+router.get('/users', hasRoleOrHigher('admin'), users); // JSON
+router.get('/events', hasRoleOrHigher('admin'), events); // JSON
 
 router.get('/payments/alerts', verifyAdmin, paymentAlerts);
 router.post('/payments/alerts', rateLimiterMiddleware, paymentAlerts);
