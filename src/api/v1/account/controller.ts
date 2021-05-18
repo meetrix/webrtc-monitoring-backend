@@ -270,6 +270,9 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
     //         return;
 
     // }
+
+    console.log(req.body);
+
     req.body.email = validator.normalizeEmail(req.body.email, {
       gmail_remove_dots: false,
     });

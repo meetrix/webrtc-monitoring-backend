@@ -1,8 +1,18 @@
 import express from 'express';
 import cookieParser from 'cookie-parser';
 
-import { feedbackReport, index, logout, paymentAlerts, usersReport, verifyAdmin } from './controller';
+import {
+  feedbackReport,
+  index,
+  logout,
+  paymentAlerts,
+  usageReport,
+  verifyAdmin,
+  users,
+  events,
+} from './controller';
 import rateLimiterMiddleware from '../../../middleware/rateLimiterMemory';
+import { hasRoleOrHigher } from '../../../middleware';
 
 const router = express.Router();
 
@@ -13,8 +23,11 @@ router.get('/feedbacks.csv', verifyAdmin, feedbackReport);
 router.get('/feedbacks.json', verifyAdmin, feedbackReport);
 router.post('/feedbacks', rateLimiterMiddleware, feedbackReport);
 
-router.get('/users', verifyAdmin, usersReport); // JSON
-router.post('/users', rateLimiterMiddleware, usersReport);
+router.get('/usage', verifyAdmin, usageReport); // JSON
+router.post('/usage', rateLimiterMiddleware, usageReport);
+
+router.get('/users', hasRoleOrHigher('admin'), users); // JSON
+router.get('/events', hasRoleOrHigher('admin'), events); // JSON
 
 router.get('/payments/alerts', verifyAdmin, paymentAlerts);
 router.post('/payments/alerts', rateLimiterMiddleware, paymentAlerts);

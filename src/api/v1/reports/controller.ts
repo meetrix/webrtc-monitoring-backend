@@ -14,6 +14,8 @@ import { Recording } from '../../../models/Recording';
 import { getPlanIdByPriceId, stripe } from '../../../util/stripe';
 import { indexTemplate, feedbacksTemplate, paymentAlertsTemplate } from './templates';
 import { Payment } from '../../../models/Payment';
+import { getUserReport } from './userReports';
+import { getEventReport } from './eventReports';
 
 const indexView = Handlebars.compile(indexTemplate);
 const feedbackView = Handlebars.compile(feedbacksTemplate);
@@ -173,7 +175,7 @@ const parseDate = (date: string): Date | null => {
   return null;
 };
 
-export const usersReport = async (
+export const usageReport = async (
   req: Request,
   res: Response,
   nextFunc: NextFunction
@@ -294,6 +296,45 @@ export const paymentAlerts = async (
       paypalRecords,
       live: NODE_ENV === PRODUCTION,
     }));
+  } catch (error) {
+    nextFunc(error);
+  }
+};
+
+export const users = async (
+  req: Request,
+  res: Response,
+  nextFunc: NextFunction
+): Promise<void> => {
+  const { from, to } = req.query;
+
+  try {
+    const endTime = to && parseDate(to as string) || new Date();
+    const beginTime = from && parseDate(from as string)
+      || new Date(endTime.getFullYear(), endTime.getMonth(), endTime.getDate() - 30);
+    const userReport = await getUserReport({ beginTime, endTime });
+
+    res.json(userReport);
+  } catch (error) {
+    nextFunc(error);
+  }
+};
+
+
+export const events = async (
+  req: Request,
+  res: Response,
+  nextFunc: NextFunction
+): Promise<void> => {
+  const { from, to } = req.query;
+
+  try {
+    const endTime = to && parseDate(to as string) || new Date();
+    const beginTime = from && parseDate(from as string)
+      || new Date(endTime.getFullYear(), endTime.getMonth(), endTime.getDate() - 30);
+    const eventReport = await getEventReport({ beginTime, endTime });
+
+    res.json(eventReport);
   } catch (error) {
     nextFunc(error);
   }
