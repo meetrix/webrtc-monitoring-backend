@@ -1,7 +1,5 @@
 import mongoose from 'mongoose';
 
-// This is solely for tracking user recordings and lengths
-
 export interface AnalyticsRecordType {
   // c: string; // category
   a: string; // action
