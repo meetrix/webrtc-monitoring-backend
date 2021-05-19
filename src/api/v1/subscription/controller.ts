@@ -437,8 +437,11 @@ export const stripeEventHandler = async (
       // This approach helps you avoid hitting rate limits.
 
       try {
+        // Capture the new latest plan, skip proration line items for current plan
+        const newLineIndex = data.object.lines.total_count - 1;
+
         const invoiceId = data.object.id;
-        const subscriptionId = data.object.lines.data[0].subscription;
+        const subscriptionId = data.object.lines.data[newLineIndex].subscription;
         const attemptCount = data.object.attempt_count;
         const billingReason = data.object.billing_reason;
         const collectionMethod = data.object.collection_method;
@@ -452,8 +455,8 @@ export const stripeEventHandler = async (
         const customerEmail = data.object.customer_email;
         const hostedInvoiceUrl = data.object.hosted_invoice_url;
         const invoicePdf = data.object.invoice_pdf;
-        const subscriptionItemId = data.object.lines.data[0].subscription_item;
-        const priceId = data.object.lines.data[0].price.id;
+        const subscriptionItemId = data.object.lines.data[newLineIndex].subscription_item;
+        const priceId = data.object.lines.data[newLineIndex].price.id;
         const plan = getPlanIdByPriceId(priceId);
         const paid = data.object.paid;
         const status = data.object.status;
