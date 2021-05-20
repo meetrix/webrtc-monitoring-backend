@@ -2,6 +2,8 @@ import { Payment } from '../../../models/Payment';
 import { User } from '../../../models/User';
 import { domains } from './emailProviderList';
 
+const domainsSet = new Set(domains);
+
 interface GetUserReportParams {
   beginTime: Date;
   endTime: Date;
@@ -19,7 +21,7 @@ export const getUserReport = async ({ beginTime, endTime }: GetUserReportParams)
     _id: user._id,
     email: user.email,
     createdAt: user.createdAt,
-    isCorporate: !domains.has(user.email.split('@')[1])
+    isCorporate: !domainsSet.has(user.email.split('@')[1])
   }));
 
   const subscriptions = await Payment
@@ -72,5 +74,5 @@ export const getUserReport = async ({ beginTime, endTime }: GetUserReportParams)
       lastPlan: '$docs.lastPlan'
     });
 
-  return { subscriptions, emails };
+  return { subscriptions, emails, personalEmailProviders: domains };
 };
