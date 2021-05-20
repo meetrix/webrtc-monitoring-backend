@@ -19,7 +19,7 @@ export const getUserReport = async ({ beginTime, endTime }: GetUserReportParams)
     });
   const emails = userEmails.map(user => ({
     _id: user._id,
-    email: user.email,
+    // email: user.email,
     createdAt: user.createdAt,
     isCorporate: !domainsSet.has(user.email.split('@')[1])
   }));
@@ -39,10 +39,13 @@ export const getUserReport = async ({ beginTime, endTime }: GetUserReportParams)
     })
     .project({
       _id: 1,
-      docs: {
+      all: {
         $reduce: {
           input: '$docs',
-          initialValue: { lastPlan: 'FREE_LOGGEDIN', docs: [] },
+          initialValue: {
+            lastPlan: 'FREE_LOGGEDIN',
+            docs: []
+          },
           in: {
             $cond: {
               if: {
@@ -50,18 +53,62 @@ export const getUserReport = async ({ beginTime, endTime }: GetUserReportParams)
               },
               then: {
                 lastPlan: '$$this.plan',
-                docs: { $concatArrays: ['$$value.docs', ['$$this']] }
+                docs: {
+                  $concatArrays: [
+                    '$$value.docs',
+                    [
+                      {
+                        plan: '$$this.plan',
+                        provider: '$$this.provider',
+                        createdAt: '$$this.createdAt',
+                        label: {
+                          $switch: {
+                            branches: [
+                              {
+                                case: { $eq: ['$$value.lastPlan', 'FREE_LOGGEDIN'] },
+                                then: 'new'
+                              },
+                              {
+                                case: { $eq: ['$$this.plan', 'FREE_LOGGEDIN'] },
+                                then: 'cancel'
+                              },
+                              {
+                                case: {
+                                  $and: [
+                                    { $eq: ['$$this.plan', 'PREMIUM'] },
+                                    { $eq: ['$$value.lastPlan', 'STANDARD'] }
+                                  ]
+                                },
+                                then: 'upgrade'
+                              },
+                              {
+                                case: {
+                                  $and: [
+                                    { $eq: ['$$this.plan', 'STANDARD'] },
+                                    { $eq: ['$$value.lastPlan', 'PREMIUM'] }
+                                  ]
+                                },
+                                then: 'downgrade'
+                              }
+                            ],
+                            default: 'unknown'
+                          }
+                        },
+                      }
+                    ]
+                  ]
+                }
               },
               else: '$$value'
             }
           }
         }
-      }
+      },
     })
     .project({
       plans: {
         $filter: {
-          input: '$docs.docs',
+          input: '$all.docs',
           cond: {
             $and: [{
               $gte: ['$$this.createdAt', beginTime]
