@@ -33,7 +33,8 @@ export const getEventReport = async ({ beginTime, endTime }: GetEventReportParam
       sync: { $sum: { $cond: ['$d.sync', 1, 0] } },
       browserAudio: { $sum: { $cond: ['$d.features.browserAudio', 1, 0] } },
       mic: { $sum: { $cond: ['$d.features.mic', 1, 0] } },
-      webcam: { $sum: { $cond: ['$d.features.webcam', 1, 0] } }
+      webcam: { $sum: { $cond: ['$d.features.webcam', 1, 0] } },
+      noAudio: { $sum: { $cond: [{ $or: ['$d.features.browserAudio', '$d.features.mic'] }, 0, 1] } },
     });
 
   const events = await AnalyticsRecord
