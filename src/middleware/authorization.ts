@@ -42,3 +42,19 @@ export const hasPackageOrHigher = (pkg: string, allowLimited: boolean = false): 
     next();
   };
 };
+
+export const isPluginUser = (req: Request, res: Response, next: NextFunction): void => {
+  if (!req.user) {
+    return forbid(res);
+  }
+
+  if (req.user.features.plugin) {
+    return next();
+  }
+
+  if ((USER_PACKAGES.indexOf(req.user.package) || 0) < USER_PACKAGES.indexOf('PREMIUM')) {
+    return forbid(res);
+  }
+
+  return next();
+};

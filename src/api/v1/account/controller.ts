@@ -711,6 +711,7 @@ export const getProfile = async (
         package: user.package,
         limitedPackage: user.limitedPackage,
         trialsConsumed: user.trialsConsumed,
+        features: user.features,
         avatar: user.gravatar,
         profile: user.profile,
         ...getSubscriptionStatus(user),
