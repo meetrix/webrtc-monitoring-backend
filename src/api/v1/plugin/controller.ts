@@ -27,7 +27,8 @@ export const init = async (
     }
 
     // Doing this without the authorization middleware since the function is invoked by an anonymous user
-    if (user.package !== 'PREMIUM' || getSubscriptionStatus(user).subscriptionStatus !== 'active') {
+    if (!user.features.plugin
+      && (user.package !== 'PREMIUM' || getSubscriptionStatus(user).subscriptionStatus !== 'active')) {
       res.status(403).json({ success: false, error: 'Forbidden (no valid subscription).' });
       return;
     }
