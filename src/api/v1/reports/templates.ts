@@ -95,6 +95,7 @@ export const feedbacksTemplate = `<!DOCTYPE html>
         <th>Email</th>
         <th>Rating</th>
         <th>Feedback</th>
+        <th>Use Case</th>
         <th>App Version</th>
         <th>Browser</th>
         <th>Browser Version</th>
@@ -111,6 +112,7 @@ export const feedbacksTemplate = `<!DOCTYPE html>
         <td>{{email}}</td>
         <td>{{rating}}</td>
         <td>{{feedback}}</td>
+        <td>{{useCase}}</td>
         <td>{{appVersion}}</td>
         <td>{{browser}}</td>
         <td>{{browserVersion}}</td>
