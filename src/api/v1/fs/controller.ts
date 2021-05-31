@@ -25,10 +25,10 @@ export const fetchFileSystem = async (
       .filter(f => f.type === 'File' && f.provider.startsWith('S3'))
       .filter(f => isExpiringSoon((f as FileDocument).url)) as FileDocument[];
 
-    // Update signed URLs
+      // Update signed URLs
     if (filesExpiringSoon.length > 0) {
       await Promise.all(filesExpiringSoon.map(async f => {
-        f.url = await getPlayUrl(f.providerKey);
+        f.url = await getPlayUrl(f.providerKey,null,f.name);
         return;
       }));
       res.status(200).json({
@@ -180,6 +180,8 @@ const makeFileSystemEntityUpdator = (type: 'File' | 'Folder') => async (
 
       if (shouldRename) {
         source.name = name;
+      
+        (source as FileDocument).url= await getPlayUrl((source as FileDocument).providerKey, null, name);
       }
 
       source.parentId = parentId;
@@ -197,6 +199,7 @@ const makeFileSystemEntityUpdator = (type: 'File' | 'Folder') => async (
       }
 
       source.name = name;
+      (source as FileDocument).url= await getPlayUrl((source as FileDocument).providerKey, null, name);
     }
 
     if (type === 'File' && !!req.body.description) {

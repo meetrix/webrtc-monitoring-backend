@@ -59,13 +59,19 @@ export const listRecordings = async (
 
 export const getPlayUrl = async (
   key: string,
-  lifetime: number = 1 * 60 * 60 * 24 * 5
+  lifetime: number = 1 * 60 * 60 * 24 * 5,
+  fileName: string=''
 ): Promise<string> => {
-  return await s3.getSignedUrlPromise('getObject', {
+
+  const params: any={
     Bucket: S3_USER_RECORDINGS_BUCKET,
     Key: key,
-    Expires: lifetime // default: 5 days in seconds
-  });
+    Expires: lifetime, // default: 5 days in seconds
+  };
+  
+  if(fileName) params.ResponseContentDisposition=`attachment; filename="${fileName}.webm"`;
+
+  return await s3.getSignedUrlPromise('getObject', params);
 };
 
 export const deleteRecording = async (key: string): Promise<boolean> => {
