@@ -90,12 +90,12 @@ const handleWebSocketEvents = (server: http.Server): void => {
       // Check for at least STANDARD user package 
       // N.B.: Added to include STANDARD on 2021 May 7 after user complaints of missing files
       abortHandshake(socket, 403, 'Unauthorized. ', {});
-      console.log(`Authorization failed for user ${userDoc.id} (${userDoc.role}, ${userDoc.package})`);
+      console.log(`Authorization failed for user ${userDoc._id} (${userDoc.role}, ${userDoc.package})`);
       return;
     }
 
     wss.handleUpgrade(request, socket as Socket, head, function done(ws) {
-      wss.emit('connection', ws, request, { reqUrl, userDoc, syncContext });
+      wss.emit('connection', ws, request, { reqUrl, user: userDoc, syncContext });
     });
   });
 

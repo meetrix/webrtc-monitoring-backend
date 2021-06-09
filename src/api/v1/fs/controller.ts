@@ -73,7 +73,7 @@ const makeFileSystemEntityCreator = (type: 'File' | 'Folder') => async (
 
     const provider = parent
       ? parent.provider
-      : (['IDB', 'S3', 'S3:plugin'].includes(req.body.provider) ? req.body.provider : 'IDB');
+      : (['IDB', 'S3', 'S3:plugin', 'S3:request'].includes(req.body.provider) ? req.body.provider : 'IDB');
 
     // Check whether the parent folder already contains a file or folder by the same name
     if (req.user.fileSystem
