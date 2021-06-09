@@ -1,8 +1,14 @@
 import jwt from 'jsonwebtoken';
 
 import { SESSION_SECRET } from '../config/secrets';
-import { JWT_EXPIRATION, JWT_EXPIRATION_PLUGIN, SUBSCRIPTION_STATUSES } from '../config/settings';
+import {
+  JWT_EXPIRATION,
+  JWT_EXPIRATION_PLUGIN,
+  JWT_EXPIRATION_REC_REQ,
+  SUBSCRIPTION_STATUSES
+} from '../config/settings';
 import { PluginDocument } from '../models/Plugin';
+import { RecordingRequestDocument } from '../models/RecordingRequest';
 import { UserDocument } from '../models/User';
 
 export const signToken = (user: UserDocument): string => {
@@ -30,6 +36,19 @@ export const signPluginToken = (plugin: PluginDocument): string => {
     {
       expiresIn: JWT_EXPIRATION_PLUGIN,
       subject: plugin.ownerId,
+    }
+  );
+};
+
+export const signSecondaryUserToken = (recReq: RecordingRequestDocument): string => {
+  return jwt.sign(
+    {
+      recordingRequestId: recReq._id.toString(),
+    },
+    SESSION_SECRET,
+    {
+      expiresIn: JWT_EXPIRATION_REC_REQ,
+      subject: recReq.ownerId,
     }
   );
 };
