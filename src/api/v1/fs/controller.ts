@@ -5,7 +5,7 @@ import { v4 as uuid } from 'uuid';
 const FOUR_HOURS = 1 * 60 * 60 * 4;
 
 import {
-  FileDocument, FileSystemEntityDocument, FileType, FolderDocument, FolderType
+  FileDocument, FileSystemEntityDocument, FileSystemEntityType, FileType, FolderDocument, FolderType
 } from '../../../models/FileSystemEntity';
 import { SharedContent } from '../../../models/SharedContent';
 import { User } from '../../../models/User';
@@ -25,10 +25,10 @@ export const fetchFileSystem = async (
       .filter(f => f.type === 'File' && f.provider.startsWith('S3'))
       .filter(f => isExpiringSoon((f as FileDocument).url)) as FileDocument[];
 
-      // Update signed URLs
+    // Update signed URLs
     if (filesExpiringSoon.length > 0) {
       await Promise.all(filesExpiringSoon.map(async f => {
-        f.url = await getPlayUrl(f.providerKey,null,f.name);
+        f.url = await getPlayUrl(f.providerKey, null, f.name);
         return;
       }));
       res.status(200).json({
@@ -73,7 +73,7 @@ const makeFileSystemEntityCreator = (type: 'File' | 'Folder') => async (
 
     const provider = parent
       ? parent.provider
-      : (['IDB', 'S3', 'S3:plugin'].includes(req.body.provider) ? req.body.provider : 'IDB');
+      : (['IDB', 'S3', 'S3:plugin', 'S3:request'].includes(req.body.provider) ? req.body.provider : 'IDB');
 
     // Check whether the parent folder already contains a file or folder by the same name
     if (req.user.fileSystem
@@ -180,8 +180,8 @@ const makeFileSystemEntityUpdator = (type: 'File' | 'Folder') => async (
 
       if (shouldRename) {
         source.name = name;
-      
-        (source as FileDocument).url= await getPlayUrl((source as FileDocument).providerKey, null, name);
+
+        (source as FileDocument).url = await getPlayUrl((source as FileDocument).providerKey, null, name);
       }
 
       source.parentId = parentId;
@@ -199,7 +199,7 @@ const makeFileSystemEntityUpdator = (type: 'File' | 'Folder') => async (
       }
 
       source.name = name;
-      (source as FileDocument).url= await getPlayUrl((source as FileDocument).providerKey, null, name);
+      (source as FileDocument).url = await getPlayUrl((source as FileDocument).providerKey, null, name);
     }
 
     if (type === 'File' && !!req.body.description) {
@@ -428,7 +428,7 @@ export const moveManyFiles = async (
 
     const { fileIds, folderId }: { fileIds: string[]; folderId: string } = req.body;
 
-    let provider: 'S3' | 'S3:plugin' | 'IDB' | null;
+    let provider: FileSystemEntityType['provider'] | null;
     if (folderId !== null) {
       const destination = req.user.fileSystem.id(folderId) as FolderDocument;
       if (!destination || destination.type !== 'Folder') {

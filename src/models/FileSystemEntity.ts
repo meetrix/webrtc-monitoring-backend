@@ -5,7 +5,7 @@ export interface FileSystemEntityType {
   type: 'File' | 'Folder'; // Discriminator
   _id?: string; // folder.key; file.recordingId
   name: string;
-  provider: 'S3' | 'S3:plugin' | 'IDB';
+  provider: 'S3' | 'S3:plugin' | 'S3:request' | 'IDB';
   createdAt?: Date; // fse.timestamp
   updatedAt?: Date;
   parentId: null | string; // folder.parentId; file.folderId

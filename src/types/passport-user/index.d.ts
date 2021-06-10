@@ -23,6 +23,10 @@ declare global {
       plugin: boolean;
       website: string;
     }
+
+    interface JwtSecondaryUser extends IJwtUser {
+      recordingRequestId: string;
+    }
   }
   namespace Passport {
     interface ExtendedProfile extends Profile {

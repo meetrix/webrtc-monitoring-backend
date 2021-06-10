@@ -13,6 +13,7 @@ import { fsRouter } from '../api/v1/fs';
 import { pluginRouter } from '../api/v1/plugin';
 import { miscRouter } from '../api/v1/misc';
 import { trimRouter } from '../api/v1/trim';
+import { recordingRequestRouter } from '../api/v1/recordingRequests';
 
 export const setupRoutesV1 = (app: Express): void => {
   app.use('/v1/spec', specRouter);
@@ -29,4 +30,5 @@ export const setupRoutesV1 = (app: Express): void => {
   app.use('/v1/reports', reportsRouter);
   app.use('/v1/misc', miscRouter);
   app.use('/v1/trim', trimRouter);
+  app.use('/v1/recording-request', recordingRequestRouter);
 };

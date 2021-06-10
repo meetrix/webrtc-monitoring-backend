@@ -43,7 +43,7 @@ export const hasPackageOrHigher = (pkg: string, allowLimited: boolean = false): 
   };
 };
 
-export const isPluginUser = (req: Request, res: Response, next: NextFunction): void => {
+export const isPluginOwner = (req: Request, res: Response, next: NextFunction): void => {
   if (!req.user) {
     return forbid(res);
   }
