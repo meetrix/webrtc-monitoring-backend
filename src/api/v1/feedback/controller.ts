@@ -32,7 +32,7 @@ export const feedback = async (
   try {
     const validationErrors = [];
 
-    const { email = '', } = req.body;
+    const { email = '', name = ''} = req.body;
     const { rating = 0, feedback = '', meta = {} , useCase=''} = req.body;
 
     // const emailValidated = await validateEmail(email);
@@ -60,6 +60,7 @@ export const feedback = async (
     const feedbackDocument = new Feedback({
       clientId,
       email,
+      name,
       rating,
       feedback,
       useCase,

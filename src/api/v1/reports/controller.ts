@@ -114,7 +114,7 @@ export const feedbackReport = async (
         .sort('-createdAt');
 
     const result = feedbacks.map((f) => {
-      const { email, rating, feedback, meta, createdAt, useCase } = f.format();
+      const { email, name, rating, feedback, meta, createdAt, useCase } = f.format();
       const appVersion = meta?.app?.version;
       const browser = meta?.browser?.name;
       const browserVersion = meta?.browser?.version;
@@ -125,6 +125,7 @@ export const feedbackReport = async (
 
       return {
         email,
+        name,
         rating,
         feedback,
         useCase,
