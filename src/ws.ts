@@ -10,10 +10,11 @@ import { API_BASE_URL, USER_PACKAGES } from './config/settings';
 import { User, UserDocument } from './models/User';
 import { FileType, FileSystemEntityType } from './models/FileSystemEntity';
 import { getFileSize, getPlayUrl, listRecordings, uploadRecordingToS3, deleteRecording } from './util/s3';
+import { RecordingRequest } from './models/RecordingRequest';
 
-type SyncContext = 'primary' | 'secondary' | 'plugin';
+type SyncContext = { type: 'primary' | 'secondary' | 'plugin'; data: string };
 
-const syncContextToProvider: { [x in SyncContext]: FileSystemEntityType['provider'] } = {
+const syncContextToProvider: { [x in SyncContext['type']]: FileSystemEntityType['provider'] } = {
   plugin: 'S3:plugin',
   primary: 'S3',
   secondary: 'S3:request',
@@ -42,6 +43,12 @@ function abortHandshake(socket: Socket, code: number, message: string, headers: 
   socket.destroy();
 }
 
+async function updateRecordingRequest(syncContext: SyncContext, _id: string): Promise<void> {
+  const recReq = await RecordingRequest.findById(syncContext.data);
+  recReq.fileId = _id;
+  await recReq.save();
+}
+
 const handleWebSocketEvents = (server: http.Server): void => {
   const wss = new WebSocket.Server({ noServer: true, perMessageDeflate: false });
 
@@ -62,17 +69,19 @@ const handleWebSocketEvents = (server: http.Server): void => {
     }
 
     let originVerified = false;
-    let syncContext = 'primary';
+    let syncContextType = 'primary';
+    let syncContextData = '';
     if ((jwtUser as Express.JwtPluginUser).plugin) { // Third-party site
-      syncContext = 'plugin';
+      syncContextType = 'plugin';
       // Validate the correct third party site
       const website = (jwtUser as Express.JwtPluginUser).website;
       originVerified = !!request.headers['origin'].toString().includes(website);
     } else { // Main site
       originVerified = !!request.headers['origin'].toString().match(new RegExp(CORS_REGEX));
-
-      if ((jwtUser as Express.JwtSecondaryUser).recordingRequestId) {
-        syncContext = 'secondary';
+      const recordingRequestId = (jwtUser as Express.JwtSecondaryUser).recordingRequestId;
+      if (recordingRequestId) {
+        syncContextType = 'secondary';
+        syncContextData = recordingRequestId;
       }
     }
 
@@ -95,7 +104,12 @@ const handleWebSocketEvents = (server: http.Server): void => {
     }
 
     wss.handleUpgrade(request, socket as Socket, head, function done(ws) {
-      wss.emit('connection', ws, request, { reqUrl, user: userDoc, syncContext });
+      wss.emit(
+        'connection',
+        ws,
+        request,
+        { reqUrl, user: userDoc, syncContext: { type: syncContextType, data: syncContextData } }
+      );
     });
   });
 
@@ -152,17 +166,19 @@ const handleWebSocketEvents = (server: http.Server): void => {
         upload = await uploadRecordingToS3(userId, recordingId, wsStream);
       }
 
-      const reqUrl = new URL(req.url, API_BASE_URL);
       const folderId = reqUrl.searchParams.get('folder_id');
+      const name = reqUrl.searchParams.get('name') || `Recording_${startTimestamp}`;
+      const description = reqUrl.searchParams.get('description') || '';
+      const _id = prevVideosWithSameKey > 0 ? `${recordingId}_${prevVideosWithSameKey}` : recordingId;
 
       const file: FileType = {
-        _id: prevVideosWithSameKey > 0 ? `${recordingId}_${prevVideosWithSameKey}` : recordingId,
+        _id,
         type: 'File',
         parentId: folderId,
-        name: `Recording_${startTimestamp}`,
-        provider: syncContextToProvider[syncContext],
+        name,
+        provider: syncContextToProvider[syncContext.type],
         providerKey: upload.Key,
-        description: '',
+        description,
         // Need another API call for file size
         size: await getFileSize(upload.Key),
         // And another for signed URL
@@ -174,6 +190,10 @@ const handleWebSocketEvents = (server: http.Server): void => {
         user.fileSystem.push(file);
         await user.save();
         console.log(`File ${userId}/${recordingId}.webm uploaded. `);
+
+        if (syncContext.type === 'secondary') {
+          await updateRecordingRequest(syncContext, _id);
+        }
       } else {
         await deleteRecording(file.providerKey);
       }

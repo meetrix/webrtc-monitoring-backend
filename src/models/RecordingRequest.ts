@@ -5,12 +5,14 @@ export interface RecordingRequestType {
   ownerId: string;
   expiry: Date;
   used: boolean;
+  fileId: string;
 }
 
 const requestRecordingDef: SchemaDefinition = {
   ownerId: { type: String, index: true },
   expiry: { type: Date },
-  used: { type: Boolean, default: false }
+  used: { type: Boolean, default: false },
+  fileId: String,
 };
 
 const recordingRequestSchema = new Schema(requestRecordingDef, { timestamps: true });
