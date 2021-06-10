@@ -93,6 +93,7 @@ export const feedbacksTemplate = `<!DOCTYPE html>
     <thead>
       <tr>
         <th>Email</th>
+        <th>Name</th>
         <th>Rating</th>
         <th>Feedback</th>
         <th>Use Case</th>
@@ -110,6 +111,7 @@ export const feedbacksTemplate = `<!DOCTYPE html>
       {{#each records}}
       <tr>
         <td>{{email}}</td>
+        <td>{{name}}</td>
         <td>{{rating}}</td>
         <td>{{feedback}}</td>
         <td>{{useCase}}</td>
