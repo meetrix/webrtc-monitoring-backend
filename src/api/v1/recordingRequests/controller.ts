@@ -57,6 +57,9 @@ export const init = async (
     }
 
     const token = signSecondaryUserToken(recReq);
+    recReq.used = true;
+    await recReq.save();
+
     res.status(200).json({ success: true, data: { token } });
   } catch (error) {
     console.log(error);
@@ -74,7 +77,7 @@ const extractRequestDetails = async (token: string): Promise<{
   }
 
   const recReq = await RecordingRequest.findById(jwtUser.recordingRequestId);
-  if (recReq.used) {
+  if (recReq.sealed) { // Finalized recording
     throw new Error('Link not found or expired.');
   }
   return { jwtUser, recReq };
@@ -129,7 +132,7 @@ export const finish = async (
 
   try {
     const { recReq } = await extractRequestDetails(token as string);
-    recReq.used = true;
+    recReq.sealed = true;
     await recReq.save();
   } catch (error) {
     console.log(error.message);

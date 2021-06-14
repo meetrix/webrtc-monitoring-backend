@@ -6,6 +6,7 @@ export interface RecordingRequestType {
   expiry: Date;
   used: boolean;
   fileId: string;
+  sealed: boolean;
 }
 
 const requestRecordingDef: SchemaDefinition = {
@@ -13,6 +14,7 @@ const requestRecordingDef: SchemaDefinition = {
   expiry: { type: Date },
   used: { type: Boolean, default: false },
   fileId: String,
+  sealed: { type: Boolean, default: false },
 };
 
 const recordingRequestSchema = new Schema(requestRecordingDef, { timestamps: true });

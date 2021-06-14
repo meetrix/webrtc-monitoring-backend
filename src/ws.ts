@@ -10,9 +10,9 @@ import { API_BASE_URL, USER_PACKAGES } from './config/settings';
 import { User, UserDocument } from './models/User';
 import { FileType, FileSystemEntityType } from './models/FileSystemEntity';
 import { getFileSize, getPlayUrl, listRecordings, uploadRecordingToS3, deleteRecording } from './util/s3';
-import { RecordingRequest } from './models/RecordingRequest';
+import { RecordingRequest, RecordingRequestDocument } from './models/RecordingRequest';
 
-type SyncContext = { type: 'primary' | 'secondary' | 'plugin'; data: string };
+type SyncContext = { type: 'primary' | 'secondary' | 'plugin'; data: RecordingRequestDocument };
 
 const syncContextToProvider: { [x in SyncContext['type']]: FileSystemEntityType['provider'] } = {
   plugin: 'S3:plugin',
@@ -43,12 +43,6 @@ function abortHandshake(socket: Socket, code: number, message: string, headers: 
   socket.destroy();
 }
 
-async function updateRecordingRequest(syncContext: SyncContext, _id: string): Promise<void> {
-  const recReq = await RecordingRequest.findById(syncContext.data);
-  recReq.fileId = _id;
-  await recReq.save();
-}
-
 const handleWebSocketEvents = (server: http.Server): void => {
   const wss = new WebSocket.Server({ noServer: true, perMessageDeflate: false });
 
@@ -70,7 +64,7 @@ const handleWebSocketEvents = (server: http.Server): void => {
 
     let originVerified = false;
     let syncContextType = 'primary';
-    let syncContextData = '';
+    let syncContextData: RecordingRequestDocument;
     if ((jwtUser as Express.JwtPluginUser).plugin) { // Third-party site
       syncContextType = 'plugin';
       // Validate the correct third party site
@@ -81,7 +75,13 @@ const handleWebSocketEvents = (server: http.Server): void => {
       const recordingRequestId = (jwtUser as Express.JwtSecondaryUser).recordingRequestId;
       if (recordingRequestId) {
         syncContextType = 'secondary';
-        syncContextData = recordingRequestId;
+        syncContextData = await RecordingRequest.findById(recordingRequestId);
+      }
+
+      if (syncContextData.sealed) {
+        abortHandshake(socket, 404, 'Recording request expired or. ', {});
+        console.log(`Sealed recording request ${syncContextData._id}`);
+        return;
       }
     }
 
@@ -191,8 +191,10 @@ const handleWebSocketEvents = (server: http.Server): void => {
         await user.save();
         console.log(`File ${userId}/${recordingId}.webm uploaded. `);
 
+        // Save file id for Recording Requests so that we can undo if needed
         if (syncContext.type === 'secondary') {
-          await updateRecordingRequest(syncContext, _id);
+          syncContext.data.fileId = _id;
+          await syncContext.data.save();
         }
       } else {
         await deleteRecording(file.providerKey);
