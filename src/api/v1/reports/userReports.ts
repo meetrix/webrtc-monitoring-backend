@@ -119,6 +119,109 @@ const attachTrialInformation = (planInfo: Plan): Plan => {
   };
 };
 
+const paymentsByUser = {
+  _id: '$userId',
+  docs: {
+    $push: {
+      // Consider all params: plan, period, trial, provider
+      // For PayPal, price id is unique for plan+period+trial; 
+      // For stripe, we have to track trials w/ amountPaid. 
+      key: { $concat: ['$priceId', '--', { $toString: '$amountPaid' }] },
+      plan: '$plan',
+      provider: { $ifNull: ['$provider', 'stripe'] },
+      createdAt: '$createdAt',
+      // Trial: This doesn't work for paypal -- looks like all paypal trial plans are missing
+      isTrial: { $eq: ['$amountPaid', 0] },
+      priceId: '$priceId'
+    }
+  }
+};
+
+const distinctUntilChangedByPlan = {
+  $reduce: {
+    input: '$docs',
+    initialValue: {
+      lastKey: '',
+      lastPlan: 'FREE_LOGGEDIN',
+      lastTrial: false,
+      docs: [] as unknown[],
+    },
+    in: {
+      $cond: {
+        if: {
+          $ne: ['$$value.lastKey', '$$this.key']
+        },
+        then: {
+          lastKey: '$$this.key',
+          lastPlan: '$$this.lastPlan',
+          lastTrial: '$$this.isTrial',
+          docs: {
+            $concatArrays: [
+              '$$value.docs',
+              [
+                {
+                  key: '$$this.key',
+                  plan: '$$this.plan',
+                  provider: '$$this.provider',
+                  createdAt: '$$this.createdAt',
+                  isTrial: '$$this.isTrial',
+                  priceId: '$$this.priceId',
+                  label: {
+                    $switch: {
+                      branches: [
+                        {
+                          case: { $eq: ['$$value.lastPlan', 'FREE_LOGGEDIN'] },
+                          then: 'new'
+                        },
+                        {
+                          case: { $eq: ['$$this.plan', 'FREE_LOGGEDIN'] },
+                          then: 'cancel'
+                          // Cancellations are not properly captured since 
+                          // cancellations do not create payments. (Only downgrades to
+                          // FREE_LOGGEDIN do.)
+                        },
+                        {
+                          case: {
+                            $and: [
+                              { $eq: ['$$this.plan', 'PREMIUM'] },
+                              { $eq: ['$$value.lastPlan', 'STANDARD'] }
+                            ]
+                          },
+                          then: 'upgrade'
+                        },
+                        {
+                          case: {
+                            $and: [
+                              { $eq: ['$$this.plan', 'STANDARD'] },
+                              { $eq: ['$$value.lastPlan', 'PREMIUM'] }
+                            ]
+                          },
+                          then: 'downgrade'
+                        },
+                        {
+                          case: {
+                            $and: [
+                              { $eq: ['$$this.isTrial', false] },
+                              { $eq: ['$$value.lastTrial', true] }
+                            ]
+                          },
+                          then: 'trial-upgrade'
+                        }
+                      ],
+                      default: 'unknown'
+                    }
+                  },
+                }
+              ]
+            ]
+          }
+        },
+        else: '$$value'
+      }
+    }
+  }
+};
+
 export const getUserReport = async ({ beginTime, endTime }: GetUserReportParams) => {
   const userEmails: { email: string; createdAt: string; _id: string }[] = await User
     .aggregate()
@@ -138,111 +241,11 @@ export const getUserReport = async ({ beginTime, endTime }: GetUserReportParams)
     .aggregate()
     .match({ paid: true })
     .sort({ createdAt: 1 })
-    // Group payments by user
-    .group({
-      _id: '$userId',
-      docs: {
-        $push: {
-          // Consider all params: plan, period, trial, provider
-          // For PayPal, price id is unique for plan+period+trial; 
-          // For stripe, we have to track trials w/ amountPaid. 
-          key: { $concat: ['$priceId', '--', { $toString: '$amountPaid' }] },
-          plan: '$plan',
-          provider: { $ifNull: ['$provider', 'stripe'] },
-          createdAt: '$createdAt',
-          // Trial: This doesn't work for paypal -- looks like all paypal trial plans are missing
-          isTrial: { $eq: ['$amountPaid', 0] },
-          priceId: '$priceId'
-        }
-      }
-    })
-    // Finds all points where the key changed. Works similar to distinctUntilChanged in RxJS.
+    .group(paymentsByUser)
+    // Finds all points where the key changed. Key represents plan, provider, trial, period. 
     .project({
       _id: 1,
-      all: {
-        $reduce: {
-          input: '$docs',
-          initialValue: {
-            lastKey: '',
-            lastPlan: 'FREE_LOGGEDIN',
-            lastTrial: false,
-            docs: []
-          },
-          in: {
-            $cond: {
-              if: {
-                $ne: ['$$value.lastKey', '$$this.key']
-              },
-              then: {
-                lastKey: '$$this.key',
-                lastPlan: '$$this.lastPlan',
-                lastTrial: '$$this.isTrial',
-                docs: {
-                  $concatArrays: [
-                    '$$value.docs',
-                    [
-                      {
-                        key: '$$this.key',
-                        plan: '$$this.plan',
-                        provider: '$$this.provider',
-                        createdAt: '$$this.createdAt',
-                        isTrial: '$$this.isTrial',
-                        priceId: '$$this.priceId',
-                        label: {
-                          $switch: {
-                            branches: [
-                              {
-                                case: { $eq: ['$$value.lastPlan', 'FREE_LOGGEDIN'] },
-                                then: 'new'
-                              },
-                              {
-                                case: { $eq: ['$$this.plan', 'FREE_LOGGEDIN'] },
-                                then: 'cancel'
-                                // TODO Cancellations are not properly captured since 
-                                // cancellations do not create payments. (Only downgrades to
-                                // FREE_LOGGEDIN do.)
-                              },
-                              {
-                                case: {
-                                  $and: [
-                                    { $eq: ['$$this.plan', 'PREMIUM'] },
-                                    { $eq: ['$$value.lastPlan', 'STANDARD'] }
-                                  ]
-                                },
-                                then: 'upgrade'
-                              },
-                              {
-                                case: {
-                                  $and: [
-                                    { $eq: ['$$this.plan', 'STANDARD'] },
-                                    { $eq: ['$$value.lastPlan', 'PREMIUM'] }
-                                  ]
-                                },
-                                then: 'downgrade'
-                              },
-                              {
-                                case: {
-                                  $and: [
-                                    { $eq: ['$$this.isTrial', false] },
-                                    { $eq: ['$$value.lastTrial', true] }
-                                  ]
-                                },
-                                then: 'trial-upgrade'
-                              }
-                            ],
-                            default: 'unknown'
-                          }
-                        },
-                      }
-                    ]
-                  ]
-                }
-              },
-              else: '$$value'
-            }
-          }
-        }
-      },
+      all: distinctUntilChangedByPlan,
     })
     .project({
       plans: {
@@ -260,12 +263,40 @@ export const getUserReport = async ({ beginTime, endTime }: GetUserReportParams)
       lastPlan: '$docs.lastPlan'
     });
 
+  const cancelledUsers: Set<string> = new Set((await User.find({
+    limitedPackage: { $exists: true, $ne: 'FREE_LOGGEDIN' },
+    package: 'FREE_LOGGEDIN'
+  }, { _id: 1 })).map((user) => user._id));
+
   const subscriptions = subscriptionsRaw
-    .map(({ _id, plans }) => ({
-      _id, plans: plans.map((plan: Plan) => {
-        return attachTrialInformation(attachPeriodInformation(plan));
-      })
-    }));
+    .map(({ _id, plans }: { _id: string; plans: Plan[] }) => {
+      if (plans.length > 0 && cancelledUsers.has(_id)) {
+        const cancellation: Plan = {
+          provider: plans[plans.length - 1].provider,
+          isTrial: false,
+          key: '',
+          label: 'cancel',
+          period: 'none',
+          plan: 'FREE_LOGGEDIN',
+          priceId: '',
+          // This created at date is incorrect; this assumes the cancellation
+          // happened at the same time as the last payment
+          createdAt: plans[plans.length - 1].createdAt
+        };
+
+        plans.push(cancellation);
+      }
+
+      return {
+        _id, plans: plans.map((planInfo: Plan) => {
+          const billingPeriodsAttached = attachPeriodInformation(planInfo);
+          const trialInformationAttached = attachTrialInformation(billingPeriodsAttached);
+          // eslint-disable-next-line @typescript-eslint/no-unused-vars
+          const { key, priceId, ...cleaned } = trialInformationAttached;
+          return cleaned;
+        })
+      };
+    });
 
   return { subscriptions, emails, personalEmailProviders: domains };
 };
