@@ -78,7 +78,7 @@ const handleWebSocketEvents = (server: http.Server): void => {
         syncContextData = await RecordingRequest.findById(recordingRequestId);
       }
 
-      if (syncContextData.sealed) {
+      if (syncContextData && syncContextData.sealed) {
         abortHandshake(socket, 404, 'Recording request expired or. ', {});
         console.log(`Sealed recording request ${syncContextData._id}`);
         return;
