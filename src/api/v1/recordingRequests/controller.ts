@@ -4,11 +4,30 @@ import jwt from 'jsonwebtoken';
 import { SESSION_SECRET } from '../../../config/secrets';
 import { FileDocument } from '../../../models/FileSystemEntity';
 import { RecordingRequest, RecordingRequestDocument } from '../../../models/RecordingRequest';
-import { User } from '../../../models/User';
+import { User, UserDocument } from '../../../models/User';
 import { getSubscriptionStatus, signSecondaryUserToken } from '../../../util/auth';
 import { deleteRecordings } from '../../../util/s3';
 
 const DAY = 24 * 60 * 60 * 1000;
+
+const deleteOldFiles = async (
+  recReq: RecordingRequestDocument,
+  user: UserDocument,
+  exceptLast: boolean
+): Promise<void> => {
+  const fileIds = [];
+  for (let i = 0; i < recReq.fileIds.length - (exceptLast ? 1 : 0); i++) {
+    const fileId = recReq.fileIds[i];
+    const source = user.fileSystem.id(fileId);
+    if (!source) {
+      fileIds.push(fileId);
+      continue;
+    }
+    await deleteRecordings([(source as FileDocument).providerKey]);
+    user.fileSystem.pull(source);
+  }
+  recReq.fileIds = fileIds;
+};
 
 export const create = async (
   req: Request,
@@ -101,15 +120,9 @@ export const undo = async (
       throw new Error('No such file exists.');
     }
 
-    const source = user.fileSystem.id(recReq.fileId);
-    if (!source) {
-      throw new Error('No such file exists.');
-    }
+    await deleteOldFiles(recReq, user, false);
 
-    await deleteRecordings([(source as FileDocument).providerKey]);
-    user.fileSystem.pull(source);
     await user.save();
-    recReq.fileId = '';
     await recReq.save();
   } catch (error) {
     console.log(error.message);
@@ -131,7 +144,15 @@ export const finish = async (
   }
 
   try {
-    const { recReq } = await extractRequestDetails(token as string);
+    const { recReq, jwtUser } = await extractRequestDetails(token as string);
+
+    const user = await User.findById(jwtUser.sub);
+    if (!user.fileSystem) {
+      throw new Error('No such file exists.');
+    }
+
+    await deleteOldFiles(recReq, user, true);
+
     recReq.sealed = true;
     await recReq.save();
   } catch (error) {

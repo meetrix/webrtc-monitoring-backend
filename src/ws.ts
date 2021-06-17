@@ -193,7 +193,7 @@ const handleWebSocketEvents = (server: http.Server): void => {
 
         // Save file id for Recording Requests so that we can undo if needed
         if (syncContext.type === 'secondary') {
-          syncContext.data.fileId = _id;
+          syncContext.data.fileIds.push(_id);
           await syncContext.data.save();
         }
       } else {

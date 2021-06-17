@@ -5,7 +5,7 @@ export interface RecordingRequestType {
   ownerId: string;
   expiry: Date;
   used: boolean;
-  fileId: string;
+  fileIds: string[];
   sealed: boolean;
 }
 
@@ -13,7 +13,7 @@ const requestRecordingDef: SchemaDefinition = {
   ownerId: { type: String, index: true },
   expiry: { type: Date },
   used: { type: Boolean, default: false },
-  fileId: String,
+  fileIds: [String],
   sealed: { type: Boolean, default: false },
 };
 
