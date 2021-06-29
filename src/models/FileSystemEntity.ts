@@ -33,6 +33,8 @@ export interface FileType extends FileSystemEntityType {
   size: number; // bytes
   providerKey: string; // Storage provider key
   url?: string;
+  recorderEmail?: string;  //Used for plugin only
+  recorderName?: string; //Used for plugin only
 }
 
 const fileSchemaDef = {

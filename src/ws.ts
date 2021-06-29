@@ -156,20 +156,24 @@ const handleWebSocketEvents = (server: http.Server): void => {
     console.log(`Receiving file ${userId}/${recordingId}.webm. `);
 
     const prevVideosWithSameKey = (await listRecordings(userId, recordingId)).length;
-
+    
     let upload: ManagedUpload.SendData = null;
     try {
       const startTimestamp = Date.now();
+      const name = reqUrl.searchParams.get('name') || `Recording_${startTimestamp}`;
+
       if (prevVideosWithSameKey > 0) {
-        upload = await uploadRecordingToS3(userId, recordingId, wsStream, `_${prevVideosWithSameKey}`);
+        upload = await uploadRecordingToS3(userId, recordingId, wsStream, `_${prevVideosWithSameKey}`,name);
       } else {
-        upload = await uploadRecordingToS3(userId, recordingId, wsStream);
+        upload = await uploadRecordingToS3(userId, recordingId, wsStream,'',name);
       }
 
       const folderId = reqUrl.searchParams.get('folder_id');
-      const name = reqUrl.searchParams.get('name') || `Recording_${startTimestamp}`;
       const description = reqUrl.searchParams.get('description') || '';
       const _id = prevVideosWithSameKey > 0 ? `${recordingId}_${prevVideosWithSameKey}` : recordingId;
+
+      const recorderEmail = reqUrl.searchParams.get('recorderEmail') || ''; //Used for plugin only
+      const recorderName = reqUrl.searchParams.get('recorderName') || ''; //Used for plugin only
 
       const file: FileType = {
         _id,
@@ -183,6 +187,8 @@ const handleWebSocketEvents = (server: http.Server): void => {
         size: await getFileSize(upload.Key),
         // And another for signed URL
         url: await getPlayUrl(upload.Key),
+        recorderEmail, //Used for plugin only
+        recorderName  //Used for plugin only
       };
 
       if (file?.size > 0) {
