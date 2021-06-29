@@ -42,6 +42,8 @@ const fileSchemaDef = {
   size: Number,
   providerKey: String,
   url: String,
+  recorderEmail: String, //Used for plugin only
+  recorderName: String,  //Used for plugin only
 };
 
 const options: SchemaOptions = { discriminatorKey: 'type', timestamps: true };
