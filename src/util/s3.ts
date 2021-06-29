@@ -13,14 +13,15 @@ export const uploadRecordingToS3 = async (
   userId: string,
   recordingId: string,
   stream: Readable,
-  suffix: string = ''
+  suffix: string = '',
+  name: string=''
 ): Promise<S3.ManagedUpload.SendData> => {
   const key = `vid/${userId}/${recordingId}${suffix}.webm`;
 
   return await s3
     .upload({
       // Allows cross-origin downloads
-      ContentDisposition: `attachment; filename="${recordingId}${suffix}.webm"`,
+      ContentDisposition: `attachment; filename="${name? name: recordingId}${suffix}.webm"`,
       Bucket: S3_USER_RECORDINGS_BUCKET,
       Key: key,
       ContentType: 'video/webm',
