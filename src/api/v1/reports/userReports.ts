@@ -28,7 +28,6 @@ interface Plan {
   createdAt: Date;
   isTrial: boolean;
   key: string;
-  label: string;
   period: string;
   plan: string;
   priceId: string;
@@ -137,6 +136,7 @@ const paymentsByUser = {
   }
 };
 
+// Distinct until changed by a unique key that virtually includes provider+plan+period+trial
 const distinctUntilChangedByPlan = {
   $reduce: {
     input: '$docs',
@@ -166,51 +166,6 @@ const distinctUntilChangedByPlan = {
                   createdAt: '$$this.createdAt',
                   isTrial: '$$this.isTrial',
                   priceId: '$$this.priceId',
-                  label: {
-                    $switch: {
-                      branches: [
-                        {
-                          case: { $eq: ['$$value.lastPlan', 'FREE_LOGGEDIN'] },
-                          then: 'new'
-                        },
-                        {
-                          case: { $eq: ['$$this.plan', 'FREE_LOGGEDIN'] },
-                          then: 'cancel'
-                          // Cancellations are not properly captured since 
-                          // cancellations do not create payments. (Only downgrades to
-                          // FREE_LOGGEDIN do.)
-                        },
-                        {
-                          case: {
-                            $and: [
-                              { $eq: ['$$this.plan', 'PREMIUM'] },
-                              { $eq: ['$$value.lastPlan', 'STANDARD'] }
-                            ]
-                          },
-                          then: 'upgrade'
-                        },
-                        {
-                          case: {
-                            $and: [
-                              { $eq: ['$$this.plan', 'STANDARD'] },
-                              { $eq: ['$$value.lastPlan', 'PREMIUM'] }
-                            ]
-                          },
-                          then: 'downgrade'
-                        },
-                        {
-                          case: {
-                            $and: [
-                              { $eq: ['$$this.isTrial', false] },
-                              { $eq: ['$$value.lastTrial', true] }
-                            ]
-                          },
-                          then: 'trial-upgrade'
-                        }
-                      ],
-                      default: 'unknown'
-                    }
-                  },
                 }
               ]
             ]
@@ -275,7 +230,6 @@ export const getUserReport = async ({ beginTime, endTime }: GetUserReportParams)
           provider: plans[plans.length - 1].provider,
           isTrial: false,
           key: '',
-          label: 'cancel',
           period: 'none',
           plan: 'FREE_LOGGEDIN',
           priceId: '',
