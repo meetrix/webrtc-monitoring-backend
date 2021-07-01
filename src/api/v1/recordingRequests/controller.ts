@@ -7,6 +7,8 @@ import { RecordingRequest, RecordingRequestDocument } from '../../../models/Reco
 import { User, UserDocument } from '../../../models/User';
 import { getSubscriptionStatus, signSecondaryUserToken } from '../../../util/auth';
 import { deleteRecordings } from '../../../util/s3';
+import { getMailOptions, getTransporter } from '../../../util/mail';
+import { AUTH_LANDING } from '../../../config/settings';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -157,6 +159,65 @@ export const finish = async (
     await recReq.save();
   } catch (error) {
     console.log(error.message);
+    res.status(404).json({ success: false, error: error.message });
+    return;
+  }
+
+  res.status(200).json({ success: true });
+};
+
+export const sendEmail = async (
+  req: Request,
+  res: Response,
+): Promise<void> => {
+  const { key ,emailAddress} = req.body;
+  if (!key) {
+    res.status(401).json({ success: false, error: 'key is missing' });
+    return;
+  }
+  if (!emailAddress) {
+    res.status(401).json({ success: false, error: 'emailAddress is missing' });
+    return;
+  }
+
+  try {
+    const recReq = await RecordingRequest.findById(key);
+    if (!recReq || recReq.expiry < new Date() || recReq.used) {
+      res.status(404).json({ success: false, error: 'No such share link or link expired.' });
+      return;
+    }
+
+    const user = await User.findById(recReq.ownerId);
+    if (!user) {
+      res.status(404).json({ success: false, error: 'Recording requester not found.' });
+      return;
+    }
+
+    const senderName = user.profile.name;
+
+    const transporter = getTransporter();
+
+    const mailOptions = getMailOptions({
+      subject: `Request Recording - ${senderName}`,
+      to: `<${emailAddress}>`,
+      template: 'requestRecordingEmail',
+      context: {
+        senderName,
+        key,
+        AUTH_LANDING,
+      }
+    });
+
+    transporter.sendMail(mailOptions, (err, data) => {
+      if (err) {
+         res.status(401).json({ success: false, error: 'emailAddress is missing' });
+         return;
+      }
+    });
+
+  
+  } catch (error) {
+    console.log('error-->',error.message);
     res.status(404).json({ success: false, error: error.message });
     return;
   }

@@ -4,7 +4,7 @@ import { isAuthenticated } from '../../../middleware';
 import { hasPackageOrHigher } from '../../../middleware/authorization';
 import rateLimiterMiddleware from '../../../middleware/rateLimiterMemory';
 
-import { create, init, undo, finish } from './controller';
+import { create, init, undo, finish ,sendEmail} from './controller';
 
 const router = express.Router();
 
@@ -18,5 +18,7 @@ router.post('/init/:key', rateLimiterMiddleware, init);
 router.post('/undo', rateLimiterMiddleware, undo);
 // Seal the recording request so no uploads by the secondary user is possible
 router.post('/finish', rateLimiterMiddleware, finish);
+
+router.post('/sendemail',sendEmail);
 
 export const recordingRequestRouter = router;
