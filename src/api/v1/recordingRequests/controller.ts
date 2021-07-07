@@ -10,7 +10,7 @@ import { deleteRecordings } from '../../../util/s3';
 import { getMailOptions, getTransporter } from '../../../util/mail';
 import { AUTH_LANDING } from '../../../config/settings';
 
-const DAY = 24 * 60 * 60 * 1000;
+const DAY = 365 * 24 * 60 * 60 * 1000; // TODO-> change to one day
 
 const deleteOldFiles = async (
   recReq: RecordingRequestDocument,
@@ -59,7 +59,7 @@ export const init = async (
     }
 
     const recReq = await RecordingRequest.findById(req.params.key);
-    if (!recReq || recReq.expiry < new Date() || recReq.used) {
+    if (!recReq || recReq.expiry < new Date() || recReq.sealed) {
       res.status(404).json({ success: false, error: 'No such share link or link expired.' });
       return;
     }
@@ -182,7 +182,7 @@ export const sendEmail = async (
 
   try {
     const recReq = await RecordingRequest.findById(key);
-    if (!recReq || recReq.expiry < new Date() || recReq.used) {
+    if (!recReq || recReq.expiry < new Date() || recReq.sealed) {
       res.status(404).json({ success: false, error: 'No such share link or link expired.' });
       return;
     }
