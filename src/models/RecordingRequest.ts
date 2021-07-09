@@ -3,6 +3,7 @@ import { Document, Schema, model, SchemaDefinition } from 'mongoose';
 export interface RecordingRequestType {
   _id?: string;
   ownerId: string;
+  recorderEmail: string;
   expiry: Date;
   used: boolean;
   fileIds: string[];
@@ -11,6 +12,7 @@ export interface RecordingRequestType {
 
 const requestRecordingDef: SchemaDefinition = {
   ownerId: { type: String, index: true },
+  recorderEmail: { type: String },
   expiry: { type: Date },
   used: { type: Boolean, default: false },
   fileIds: [String],
