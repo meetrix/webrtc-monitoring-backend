@@ -81,7 +81,7 @@ export const init = async (
     recReq.used = true;
     await recReq.save();
 
-    res.status(200).json({ success: true, data: { token } });
+    res.status(200).json({ success: true, data: { token ,recorderEmail: recReq.recorderEmail} });
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, error: 'Unknown server error.' });
@@ -192,6 +192,9 @@ export const sendEmail = async (
       res.status(404).json({ success: false, error: 'Recording requester not found.' });
       return;
     }
+
+    recReq.recorderEmail = emailAddress;
+    await recReq.save();
 
     const senderName = user.profile.name;
 
