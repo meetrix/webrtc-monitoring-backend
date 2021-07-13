@@ -10,6 +10,7 @@ import {
   verifyAdmin,
   users,
   events,
+  feedbacks,
 } from './controller';
 import rateLimiterMiddleware from '../../../middleware/rateLimiterMemory';
 import { hasRoleOrHigher } from '../../../middleware';
@@ -28,6 +29,7 @@ router.post('/usage', rateLimiterMiddleware, usageReport);
 
 router.get('/users', hasRoleOrHigher('admin'), users); // JSON
 router.get('/events', hasRoleOrHigher('admin'), events); // JSON
+router.get('/feedback', hasRoleOrHigher('admin'), feedbacks); // JSON
 
 router.get('/payments/alerts', verifyAdmin, paymentAlerts);
 router.post('/payments/alerts', rateLimiterMiddleware, paymentAlerts);
