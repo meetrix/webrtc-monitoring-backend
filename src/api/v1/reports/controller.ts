@@ -341,3 +341,53 @@ export const events = async (
     nextFunc(error);
   }
 };
+
+
+export const feedbacks = async (
+  req: Request,
+  res: Response,
+  nextFunc: NextFunction
+): Promise<void> => {
+  const { from, to } = req.query;
+
+  try {
+    const endTime = to && parseDate(to as string) || new Date();
+    const beginTime = from && parseDate(from as string)
+      || new Date(endTime.getFullYear(), endTime.getMonth(), endTime.getDate() - 30);
+  
+      const feedbacks =  await Feedback
+      .find({ createdAt: { $gte: beginTime, $lt: endTime } })
+      .sort('-createdAt');
+
+      const result = feedbacks.map((f) => {
+        const { email, name, rating, feedback, meta, createdAt, useCase } = f.format();
+        const appVersion = meta?.app?.version;
+        const browser = meta?.browser?.name;
+        const browserVersion = meta?.browser?.version;
+        const os = meta?.os?.name;
+        const osVersion = meta?.os?.version;
+        const screenResolution = meta?.screen?.resolution;
+        const screenAspectRatio = meta?.screen?.aspectRatio;
+  
+        return {
+          email,
+          name,
+          rating,
+          feedback,
+          useCase,
+          appVersion,
+          browser,
+          browserVersion,
+          os,
+          osVersion,
+          screenResolution,
+          screenAspectRatio,
+          createdAt: createdAt.toISOString(),
+        };
+      });
+
+    res.json(result);
+  } catch (error) {
+    nextFunc(error);
+  }
+};
