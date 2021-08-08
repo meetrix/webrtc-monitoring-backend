@@ -5,22 +5,23 @@ interface GetEventReportParams {
   endTime: Date;
 }
 
-export const getEventReport = async ({ beginTime, endTime }: GetEventReportParams) => {
+export const getEventReport = async ({
+  beginTime,
+  endTime,
+}: GetEventReportParams) => {
   const beginTs = beginTime.getTime();
   const endTs = endTime.getTime();
 
-  const recordings = await AnalyticsRecord
-    .aggregate()
+  const recordings = await AnalyticsRecord.aggregate()
     .match({ t: { $gte: beginTs, $lt: endTs }, a: 'recording-end' })
     .group({
       _id: '$u',
       recordingsCount: { $sum: 1 },
-      totalLength: { $sum: '$d.duration' }
+      totalLength: { $sum: '$d.duration' },
     })
     .sort('-totalLength');
 
-  const recordingFeatures = await AnalyticsRecord
-    .aggregate()
+  const recordingFeatures = await AnalyticsRecord.aggregate()
     .match({ t: { $gte: beginTs, $lt: endTs }, a: 'recording-end' })
     .group({
       _id: 1,
@@ -34,22 +35,29 @@ export const getEventReport = async ({ beginTime, endTime }: GetEventReportParam
       browserAudio: { $sum: { $cond: ['$d.features.browserAudio', 1, 0] } },
       mic: { $sum: { $cond: ['$d.features.mic', 1, 0] } },
       webcam: { $sum: { $cond: ['$d.features.webcam', 1, 0] } },
-      noAudio: { $sum: { $cond: [{ $or: ['$d.features.browserAudio', '$d.features.mic'] }, 0, 1] } },
+      noAudio: {
+        $sum: {
+          $cond: [
+            { $or: ['$d.features.browserAudio', '$d.features.mic'] },
+            0,
+            1,
+          ],
+        },
+      },
     });
 
-  const events = await AnalyticsRecord
-    .aggregate()
+  const events = await AnalyticsRecord.aggregate()
     .match({ t: { $gte: beginTs, $lt: endTs } })
     .group({
       _id: { a: '$a', p: '$p' },
-      count: { $sum: 1 }
+      count: { $sum: 1 },
     })
     .group({
       _id: '$_id.a',
-      counts: { $push: { k: { $toString: '$_id.p' }, v: '$count' } }
+      counts: { $push: { k: { $toString: '$_id.p' }, v: '$count' } },
     })
     .project({
-      counts: { $arrayToObject: '$counts' }
+      counts: { $arrayToObject: '$counts' },
     });
 
   return { recordings, recordingFeatures, events };

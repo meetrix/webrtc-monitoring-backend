@@ -17,8 +17,13 @@ const sharedContentSchemaDef = {
   updatedAt: Date,
 };
 
-const sharedContentSchema = new Schema(sharedContentSchemaDef, { timestamps: true });
+const sharedContentSchema = new Schema(sharedContentSchemaDef, {
+  timestamps: true,
+});
 
 export type SharedContentDocument = Document & SharedContentType;
 
-export const SharedContent = model<SharedContentDocument>('SharedContent', sharedContentSchema);
+export const SharedContent = model<SharedContentDocument>(
+  'SharedContent',
+  sharedContentSchema
+);

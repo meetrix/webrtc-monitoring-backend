@@ -9,15 +9,19 @@ export interface RecordingType {
   createdAt: Date;
 }
 
-export type RecordingDocument = mongoose.Document & RecordingType & {
-  format: () => RecordingType;
-}
+export type RecordingDocument = mongoose.Document &
+  RecordingType & {
+    format: () => RecordingType;
+  };
 
-const recordingSchema = new mongoose.Schema({
-  ltid: String,
-  email: String,
-  duration: Number,
-}, { timestamps: true });
+const recordingSchema = new mongoose.Schema(
+  {
+    ltid: String,
+    email: String,
+    duration: Number,
+  },
+  { timestamps: true }
+);
 
 recordingSchema.methods = {
   format: function (): RecordingType {
@@ -25,11 +29,14 @@ recordingSchema.methods = {
       ltid: this.ltid,
       email: this.email,
       duration: this.duration,
-      createdAt: this.createdAt
+      createdAt: this.createdAt,
     };
 
     return result;
-  }
+  },
 };
 
-export const Recording = mongoose.model<RecordingDocument>('Recording', recordingSchema);
+export const Recording = mongoose.model<RecordingDocument>(
+  'Recording',
+  recordingSchema
+);

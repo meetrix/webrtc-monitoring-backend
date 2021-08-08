@@ -1,7 +1,4 @@
-
-export const mailConfirmationTemplate = (
-  url: string,
-): string => {
+export const mailConfirmationTemplate = (url: string): string => {
   return `
   <!DOCTYPE html>
   <html>
@@ -353,14 +350,7 @@ export const mailConfirmationTemplate = (
 `;
 };
 
-
-
-
-
-export const passwordResetTemplate = (
-  url: string,
-
-): string => {
+export const passwordResetTemplate = (url: string): string => {
   return `
   <!DOCTYPE html>
   <html>
@@ -704,10 +694,7 @@ export const passwordResetTemplate = (
 `;
 };
 
-
-
-export const passwordChangedConfirmationTemplate = (
-): string => {
+export const passwordChangedConfirmationTemplate = (): string => {
   return `
   <!DOCTYPE html>
 <html>
@@ -990,9 +977,7 @@ export const passwordChangedConfirmationTemplate = (
     `;
 };
 
-
-export const emailVerifiedTemplate = (
-): string => {
+export const emailVerifiedTemplate = (): string => {
   return `
   <!DOCTYPE html>
   <html>
@@ -1316,4 +1301,3 @@ export const emailVerifiedTemplate = (
   </html>
         `;
 };
-

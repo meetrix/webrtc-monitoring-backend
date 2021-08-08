@@ -9,34 +9,53 @@ import { CORS_REGEX, SESSION_SECRET } from './config/secrets';
 import { API_BASE_URL, USER_PACKAGES } from './config/settings';
 import { User, UserDocument } from './models/User';
 import { FileType, FileSystemEntityType } from './models/FileSystemEntity';
-import { getFileSize, getPlayUrl, listRecordings, uploadRecordingToS3, deleteRecording } from './util/s3';
-import { RecordingRequest, RecordingRequestDocument } from './models/RecordingRequest';
+import {
+  getFileSize,
+  getPlayUrl,
+  listRecordings,
+  uploadRecordingToS3,
+  deleteRecording,
+} from './util/s3';
+import {
+  RecordingRequest,
+  RecordingRequestDocument,
+} from './models/RecordingRequest';
 
-type SyncContext = { type: 'primary' | 'secondary' | 'plugin'; data: RecordingRequestDocument };
+type SyncContext = {
+  type: 'primary' | 'secondary' | 'plugin';
+  data: RecordingRequestDocument;
+};
 
-const syncContextToProvider: { [x in SyncContext['type']]: FileSystemEntityType['provider'] } = {
+const syncContextToProvider: {
+  [x in SyncContext['type']]: FileSystemEntityType['provider'];
+} = {
   plugin: 'S3:plugin',
   primary: 'S3',
   secondary: 'S3:request',
 };
 
-function abortHandshake(socket: Socket, code: number, message: string, headers: { [x: string]: string | number }): void {
+function abortHandshake(
+  socket: Socket,
+  code: number,
+  message: string,
+  headers: { [x: string]: string | number }
+): void {
   if (socket.writable) {
     message = message || http.STATUS_CODES[code];
     headers = {
       Connection: 'close',
       'Content-type': 'text/html',
       'Content-Length': Buffer.byteLength(message),
-      ...headers
+      ...headers,
     };
 
     socket.write(
       `HTTP/1.1 ${code} ${http.STATUS_CODES[code]}\r\n` +
-      Object.keys(headers)
-        .map((h) => `${h}: ${headers[h]}`)
-        .join('\r\n') +
-      '\r\n\r\n' +
-      message
+        Object.keys(headers)
+          .map((h) => `${h}: ${headers[h]}`)
+          .join('\r\n') +
+        '\r\n\r\n' +
+        message
     );
   }
 
@@ -44,74 +63,96 @@ function abortHandshake(socket: Socket, code: number, message: string, headers: 
 }
 
 const handleWebSocketEvents = (server: http.Server): void => {
-  const wss = new WebSocket.Server({ noServer: true, perMessageDeflate: false });
+  const wss = new WebSocket.Server({
+    noServer: true,
+    perMessageDeflate: false,
+  });
 
-  server.on('upgrade', async function upgrade(request: http.IncomingMessage, socket: Socket, head: Buffer) {
-    const reqUrl = new URL(request.url, API_BASE_URL);
-    const token = reqUrl.searchParams.get('access_token');
+  server.on(
+    'upgrade',
+    async function upgrade(
+      request: http.IncomingMessage,
+      socket: Socket,
+      head: Buffer
+    ) {
+      const reqUrl = new URL(request.url, API_BASE_URL);
+      const token = reqUrl.searchParams.get('access_token');
 
-    let jwtUser: Express.IJwtUser;
-    try {
-      jwtUser = jwt.verify(token, SESSION_SECRET) as Express.IJwtUser;
-      if (!jwtUser) {
-        throw new Error('JWT Verification failed');
-      }
-    } catch (error) {
-      abortHandshake(socket, 401, 'Authentication failed. ', {});
-      console.log(`Authentication failed for token ${token}`);
-      return;
-    }
-
-    let originVerified = false;
-    let syncContextType = 'primary';
-    let syncContextData: RecordingRequestDocument;
-    if ((jwtUser as Express.JwtPluginUser).plugin) { // Third-party site
-      syncContextType = 'plugin';
-      // Validate the correct third party site
-      const website = (jwtUser as Express.JwtPluginUser).website;
-      originVerified = !!request.headers['origin'].toString().includes(website);
-    } else { // Main site
-      originVerified = !!request.headers['origin'].toString().match(new RegExp(CORS_REGEX));
-      const recordingRequestId = (jwtUser as Express.JwtSecondaryUser).recordingRequestId;
-      if (recordingRequestId) {
-        syncContextType = 'secondary';
-        syncContextData = await RecordingRequest.findById(recordingRequestId);
-      }
-
-      if (syncContextData && syncContextData.sealed) {
-        abortHandshake(socket, 404, 'Recording request expired or. ', {});
-        console.log(`Sealed recording request ${syncContextData._id}`);
+      let jwtUser: Express.IJwtUser;
+      try {
+        jwtUser = jwt.verify(token, SESSION_SECRET) as Express.IJwtUser;
+        if (!jwtUser) {
+          throw new Error('JWT Verification failed');
+        }
+      } catch (error) {
+        abortHandshake(socket, 401, 'Authentication failed. ', {});
+        console.log(`Authentication failed for token ${token}`);
         return;
       }
-    }
 
-    if (!originVerified) {
-      abortHandshake(socket, 401, 'Origin verification failed. ', {});
-      console.log(`Origin verification failed for origin ${request.headers['origin']}`);
-      return;
-    }
+      let originVerified = false;
+      let syncContextType = 'primary';
+      let syncContextData: RecordingRequestDocument;
+      if ((jwtUser as Express.JwtPluginUser).plugin) {
+        // Third-party site
+        syncContextType = 'plugin';
+        // Validate the correct third party site
+        const website = (jwtUser as Express.JwtPluginUser).website;
+        originVerified = !!request.headers['origin']
+          .toString()
+          .includes(website);
+      } else {
+        // Main site
+        originVerified = !!request.headers['origin']
+          .toString()
+          .match(new RegExp(CORS_REGEX));
+        const recordingRequestId = (jwtUser as Express.JwtSecondaryUser)
+          .recordingRequestId;
+        if (recordingRequestId) {
+          syncContextType = 'secondary';
+          syncContextData = await RecordingRequest.findById(recordingRequestId);
+        }
 
-    const userDoc = await User.findOne({ _id: jwtUser.sub });
-    if (!userDoc || (
-      USER_PACKAGES.indexOf(userDoc.package) < USER_PACKAGES.indexOf('STANDARD')
-      && !userDoc.features.plugin
-    )) {
-      // Check for at least STANDARD user package 
-      // N.B.: Added to include STANDARD on 2021 May 7 after user complaints of missing files
-      abortHandshake(socket, 403, 'Unauthorized. ', {});
-      console.log(`Authorization failed for user ${userDoc._id} (${userDoc.role}, ${userDoc.package})`);
-      return;
-    }
+        if (syncContextData && syncContextData.sealed) {
+          abortHandshake(socket, 404, 'Recording request expired or. ', {});
+          console.log(`Sealed recording request ${syncContextData._id}`);
+          return;
+        }
+      }
 
-    wss.handleUpgrade(request, socket as Socket, head, function done(ws) {
-      wss.emit(
-        'connection',
-        ws,
-        request,
-        { reqUrl, user: userDoc, syncContext: { type: syncContextType, data: syncContextData } }
-      );
-    });
-  });
+      if (!originVerified) {
+        abortHandshake(socket, 401, 'Origin verification failed. ', {});
+        console.log(
+          `Origin verification failed for origin ${request.headers['origin']}`
+        );
+        return;
+      }
+
+      const userDoc = await User.findOne({ _id: jwtUser.sub });
+      if (
+        !userDoc ||
+        (USER_PACKAGES.indexOf(userDoc.package) <
+          USER_PACKAGES.indexOf('STANDARD') &&
+          !userDoc.features.plugin)
+      ) {
+        // Check for at least STANDARD user package
+        // N.B.: Added to include STANDARD on 2021 May 7 after user complaints of missing files
+        abortHandshake(socket, 403, 'Unauthorized. ', {});
+        console.log(
+          `Authorization failed for user ${userDoc._id} (${userDoc.role}, ${userDoc.package})`
+        );
+        return;
+      }
+
+      wss.handleUpgrade(request, socket as Socket, head, function done(ws) {
+        wss.emit('connection', ws, request, {
+          reqUrl,
+          user: userDoc,
+          syncContext: { type: syncContextType, data: syncContextData },
+        });
+      });
+    }
+  );
 
   // Notifying the clients that the connection is alive
   const heartbeat = setInterval(function beat() {
@@ -122,93 +163,114 @@ const handleWebSocketEvents = (server: http.Server): void => {
     });
   }, 1000);
 
-  wss.on('connection', async function connection(
-    ws: WebSocket,
-    req: http.IncomingMessage,
-    { reqUrl, user, syncContext }: {
-      reqUrl: URL;
-      user: UserDocument;
-      syncContext: SyncContext;
-    }
-  ) {
-
-    ws.on('close', function close(code: number, reason: string) {
-      // This ends the stream properly, results in an upload. 
-      console.log(`WebSocket closed. ${code}: ${reason}`);
-    });
-
-    ws.on('error', function error(code: number, reason: string) {
-      console.log(`WebSocket error. ${code}: ${reason}`);
-    });
-
-    const userId = user._id;
-
-    // pathname format: /ws/recordingId
-    // e.g.: /ws/04d7bc00-5fa2-11eb-acce-45b0eb5de22d
-    const [recordingId] = reqUrl.pathname
-      .replace('/ws/', '')
-      .split(/\//g);
-
-    // WARNING: Stream must be created before doing anything expensive. 
-    // (Everything websocket receives before the event handler attached, is lost.)
-    // OR: TODO create stream long before trying to upload file. 
-    const wsStream = WebSocket.createWebSocketStream(ws);
-    console.log(`Receiving file ${userId}/${recordingId}.webm. `);
-
-    const prevVideosWithSameKey = (await listRecordings(userId, recordingId)).length;
-    
-    let upload: ManagedUpload.SendData = null;
-    try {
-      const startTimestamp = Date.now();
-      const name = reqUrl.searchParams.get('name') || `Recording_${startTimestamp}`;
-
-      if (prevVideosWithSameKey > 0) {
-        upload = await uploadRecordingToS3(userId, recordingId, wsStream, `_${prevVideosWithSameKey}`,name);
-      } else {
-        upload = await uploadRecordingToS3(userId, recordingId, wsStream,'',name);
+  wss.on(
+    'connection',
+    async function connection(
+      ws: WebSocket,
+      req: http.IncomingMessage,
+      {
+        reqUrl,
+        user,
+        syncContext,
+      }: {
+        reqUrl: URL;
+        user: UserDocument;
+        syncContext: SyncContext;
       }
+    ) {
+      ws.on('close', function close(code: number, reason: string) {
+        // This ends the stream properly, results in an upload.
+        console.log(`WebSocket closed. ${code}: ${reason}`);
+      });
 
-      const folderId = reqUrl.searchParams.get('folder_id');
-      const description = reqUrl.searchParams.get('description') || '';
-      const _id = prevVideosWithSameKey > 0 ? `${recordingId}_${prevVideosWithSameKey}` : recordingId;
+      ws.on('error', function error(code: number, reason: string) {
+        console.log(`WebSocket error. ${code}: ${reason}`);
+      });
 
-      const recorderEmail = reqUrl.searchParams.get('recorderEmail') || ''; //Used for plugin only
-      const recorderName = reqUrl.searchParams.get('recorderName') || ''; //Used for plugin only
+      const userId = user._id;
 
-      const file: FileType = {
-        _id,
-        type: 'File',
-        parentId: folderId,
-        name,
-        provider: syncContextToProvider[syncContext.type],
-        providerKey: upload.Key,
-        description,
-        // Need another API call for file size
-        size: await getFileSize(upload.Key),
-        // And another for signed URL
-        url: await getPlayUrl(upload.Key),
-        recorderEmail, //Used for plugin only
-        recorderName  //Used for plugin only
-      };
+      // pathname format: /ws/recordingId
+      // e.g.: /ws/04d7bc00-5fa2-11eb-acce-45b0eb5de22d
+      const [recordingId] = reqUrl.pathname.replace('/ws/', '').split(/\//g);
 
-      if (file?.size > 0) {
-        // Create file here; no validations done
-        user.fileSystem.push(file);
-        await user.save();
-        console.log(`File ${userId}/${recordingId}.webm uploaded. `);
+      // WARNING: Stream must be created before doing anything expensive.
+      // (Everything websocket receives before the event handler attached, is lost.)
+      // OR: TODO create stream long before trying to upload file.
+      const wsStream = WebSocket.createWebSocketStream(ws);
+      console.log(`Receiving file ${userId}/${recordingId}.webm. `);
 
-        // Save file id for Recording Requests so that we can undo if needed
-        if (syncContext.type === 'secondary') {
-          syncContext.data.fileIds.push(_id);
-          await syncContext.data.save();
+      const prevVideosWithSameKey = (await listRecordings(userId, recordingId))
+        .length;
+
+      let upload: ManagedUpload.SendData = null;
+      try {
+        const startTimestamp = Date.now();
+        const name =
+          reqUrl.searchParams.get('name') || `Recording_${startTimestamp}`;
+
+        if (prevVideosWithSameKey > 0) {
+          upload = await uploadRecordingToS3(
+            userId,
+            recordingId,
+            wsStream,
+            `_${prevVideosWithSameKey}`,
+            name
+          );
+        } else {
+          upload = await uploadRecordingToS3(
+            userId,
+            recordingId,
+            wsStream,
+            '',
+            name
+          );
         }
-      } else {
-        await deleteRecording(file.providerKey);
+
+        const folderId = reqUrl.searchParams.get('folder_id');
+        const description = reqUrl.searchParams.get('description') || '';
+        const _id =
+          prevVideosWithSameKey > 0
+            ? `${recordingId}_${prevVideosWithSameKey}`
+            : recordingId;
+
+        const recorderEmail = reqUrl.searchParams.get('recorderEmail') || ''; //Used for plugin only
+        const recorderName = reqUrl.searchParams.get('recorderName') || ''; //Used for plugin only
+
+        const file: FileType = {
+          _id,
+          type: 'File',
+          parentId: folderId,
+          name,
+          provider: syncContextToProvider[syncContext.type],
+          providerKey: upload.Key,
+          description,
+          // Need another API call for file size
+          size: await getFileSize(upload.Key),
+          // And another for signed URL
+          url: await getPlayUrl(upload.Key),
+          recorderEmail, //Used for plugin only
+          recorderName, //Used for plugin only
+        };
+
+        if (file?.size > 0) {
+          // Create file here; no validations done
+          user.fileSystem.push(file);
+          await user.save();
+          console.log(`File ${userId}/${recordingId}.webm uploaded. `);
+
+          // Save file id for Recording Requests so that we can undo if needed
+          if (syncContext.type === 'secondary') {
+            syncContext.data.fileIds.push(_id);
+            await syncContext.data.save();
+          }
+        } else {
+          await deleteRecording(file.providerKey);
+        }
+      } catch (error) {
+        console.error(error);
       }
-    } catch (error) {
-      console.error(error);
     }
-  });
+  );
 
   wss.on('close', function close() {
     clearInterval(heartbeat);

@@ -17,7 +17,7 @@ export const setupExpress = (app: Express): void => {
       if (!origin) return callback();
       const match = origin.match(new RegExp(CORS_REGEX)) ? true : false;
       callback(null, match);
-    }
+    },
   };
 
   setupPassport(app);
@@ -28,15 +28,12 @@ export const setupExpress = (app: Express): void => {
   app.use(bodyParser.urlencoded({ limit: '2mb', extended: true }));
   app.use(compression());
   app.use(
-    morgan(
-      '[:method] :url :status :res[content-length] - :response-time ms',
-      {
-        stream: {
-          write: (text: string): void => {
-            logger.info(text.substring(0, text.lastIndexOf('\n')));
-          }
-        }
-      }
-    )
+    morgan('[:method] :url :status :res[content-length] - :response-time ms', {
+      stream: {
+        write: (text: string): void => {
+          logger.info(text.substring(0, text.lastIndexOf('\n')));
+        },
+      },
+    })
   );
 };

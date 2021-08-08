@@ -27,7 +27,6 @@ router.get('/verify', rateLimiterMiddleware, verify);
 
 router.get('/resetpassword', rateLimiterMiddleware, resetPassword);
 
-
 /**
  * @swagger
  *
@@ -164,7 +163,6 @@ router.post('/login', rateLimiterMiddleware, login);
  */
 router.post('/register', rateLimiterMiddleware, register);
 
-
 /**
  * @swagger
  *
@@ -284,7 +282,7 @@ router.post('/forgot', rateLimiterMiddleware, forgot);
  *                   message:
  *                       type: string
  *                       example: Password reset successful. Sign in back to access your account.
- *   
+ *
  *        500:
  *          description: Unsuccessful Reset Link Request
  *          schema:
@@ -349,7 +347,7 @@ router.post('/reset/:token', rateLimiterMiddleware, reset);
  *                                     type: string
  *                                 createdAt:
  *                                     type: string
- *                          
+ *
  *       500:
  *          description: Unsuccessful Fetching User Profile
  *          schema:

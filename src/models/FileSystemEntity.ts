@@ -33,7 +33,7 @@ export interface FileType extends FileSystemEntityType {
   size: number; // bytes
   providerKey: string; // Storage provider key
   url?: string;
-  recorderEmail?: string;  //Used for plugin only
+  recorderEmail?: string; //Used for plugin only
   recorderName?: string; //Used for plugin only
 }
 
@@ -43,12 +43,15 @@ const fileSchemaDef = {
   providerKey: String,
   url: String,
   recorderEmail: String, //Used for plugin only
-  recorderName: String,  //Used for plugin only
+  recorderName: String, //Used for plugin only
 };
 
 const options: SchemaOptions = { discriminatorKey: 'type', timestamps: true };
 
-export const fileSystemEntitySchema = new Schema(fileSystemEntitySchemaDef, options);
+export const fileSystemEntitySchema = new Schema(
+  fileSystemEntitySchemaDef,
+  options
+);
 export const folderSchema = new Schema(folderSchemaDef, options);
 export const fileSchema = new Schema(fileSchemaDef, options);
 

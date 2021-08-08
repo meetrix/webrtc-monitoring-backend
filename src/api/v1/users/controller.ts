@@ -9,7 +9,7 @@ export const index = async (
   try {
     const users = await User.find({});
     const result = {
-      data: new Array<UserAPIFormat>()
+      data: new Array<UserAPIFormat>(),
     };
     for (const user of users) {
       result.data.push(user.format());

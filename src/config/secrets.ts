@@ -28,23 +28,23 @@ const requiredSecrets = [
   'AWS_ACCESS_KEY',
   'AWS_ACCESS_KEY_SECRET',
 
-  'CORS_REGEX'
+  'CORS_REGEX',
 ];
 
 if (NODE_ENV === PRODUCTION || NODE_ENV === STAGING) {
   requiredSecrets.push(...['MONGO_USERNAME', 'MONGO_PASSWORD']);
 }
 
-const missingSecrets = requiredSecrets.filter(s => !process.env[s]);
+const missingSecrets = requiredSecrets.filter((s) => !process.env[s]);
 if (missingSecrets.length > 0) {
-  missingSecrets.forEach(ms =>
+  missingSecrets.forEach((ms) =>
     logger.error(`Env variable ${ms} is missing.`)
   );
   process.exit(1);
 }
 
 const mongoURI =
-  (NODE_ENV === PRODUCTION || NODE_ENV === STAGING)
+  NODE_ENV === PRODUCTION || NODE_ENV === STAGING
     ? `mongodb://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/${process.env.MONGO_DATABASE}?authSource=admin`
     : `mongodb://${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/${process.env.MONGO_DATABASE}`;
 

@@ -10,10 +10,10 @@ export interface FeedbackType {
   rating: number;
   feedback: string;
   useCase: string;
-  meta?: { 
-    app?: { version: string }; 
-    os?: { name: string; version: string }; 
-    browser?: { name: string; version: string }; 
+  meta?: {
+    app?: { version: string };
+    os?: { name: string; version: string };
+    browser?: { name: string; version: string };
     screen?: { resolution: string; aspectRatio: string };
   };
   createdAt: Date;
@@ -54,11 +54,14 @@ feedbackSchema.methods = {
       feedback: this.feedback,
       useCase: this.useCase,
       meta: this.meta,
-      createdAt: this.createdAt
+      createdAt: this.createdAt,
     };
 
     return result;
-  }
+  },
 };
 
-export const Feedback = mongoose.model<FeedbackDocument>('Feedback', feedbackSchema);
+export const Feedback = mongoose.model<FeedbackDocument>(
+  'Feedback',
+  feedbackSchema
+);

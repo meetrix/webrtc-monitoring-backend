@@ -6,13 +6,12 @@ import {
   STRIPE_SECRET_KEY,
   STRIPE_STANDARD_MONTHLY_PRICE_ID,
   STRIPE_STANDARD_PRICE_ID,
-  USER_PACKAGES
+  USER_PACKAGES,
 } from '../config/settings';
 
 export const stripe = new Stripe(STRIPE_SECRET_KEY, {
   apiVersion: '2020-08-27',
 });
-
 
 /**
  * For Stripe
@@ -55,9 +54,7 @@ export const getPriceIdbyPlanId = (
  * @param priceId Stripe price id
  * @returns plan/package
  */
-export const getPlanIdByPriceId = (
-  priceId: string,
-): string => {
+export const getPlanIdByPriceId = (priceId: string): string => {
   switch (priceId) {
     case STRIPE_FREE_PRICE_ID:
       return USER_PACKAGES[0];

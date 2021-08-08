@@ -1,4 +1,3 @@
-
 import { Request, Response, NextFunction } from 'express';
 export const healthCheck = async (
   req: Request,
@@ -7,7 +6,7 @@ export const healthCheck = async (
 ): Promise<void> => {
   try {
     res.status(200).json({
-      success: true
+      success: true,
     });
   } catch (error) {
     next(error);

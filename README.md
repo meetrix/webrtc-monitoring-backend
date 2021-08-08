@@ -44,7 +44,7 @@ Go to [http://mongo.localhost:8081/](http://mongo.localhost:8081/)
 For how environment variables are imported and exported have a look in [src/config/secrets](src/config/secrets.ts). Here you can also change the `requiredSecrets` or the way `mongoURI` is constructed if for example you wish to use username/password when connecting to mongo in the development environment.
 
 | Name                  | Description                                                                                                                           |
-| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --- |
 |                       | The session secret is used to sign the JWT tokens                                                                                     |
 | SESSION_SECRET        | A quick way to generate a secret: `node -e "console.log(require('crypto').randomBytes(256).toString('base64'));"`                     |
 |                       | The mongo host and port are not necessarily taken from the `.env` file they can be provided by the deployment environment such as k8s |
@@ -60,10 +60,10 @@ For how environment variables are imported and exported have a look in [src/conf
 | SENDGRID_USER         | Sendgrid account user name                                                                                                            |
 | SENDGRID_PASSWORD     | Sendgrid account password                                                                                                             |
 |                       | AWS user used for uploading files to s3 with `AmazonS3FullAccess` Policy                                                              |
-| AWS_ACCESS_KEY     | AWS Access key ID                                                                                                                     |
+| AWS_ACCESS_KEY        | AWS Access key ID                                                                                                                     |
 | AWS_ACCESS_KEY_SECRET | AWS Access key secret                                                                                                                 |
 |                       | This will be used to create a REGEX that will block origins that don't match                                                          |
-| CORS_REGEX            | use `localhost:\d{4}$` for development and `domain\.tld$` for production                                                              |  |
+| CORS_REGEX            | use `localhost:\d{4}$` for development and `domain\.tld$` for production                                                              |     |
 
 # Debugging
 

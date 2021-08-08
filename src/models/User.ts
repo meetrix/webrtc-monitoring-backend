@@ -105,7 +105,11 @@ const userSchema = new mongoose.Schema(
     accessToken: String,
     role: { type: String, default: 'user', enum: USER_ROLES },
     package: { type: String, default: 'FREE_LOGGEDIN', enum: USER_PACKAGES },
-    limitedPackage: { type: String, default: 'FREE_LOGGEDIN', enum: USER_PACKAGES },
+    limitedPackage: {
+      type: String,
+      default: 'FREE_LOGGEDIN',
+      enum: USER_PACKAGES,
+    },
     trialsConsumed: [String],
     facebook: String,
     linkedin: String,
@@ -119,7 +123,7 @@ const userSchema = new mongoose.Schema(
       website: String,
       picture: String,
       provider: String,
-      providerId: String
+      providerId: String,
     },
 
     tag: {
@@ -149,16 +153,24 @@ const userSchema = new mongoose.Schema(
       subscriptionId: { type: String, default: null }, // subscription.id
       // pending: [APPROVAL_PENDING, APPROVED], active: [ACTIVE], inactive: [SUSPENDED, CANCELLED, EXPIRED]
       subscriptionStatus: { type: String, default: 'pending' },
-    }
+    },
   },
   { timestamps: true }
 );
 
-const fileSystemEntityArray = userSchema.path('fileSystem') as unknown as mongoose.Model<FileSystemEntityDocument>;
+const fileSystemEntityArray = userSchema.path(
+  'fileSystem'
+) as unknown as mongoose.Model<FileSystemEntityDocument>;
 
-export const Folder = fileSystemEntityArray.discriminator('Folder', folderSchema);
+export const Folder = fileSystemEntityArray.discriminator(
+  'Folder',
+  folderSchema
+);
 export const File = fileSystemEntityArray.discriminator('File', fileSchema);
-export const FileSystemEntity = mongoose.model('FileSystemEntity', fileSystemEntitySchema);
+export const FileSystemEntity = mongoose.model(
+  'FileSystemEntity',
+  fileSystemEntitySchema
+);
 
 userSchema.pre('save', async function (next: Function): Promise<void> {
   const user = this as UserDocument;
@@ -184,10 +196,7 @@ userSchema.methods = {
     if (!this.email) {
       return `https://gravatar.com/avatar/?s=${size}&d=retro`;
     }
-    const md5 = crypto
-      .createHash('md5')
-      .update(this.email)
-      .digest('hex');
+    const md5 = crypto.createHash('md5').update(this.email).digest('hex');
     return `https://gravatar.com/avatar/${md5}?s=${size}&d=retro`;
   },
   format: function (): UserAPIFormat {
@@ -209,13 +218,13 @@ userSchema.methods = {
         website: this.profile.website,
         picture: this.profile.picture,
         provider: this.profile.provider,
-        providerId: this.profile.providerId
+        providerId: this.profile.providerId,
       },
       tag: {
         tagId: this.tag.tagId,
         title: this.tag.title,
         status: this.tag.status,
-        createdAt: this.tag.createdAt
+        createdAt: this.tag.createdAt,
       },
       stripe: {
         customerId: this.stripe.customerId,
@@ -231,11 +240,11 @@ userSchema.methods = {
         planId: this.paypal.planId,
         subscriptionId: this.paypal.subscriptionId,
         subscriptionStatus: this.paypal.subscriptionStatus,
-      }
+      },
     };
 
     return result;
-  }
+  },
 };
 
 export const User = mongoose.model<UserDocument>('User', userSchema);

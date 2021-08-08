@@ -5,7 +5,7 @@ import {
   JWT_EXPIRATION,
   JWT_EXPIRATION_PLUGIN,
   JWT_EXPIRATION_REC_REQ,
-  SUBSCRIPTION_STATUSES
+  SUBSCRIPTION_STATUSES,
 } from '../config/settings';
 import { PluginDocument } from '../models/Plugin';
 import { RecordingRequestDocument } from '../models/RecordingRequest';
@@ -15,12 +15,12 @@ export const signToken = (user: UserDocument): string => {
   return jwt.sign(
     {
       email: user.email,
-      role: user.role
+      role: user.role,
     },
     SESSION_SECRET,
     {
       expiresIn: JWT_EXPIRATION,
-      subject: user._id.toString()
+      subject: user._id.toString(),
     }
   );
 };
@@ -40,7 +40,9 @@ export const signPluginToken = (plugin: PluginDocument): string => {
   );
 };
 
-export const signSecondaryUserToken = (recReq: RecordingRequestDocument): string => {
+export const signSecondaryUserToken = (
+  recReq: RecordingRequestDocument
+): string => {
   return jwt.sign(
     {
       recordingRequestId: recReq._id.toString(),
@@ -65,7 +67,10 @@ export function getSubscriptionStatus(user: UserDocument): {
   // stripe > paypal
   const stripeStatus = user.stripe?.subscriptionStatus || 'pending';
   const paypalStatus = user.paypal?.subscriptionStatus || 'pending';
-  if (SUBSCRIPTION_STATUSES.indexOf(paypalStatus) <= SUBSCRIPTION_STATUSES.indexOf(stripeStatus)) {
+  if (
+    SUBSCRIPTION_STATUSES.indexOf(paypalStatus) <=
+    SUBSCRIPTION_STATUSES.indexOf(stripeStatus)
+  ) {
     return { subscriptionStatus: stripeStatus, subscriptionProvider: 'stripe' };
   } else {
     return { subscriptionStatus: paypalStatus, subscriptionProvider: 'paypal' };

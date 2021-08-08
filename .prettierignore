@@ -1,0 +1,15 @@
+# Ignore artifacts:
+dist
+coverage
+node_modules
+*.png
+*.jpg
+*ignore
+*css
+*scss
+*.lock
+.*
+*.handlebars
+docker
+Dockerfile
+LICENSE

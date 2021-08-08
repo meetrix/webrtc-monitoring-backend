@@ -4,10 +4,7 @@ import { Plugin } from '../../../models/Plugin';
 import { User } from '../../../models/User';
 import { getSubscriptionStatus, signPluginToken } from '../../../util/auth';
 
-export const init = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const init = async (req: Request, res: Response): Promise<void> => {
   try {
     if (!req.params.key || req.params.key === 'undefined') {
       res.status(401).json({ success: false, error: 'Unauthorized.' });
@@ -16,7 +13,9 @@ export const init = async (
 
     const plugin = await Plugin.findById(req.params.key);
     if (!plugin) {
-      res.status(401).json({ success: false, error: 'No such key registered.' });
+      res
+        .status(401)
+        .json({ success: false, error: 'No such key registered.' });
       return;
     }
 
@@ -27,9 +26,14 @@ export const init = async (
     }
 
     // Doing this without the authorization middleware since the function is invoked by an anonymous user
-    if (!user.features.plugin
-      && (user.package !== 'PREMIUM' || getSubscriptionStatus(user).subscriptionStatus !== 'active')) {
-      res.status(403).json({ success: false, error: 'Forbidden (no valid subscription).' });
+    if (
+      !user.features.plugin &&
+      (user.package !== 'PREMIUM' ||
+        getSubscriptionStatus(user).subscriptionStatus !== 'active')
+    ) {
+      res
+        .status(403)
+        .json({ success: false, error: 'Forbidden (no valid subscription).' });
       return;
     }
 
@@ -41,41 +45,36 @@ export const init = async (
   }
 };
 
-export const setup = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const setup = async (req: Request, res: Response): Promise<void> => {
   try {
     let plugin = await Plugin.findOne({ ownerId: req.user._id });
     if (!plugin) {
-      plugin = await (new Plugin({ ownerId: req.user._id, website: req.body.website })).save();
+      plugin = await new Plugin({
+        ownerId: req.user._id,
+        website: req.body.website,
+      }).save();
       res.status(201).json({ success: true, data: plugin });
     } else {
       plugin.website = req.body.website;
       plugin.save();
       res.status(200).json({ success: true, data: plugin });
     }
-
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, error: 'Unknown server error.' });
   }
 };
 
-
-export const getPlugin = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const getPlugin = async (req: Request, res: Response): Promise<void> => {
   try {
-
     const plugin = await Plugin.findOne({ ownerId: req.user._id });
     if (plugin) {
       res.status(200).json({ success: true, data: plugin });
     } else {
-      res.status(404).json({ success: false, error: 'Please setup the plugin first.' });
+      res
+        .status(404)
+        .json({ success: false, error: 'Please setup the plugin first.' });
     }
-
   } catch (error) {
     console.log(error);
     res.status(500).json({ success: false, error: 'Unknown server error.' });

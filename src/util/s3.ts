@@ -6,7 +6,10 @@ import { S3_USER_RECORDINGS_BUCKET } from '../config/settings';
 export const s3 = new S3({
   // TODO Resolve this issue
   region: 'us-west-2',
-  credentials: { accessKeyId: AWS_ACCESS_KEY, secretAccessKey: AWS_ACCESS_KEY_SECRET },
+  credentials: {
+    accessKeyId: AWS_ACCESS_KEY,
+    secretAccessKey: AWS_ACCESS_KEY_SECRET,
+  },
 });
 
 export const uploadRecordingToS3 = async (
@@ -14,14 +17,16 @@ export const uploadRecordingToS3 = async (
   recordingId: string,
   stream: Readable,
   suffix: string = '',
-  name: string=''
+  name: string = ''
 ): Promise<S3.ManagedUpload.SendData> => {
   const key = `vid/${userId}/${recordingId}${suffix}.webm`;
 
   return await s3
     .upload({
       // Allows cross-origin downloads
-      ContentDisposition: `attachment; filename="${name? name: recordingId}${suffix}.webm"`,
+      ContentDisposition: `attachment; filename="${
+        name ? name : recordingId
+      }${suffix}.webm"`,
       Bucket: S3_USER_RECORDINGS_BUCKET,
       Key: key,
       ContentType: 'video/webm',
@@ -35,14 +40,19 @@ export const getAsStream = (
   recordingId: string,
   suffix: string = ''
 ): Readable => {
-  return s3.getObject({
-    Key: `vid/${userId}/${recordingId}${suffix}.webm`, Bucket: S3_USER_RECORDINGS_BUCKET
-  }).createReadStream();
+  return s3
+    .getObject({
+      Key: `vid/${userId}/${recordingId}${suffix}.webm`,
+      Bucket: S3_USER_RECORDINGS_BUCKET,
+    })
+    .createReadStream();
 };
 
 export const getFileSize = async (key: string): Promise<number> => {
   return (
-    await s3.headObject({ Bucket: S3_USER_RECORDINGS_BUCKET, Key: key }).promise()
+    await s3
+      .headObject({ Bucket: S3_USER_RECORDINGS_BUCKET, Key: key })
+      .promise()
   ).ContentLength;
 };
 
@@ -50,41 +60,47 @@ export const listRecordings = async (
   userId: string,
   recordingId?: string
 ): Promise<S3.ObjectList> => {
-  const prefix = !!recordingId ? `vid/${userId}/${recordingId}` : `vid/${userId}`;
+  const prefix = !!recordingId
+    ? `vid/${userId}/${recordingId}`
+    : `vid/${userId}`;
 
   const response = await s3
-    .listObjectsV2({ Bucket: S3_USER_RECORDINGS_BUCKET, Prefix: prefix }).promise();
-  // First page only? 
+    .listObjectsV2({ Bucket: S3_USER_RECORDINGS_BUCKET, Prefix: prefix })
+    .promise();
+  // First page only?
   return response.Contents;
 };
 
 export const getPlayUrl = async (
   key: string,
   lifetime: number = 1 * 60 * 60 * 24 * 5,
-  fileName: string=''
+  fileName: string = ''
 ): Promise<string> => {
-
-  const params: any={
+  const params: any = {
     Bucket: S3_USER_RECORDINGS_BUCKET,
     Key: key,
     Expires: lifetime, // default: 5 days in seconds
   };
-  
-  if(fileName) params.ResponseContentDisposition=`attachment; filename="${fileName}.webm"`;
+
+  if (fileName)
+    params.ResponseContentDisposition = `attachment; filename="${fileName}.webm"`;
 
   return await s3.getSignedUrlPromise('getObject', params);
 };
 
 export const deleteRecording = async (key: string): Promise<boolean> => {
   const response = await s3
-    .deleteObject({ Bucket: S3_USER_RECORDINGS_BUCKET, Key: key }).promise();
+    .deleteObject({ Bucket: S3_USER_RECORDINGS_BUCKET, Key: key })
+    .promise();
   return true;
 };
 
 export const deleteRecordings = async (keys: string[]): Promise<string[]> => {
-  const response = await s3.deleteObjects({
-    Bucket: S3_USER_RECORDINGS_BUCKET,
-    Delete: { Objects: keys.map(key => ({ Key: key })) }
-  }).promise();
-  return response.Deleted.map(obj => obj.Key);
+  const response = await s3
+    .deleteObjects({
+      Bucket: S3_USER_RECORDINGS_BUCKET,
+      Delete: { Objects: keys.map((key) => ({ Key: key })) },
+    })
+    .promise();
+  return response.Deleted.map((obj) => obj.Key);
 };

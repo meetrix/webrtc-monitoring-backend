@@ -34,7 +34,7 @@ const paymentSchema = new mongoose.Schema(
     collectionMethod: String,
     userId: {
       type: Schema.Types.ObjectId,
-      ref: 'User'
+      ref: 'User',
     },
     customerId: String,
     customerEmail: String,
@@ -54,8 +54,9 @@ const paymentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-paymentSchema.methods = {
+paymentSchema.methods = {};
 
-};
-
-export const Payment = mongoose.model<PaymentDocument>('Payment', paymentSchema);
+export const Payment = mongoose.model<PaymentDocument>(
+  'Payment',
+  paymentSchema
+);

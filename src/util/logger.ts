@@ -19,11 +19,12 @@ const logger: Logger = createLogger({
     // format.json()
     format.timestamp({ format: 'YYYY-MM-DD HH:mm:ss.SSS' }),
     format.printf((info): string => {
-      return `[${info.timestamp}] [${info.level.toUpperCase()}] ${info.message
-        }`;
+      return `[${info.timestamp}] [${info.level.toUpperCase()}] ${
+        info.message
+      }`;
     })
   ),
-  transports: [new transports.Console({ level: logLevel() })]
+  transports: [new transports.Console({ level: logLevel() })],
 });
 
 export default logger;

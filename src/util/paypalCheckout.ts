@@ -8,7 +8,7 @@ import {
   NODE_ENV,
   PAYPAL_CLIENT_ID,
   PAYPAL_CLIENT_SECRET,
-  PRODUCTION
+  PRODUCTION,
 } from '../config/settings';
 
 /**
@@ -22,16 +22,14 @@ function environment() {
   const clientSecret = PAYPAL_CLIENT_SECRET;
 
   if (NODE_ENV === PRODUCTION) {
-    return new checkoutNodeJssdk.core.LiveEnvironment(
-      clientId, clientSecret
-    );
+    return new checkoutNodeJssdk.core.LiveEnvironment(clientId, clientSecret);
   } else {
     return new checkoutNodeJssdk.core.SandboxEnvironment(
-      clientId, clientSecret
+      clientId,
+      clientSecret
     );
   }
 }
-
 
 /**
  *
@@ -54,13 +52,11 @@ export async function prettyPrint(jsonData: any, pre = ''): Promise<string> {
     if (jsonData.hasOwnProperty(key)) {
       if (isNaN(key as unknown as number))
         pretty += pre + capitalize(key) + ': ';
-      else
-        pretty += pre + (parseInt(key) + 1) + ': ';
+      else pretty += pre + (parseInt(key) + 1) + ': ';
       if (typeof jsonData[key] === 'object') {
         pretty += '\n';
         pretty += await prettyPrint(jsonData[key], pre + '    ');
-      }
-      else {
+      } else {
         pretty += jsonData[key] + '\n';
       }
     }
@@ -68,4 +64,3 @@ export async function prettyPrint(jsonData: any, pre = ''): Promise<string> {
 
   return pretty;
 }
-

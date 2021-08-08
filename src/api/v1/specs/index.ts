@@ -14,9 +14,9 @@ const options = {
     securityDefinitions: {
       bearerAuth: {
         type: 'apiKey',
-        name: 'Authorization'
-      }
-    }
+        name: 'Authorization',
+      },
+    },
   },
   apis: ['./src/api/v1/**/*.ts'],
 };

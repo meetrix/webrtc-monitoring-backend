@@ -12,7 +12,8 @@ const rateLimiterMiddleware = async (
   res: Response,
   next: NextFunction
 ): Promise<void> => {
-  rateLimiter.consume(req.ip)
+  rateLimiter
+    .consume(req.ip)
     .then(() => {
       next();
     })

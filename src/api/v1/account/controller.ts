@@ -7,7 +7,11 @@ import { Response, Request, NextFunction } from 'express';
 import { IVerifyOptions } from 'passport-local';
 import { getMailOptions, getTransporter } from '../../../util/mail';
 import {
-  AUTH_LANDING, API_BASE_URL, SUPPORT_URL, STRIPE_SECRET_KEY, S3_USER_META_BUCKET,
+  AUTH_LANDING,
+  API_BASE_URL,
+  SUPPORT_URL,
+  STRIPE_SECRET_KEY,
+  S3_USER_META_BUCKET,
 } from '../../../config/settings';
 const log = console.log;
 
@@ -39,7 +43,7 @@ export const refresh = async (
       res.status(401).json({
         success: false,
         data: null,
-        message: 'Unauthorized action.'
+        message: 'Unauthorized action.',
       });
       return;
     }
@@ -47,13 +51,13 @@ export const refresh = async (
     res.status(200).json({
       success: true,
       data: { token: signToken(user) },
-      message: 'Token issued.'
+      message: 'Token issued.',
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       data: null,
-      message: 'Something went wrong. Please try again later.'
+      message: 'Something went wrong. Please try again later.',
     });
 
     next(error);
@@ -62,9 +66,12 @@ export const refresh = async (
 
 // Register
 
-export const register = async (req: any, res: Response, next: NextFunction): Promise<void> => {
+export const register = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
-
     // if (!validator.isEmpty(req.body.name)) {
     //   res.status(422).json({
     //     success: false,
@@ -78,7 +85,7 @@ export const register = async (req: any, res: Response, next: NextFunction): Pro
       res.status(422).json({
         success: false,
         data: null,
-        message: 'Please enter a valid email address.'
+        message: 'Please enter a valid email address.',
       });
       return;
     }
@@ -86,7 +93,7 @@ export const register = async (req: any, res: Response, next: NextFunction): Pro
       res.status(422).json({
         success: false,
         data: null,
-        message: 'Password must be at least 6 characters long.'
+        message: 'Password must be at least 6 characters long.',
       });
       return;
     }
@@ -96,11 +103,12 @@ export const register = async (req: any, res: Response, next: NextFunction): Pro
     });
     const selectedUser = await User.findOne({ email: req.body.email });
 
-
     if (!selectedUser) {
-
       const randValueHex = (len: number): string => {
-        return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
+        return crypto
+          .randomBytes(Math.ceil(len / 2))
+          .toString('hex')
+          .slice(0, len);
       };
       const emailToken = randValueHex(32);
 
@@ -111,7 +119,7 @@ export const register = async (req: any, res: Response, next: NextFunction): Pro
           name: req.body.name,
           picture: null,
           provider: 'manual',
-          providerId: null
+          providerId: null,
         },
         tag: {
           tagId: null,
@@ -138,8 +146,8 @@ export const register = async (req: any, res: Response, next: NextFunction): Pro
           emailToken,
           API_BASE_URL,
           AUTH_LANDING,
-          SUPPORT_URL
-        }
+          SUPPORT_URL,
+        },
       });
 
       transporter.sendMail(mailOptions, (err, data) => {
@@ -153,7 +161,8 @@ export const register = async (req: any, res: Response, next: NextFunction): Pro
       res.status(200).json({
         success: true,
         // data: { emailToken },
-        message: 'Confirmation email has been sent successfully. Please check your inbox to proceed.'
+        message:
+          'Confirmation email has been sent successfully. Please check your inbox to proceed.',
       });
       return;
     }
@@ -162,42 +171,45 @@ export const register = async (req: any, res: Response, next: NextFunction): Pro
       res.status(200).json({
         success: true,
         data: null,
-        message: 'You have an unverifed account with us. Please verify your account & signin.'
+        message:
+          'You have an unverifed account with us. Please verify your account & signin.',
       });
       return;
-    }
-    else if (selectedUser.isVerified) {
+    } else if (selectedUser.isVerified) {
       res.status(200).json({
         success: true,
         data: null,
-        message: 'You have a verified account with us. Please signin or reset your credentials to continue.'
+        message:
+          'You have a verified account with us. Please signin or reset your credentials to continue.',
       });
       return;
     }
-
   } catch (error) {
     console.log(error);
     res.status(500).json({
       success: false,
       data: null,
-      message: 'Registration failed. Please try again in few minutes.'
+      message: 'Registration failed. Please try again in few minutes.',
     });
     next(error);
   }
-
 };
 
 // User account verification & auto signin at first attempt
-export const verify = async (req: any, res: Response, next: NextFunction): Promise<any> => {
+export const verify = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+): Promise<any> => {
   try {
-
     const user = await User.findOne({ emailToken: req.query.token });
     if (!user) {
       // res.redirect(`${AUTH_LANDING}/#/verificationtoken_expired`);
       res.status(401).json({
         success: false,
         data: null,
-        message: 'The verification link is already used or expired. Please try again.'
+        message:
+          'The verification link is already used or expired. Please try again.',
       });
       return;
     }
@@ -212,9 +224,7 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
 
     user.stripe.customerId = customer.id;
     user.emailToken = null;
-    user.isVerified = true,
-
-      await user.save();
+    (user.isVerified = true), await user.save();
 
     const clientName = user.profile.name;
 
@@ -228,8 +238,8 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
         clientName,
         API_BASE_URL,
         AUTH_LANDING,
-        SUPPORT_URL
-      }
+        SUPPORT_URL,
+      },
     });
 
     transporter.sendMail(mailOptions, (err, data) => {
@@ -240,20 +250,18 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
     });
 
     // A new email signin token issued to get user details to verify at signin
-    user.accessToken = signToken(user),
-      await user.save();
+    (user.accessToken = signToken(user)), await user.save();
 
     res.status(200).json({
       success: true,
       data: { accessToken: user.accessToken },
-      message: 'Verification successfull. Redirecting...'
+      message: 'Verification successfull. Redirecting...',
     });
-
   } catch (error) {
     res.status(500).json({
       success: false,
       data: null,
-      message: 'Something went wrong. Please try again later.'
+      message: 'Something went wrong. Please try again later.',
     });
     log('Error occurs while sending email.');
 
@@ -262,7 +270,11 @@ export const verify = async (req: any, res: Response, next: NextFunction): Promi
 };
 
 // Login
-export const login = async (req: any, res: Response, next: NextFunction): Promise<void> => {
+export const login = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
     // if (!req.body.email || !req.body.password) {
     //   //res.status(403).json(formatError('Username or Password incorrect. Please check and try again.'));
@@ -291,7 +303,8 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
           return res.status(403).json({
             success: false,
             data: null,
-            message: 'Username or password incorrect. If you forgot your credentials, please reset now.'
+            message:
+              'Username or password incorrect. If you forgot your credentials, please reset now.',
           });
         }
 
@@ -299,13 +312,16 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
         if (!user.isVerified) {
           //Let's generate a string for emailToken
           const randValueHex = (len: number): string => {
-            return crypto.randomBytes(Math.ceil(len / 2)).toString('hex').slice(0, len);
+            return crypto
+              .randomBytes(Math.ceil(len / 2))
+              .toString('hex')
+              .slice(0, len);
           };
           const emailToken = randValueHex(32);
 
           // Let's update new emailToken and verification status for existing users
-          user.emailToken = emailToken,
-            user.isVerified = false,
+          (user.emailToken = emailToken),
+            (user.isVerified = false),
             await user.save();
 
           const clientName = user.profile.name;
@@ -320,8 +336,8 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
               emailToken,
               API_BASE_URL,
               AUTH_LANDING,
-              SUPPORT_URL
-            }
+              SUPPORT_URL,
+            },
           });
           transporter.sendMail(mailOptions, (err, data) => {
             if (err) {
@@ -333,7 +349,8 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
           res.status(403).json({
             success: false,
             // data: { emailToken },
-            message: 'You should complete your signin process. We have sent you a new confirmation email. Please check your inbox & confirm your account to continue.'
+            message:
+              'You should complete your signin process. We have sent you a new confirmation email. Please check your inbox & confirm your account to continue.',
           });
 
           return;
@@ -344,7 +361,7 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
           res.status(200).json({
             success: true,
             data: { token: signToken(user) },
-            message: 'Login Successful. Redirecting...'
+            message: 'Login Successful. Redirecting...',
           });
         }
       }
@@ -353,7 +370,7 @@ export const login = async (req: any, res: Response, next: NextFunction): Promis
     res.status(500).json({
       success: false,
       data: null,
-      message: 'Something went wrong. Please try again later.'
+      message: 'Something went wrong. Please try again later.',
     });
     next(error);
   }
@@ -370,7 +387,7 @@ export const forgot = async (
       res.status(500).json({
         success: false,
         data: null,
-        message: 'Invalid data.'
+        message: 'Invalid data.',
       });
       return;
     }
@@ -384,7 +401,8 @@ export const forgot = async (
       res.status(500).json({
         success: false,
         data: null,
-        message: 'Email Address not found in our system. Please signup to enjoy ScreenApp.'
+        message:
+          'Email Address not found in our system. Please signup to enjoy ScreenApp.',
       });
       return;
     }
@@ -407,8 +425,8 @@ export const forgot = async (
         emailToken,
         API_BASE_URL,
         AUTH_LANDING,
-        SUPPORT_URL
-      }
+        SUPPORT_URL,
+      },
     });
 
     transporter.sendMail(mailOptions, (err, data) => {
@@ -420,30 +438,35 @@ export const forgot = async (
 
     res.status(200).json({
       success: true,
-      message: 'Password reset link has been sent to your mail successfully. It will be valid for next 60 minutes.'
+      message:
+        'Password reset link has been sent to your mail successfully. It will be valid for next 60 minutes.',
     });
   } catch (error) {
     log('Error occurs while sending email.');
     res.status(500).json({
       success: true,
       data: null,
-      message: 'Something went wrong. Please try again later.'
+      message: 'Something went wrong. Please try again later.',
     });
     next(error);
   }
 };
 
 // Password Reset Auth
-export const resetPassword = async (req: any, res: Response, next: NextFunction): Promise<void> => {
+export const resetPassword = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
   try {
-
     const user = await User.findOne({ passwordResetToken: req.query.token });
     if (!user) {
       // res.redirect(`${AUTH_LANDING}/#/resetpasswordtoken_expired`);
       res.status(401).json({
         success: false,
         data: null,
-        message: 'The password reset link is already used or expired. Please try again.'
+        message:
+          'The password reset link is already used or expired. Please try again.',
       });
       return;
     }
@@ -453,17 +476,16 @@ export const resetPassword = async (req: any, res: Response, next: NextFunction)
     res.status(200).json({
       success: true,
       data: { passwordResetToken: user.passwordResetToken },
-      message: 'Reset successful. Redirecting...'
+      message: 'Reset successful. Redirecting...',
     });
   } catch (error) {
     log('Something went wrong.');
     res.status(500).json({
       success: false,
       data: null,
-      message: 'Something went wrong. Please try again later.'
+      message: 'Something went wrong. Please try again later.',
     });
     next(error);
-
   }
 };
 
@@ -478,21 +500,22 @@ export const reset = async (
       res.status(422).json({
         success: false,
         data: null,
-        message: 'Password must be at least 6 characters long.'
+        message: 'Password must be at least 6 characters long.',
       });
     }
     if (req.body.password !== req.body.confirm) {
       res.status(422).json({
         success: false,
         data: null,
-        message: 'Passwords do not match. Please check and enter the same password.'
+        message:
+          'Passwords do not match. Please check and enter the same password.',
       });
     }
     if (!validator.isHexadecimal(req.params.token)) {
       res.status(422).json({
         success: false,
         data: null,
-        message: 'Token expired or something went wrong. Please try again.'
+        message: 'Token expired or something went wrong. Please try again.',
       });
     }
 
@@ -506,7 +529,8 @@ export const reset = async (
       res.status(401).json({
         success: false,
         data: null,
-        message: 'The password reset link is already used or expired. Please try again.'
+        message:
+          'The password reset link is already used or expired. Please try again.',
       });
       return;
     }
@@ -528,8 +552,8 @@ export const reset = async (
         clientName,
         API_BASE_URL,
         AUTH_LANDING,
-        SUPPORT_URL
-      }
+        SUPPORT_URL,
+      },
     });
 
     transporter.sendMail(mailOptions, (err, data) => {
@@ -543,13 +567,14 @@ export const reset = async (
     res.status(200).json({
       success: true,
       data: null,
-      message: 'Password reset successful. Sign in back to access your account.'
+      message:
+        'Password reset successful. Sign in back to access your account.',
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       data: null,
-      message: 'Something went wrong. Please try again later.'
+      message: 'Something went wrong. Please try again later.',
     });
     next(error);
   }
@@ -561,16 +586,21 @@ const uploadProfilePicture = async (
   imgMime: string
 ): Promise<string> => {
   const s3 = new S3({
-    credentials: { accessKeyId: AWS_ACCESS_KEY, secretAccessKey: AWS_ACCESS_KEY_SECRET }
+    credentials: {
+      accessKeyId: AWS_ACCESS_KEY,
+      secretAccessKey: AWS_ACCESS_KEY_SECRET,
+    },
   });
 
-  const s3Response = await s3.upload({
-    Bucket: S3_USER_META_BUCKET,
-    Key: key,
-    Body: imgBuffer,
-    ContentType: imgMime,
-    ACL: 'public-read',
-  }).promise();
+  const s3Response = await s3
+    .upload({
+      Bucket: S3_USER_META_BUCKET,
+      Key: key,
+      Body: imgBuffer,
+      ContentType: imgMime,
+      ACL: 'public-read',
+    })
+    .promise();
 
   return s3Response.Location;
 };
@@ -589,13 +619,13 @@ export const clearFirstTimeUserFlag = async (
     res.status(200).json({
       success: true,
       data: null,
-      message: 'Profile successfully updated.'
+      message: 'Profile successfully updated.',
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       data: null,
-      message: 'Something went wrong. Please try again later.'
+      message: 'Something went wrong. Please try again later.',
     });
     next(error);
   }
@@ -619,18 +649,24 @@ export const postProfile = async (
       const imgBuffer = Buffer.from(req.body.picture, 'base64');
       const emailHex = Buffer.from(user.email).toString('hex');
       const key = `profile-pictures/${emailHex}`; // Replace profile picture if exists
-      const imgPath = await uploadProfilePicture(key, imgBuffer, req.body.pictureMime);
+      const imgPath = await uploadProfilePicture(
+        key,
+        imgBuffer,
+        req.body.pictureMime
+      );
       user.profile.picture = imgPath;
     }
 
     if (!!req.body.password && req.body.password.length > 0) {
-
       // Validate old password, if only there is an old password
-      if (user.password && !(await user.authenticate(req.body.oldPassword || ''))) {
+      if (
+        user.password &&
+        !(await user.authenticate(req.body.oldPassword || ''))
+      ) {
         res.status(422).json({
           success: false,
           data: null,
-          message: 'Current password entered is incorrect.'
+          message: 'Current password entered is incorrect.',
         });
         return;
       }
@@ -640,7 +676,7 @@ export const postProfile = async (
         res.status(422).json({
           success: false,
           data: null,
-          message: 'Password must be at least 6 characters long.'
+          message: 'Password must be at least 6 characters long.',
         });
         return;
       }
@@ -661,8 +697,8 @@ export const postProfile = async (
           clientName,
           API_BASE_URL,
           AUTH_LANDING,
-          SUPPORT_URL
-        }
+          SUPPORT_URL,
+        },
       });
 
       transporter.sendMail(mailOptions, (err, data) => {
@@ -678,13 +714,13 @@ export const postProfile = async (
     res.status(200).json({
       success: true,
       data: null,
-      message: 'Profile successfully updated.'
+      message: 'Profile successfully updated.',
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       data: null,
-      message: 'Something went wrong. Please try again later.'
+      message: 'Something went wrong. Please try again later.',
     });
     next(error);
   }
@@ -717,13 +753,13 @@ export const getProfile = async (
         ...getSubscriptionStatus(user),
         tag: user.tag,
       },
-      message: 'Get profile successful.'
+      message: 'Get profile successful.',
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       data: null,
-      message: 'Something went wrong. Please try again later.'
+      message: 'Something went wrong. Please try again later.',
     });
     next(error);
   }
@@ -738,9 +774,7 @@ export const password = async (
   try {
     const validationErrors = [];
     if (!validator.isLength(req.body.password, { min: 8 })) {
-      validationErrors.push(
-        'Password must be at least 8 characters long'
-      );
+      validationErrors.push('Password must be at least 8 characters long');
     }
     if (req.body.password !== req.body.confirm) {
       validationErrors.push('Passwords do not match');
@@ -756,13 +790,13 @@ export const password = async (
     res.status(200).json({
       success: true,
       data: null,
-      message: 'Changing password successful.'
+      message: 'Changing password successful.',
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       data: null,
-      message: 'Something went wrong. Please try again later.'
+      message: 'Something went wrong. Please try again later.',
     });
     next(error);
   }
@@ -780,18 +814,17 @@ export const deleteAccount = async (
     res.status(200).json({
       success: true,
       data: null,
-      message: 'Deleting profile successful.'
+      message: 'Deleting profile successful.',
     });
   } catch (error) {
     res.status(500).json({
       success: false,
       data: null,
-      message: 'Something went wrong. Please try again later.'
+      message: 'Something went wrong. Please try again later.',
     });
     next(error);
   }
 };
-
 
 // Resend Verification
 // export const resendVerification = async (
@@ -823,7 +856,6 @@ export const deleteAccount = async (
 //       isVerified: false,
 //     });
 //     await user.save();
-
 
 //     const transporter = getTransporter();
 

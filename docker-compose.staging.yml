@@ -1,7 +1,0 @@
-version: "3.8"
-services:
-  server:
-    build: 
-      context: ./
-      dockerfile: production.Dockerfile
-    restart: always

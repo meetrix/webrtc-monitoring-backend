@@ -8,24 +8,24 @@ interface ExtendedSendMailOptions extends SendMailOptions {
   template: string;
   context: any;
 }
-export const getMailOptions = (options: ExtendedSendMailOptions): ExtendedSendMailOptions => ({
+export const getMailOptions = (
+  options: ExtendedSendMailOptions
+): ExtendedSendMailOptions => ({
   from: `"ScreenApp.IO Messenger" <${SENDER_EMAIL}>`,
   to: RECEIVER_EMAIL,
   subject: 'Welcome to ScreenApp!',
-  ...options
-
+  ...options,
 });
 
 export const getTransporter = (): Transporter => {
-
   const viewOptions = {
     viewEngine: {
       extName: '.handlebars',
       partialsDir: path.resolve(__dirname, '../../src/templates'),
-      defaultLayout: false
+      defaultLayout: false,
     },
     viewPath: path.resolve(__dirname, '../../src/templates'),
-    extName: '.handlebars'
+    extName: '.handlebars',
   };
 
   const transporter = nodemailer.createTransport({

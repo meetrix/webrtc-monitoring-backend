@@ -1,10 +1,7 @@
 import { Request, Response } from 'express';
 import { AnalyticsRecord } from '../../../models/AnalyticsRecord';
 
-export const track = async (
-  req: Request,
-  res: Response,
-): Promise<void> => {
+export const track = async (req: Request, res: Response): Promise<void> => {
   try {
     const analyticsRecord = new AnalyticsRecord(req.body);
     await analyticsRecord.save();

@@ -1,6 +1,13 @@
 import express from 'express';
 import { authCallback } from './controller';
-import { facebookAuth, facebookAuthCallback, googleAuth, googleAuthCallback, linkedinAuth, linkedinAuthCallback } from '../../../middleware/auth';
+import {
+  facebookAuth,
+  facebookAuthCallback,
+  googleAuth,
+  googleAuthCallback,
+  linkedinAuth,
+  linkedinAuthCallback,
+} from '../../../middleware/auth';
 
 const router = express.Router({ strict: false });
 

@@ -1,5 +1,13 @@
 import express from 'express';
-import { changeSubscriptionPackage, checkoutSession, checkoutSessionStatus, confirmPayPalSubscription, customerPortalUrl, paypalEventHandler, stripeEventHandler } from './controller';
+import {
+  changeSubscriptionPackage,
+  checkoutSession,
+  checkoutSessionStatus,
+  confirmPayPalSubscription,
+  customerPortalUrl,
+  paypalEventHandler,
+  stripeEventHandler,
+} from './controller';
 import { isAuthenticated } from '../../../middleware';
 
 const router = express.Router();
@@ -16,7 +24,7 @@ const router = express.Router();
  *       - bearerAuth: []
  *     parameters:
  *       - name: "Packages"
- *         description: Packages 
+ *         description: Packages
  *         in: body
  *         required: true
  *         schema:
@@ -43,7 +51,7 @@ const router = express.Router();
  *                   message:
  *                       type: string
  *                       example: Session created successfully.
- * 
+ *
  *        500:
  *           description: "Unsuccessful checkout session"
  *           schema:
@@ -55,8 +63,8 @@ const router = express.Router();
  *                   error:
  *                       type: string
  *                       example: invalid plan
- * 
- * 
+ *
+ *
  */
 router.post('/checkoutsession', isAuthenticated, checkoutSession);
 
@@ -72,7 +80,7 @@ router.post('/checkoutsession', isAuthenticated, checkoutSession);
  *       - bearerAuth: []
  *     parameters:
  *       - name: "checkoutSessionId "
- *         description: Checkout session id 
+ *         description: Checkout session id
  *         in: body
  *         required: true
  *         schema:
@@ -96,7 +104,7 @@ router.post('/checkoutsession', isAuthenticated, checkoutSession);
  *                   message:
  *                       type: string
  *                       example: checkout Session Status retrieved successfully.
- * 
+ *
  *        500:
  *           description: "Unsuccessful checkout session status"
  *           schema:
@@ -108,8 +116,8 @@ router.post('/checkoutsession', isAuthenticated, checkoutSession);
  *                   error:
  *                       type: string
  *                       example: invalid strchecsessid
- * 
- * 
+ *
+ *
  */
 router.post('/checkoutsessionstatus', isAuthenticated, checkoutSessionStatus);
 
@@ -141,7 +149,7 @@ router.post('/checkoutsessionstatus', isAuthenticated, checkoutSessionStatus);
  *                   message:
  *                       type: string
  *                       example: Customerportal url created successfully
- * 
+ *
  *        500:
  *           description: "Unsuccessful url to customerportal"
  *           schema:
@@ -153,8 +161,8 @@ router.post('/checkoutsessionstatus', isAuthenticated, checkoutSessionStatus);
  *                   error:
  *                       type: string
  *                       example: Error acquiring customer portal url
- * 
- * 
+ *
+ *
  */
 router.get('/customerportalurl', isAuthenticated, customerPortalUrl);
 
@@ -163,9 +171,15 @@ router.post('/update', isAuthenticated, changeSubscriptionPackage);
 router.post('/paypal/confirm', isAuthenticated, confirmPayPalSubscription);
 
 //dont put swagger here
-router.post('/stripeeventhandler/sr5h5vym2ayvft4fzkcgx6xbbrk53h3yshqzrm6xgqhdwr3k457754q2dta3dx8f', stripeEventHandler);
+router.post(
+  '/stripeeventhandler/sr5h5vym2ayvft4fzkcgx6xbbrk53h3yshqzrm6xgqhdwr3k457754q2dta3dx8f',
+  stripeEventHandler
+);
 
 //dont put swagger here either
-router.post('/paypaleventhandler/jocm52kh7qal4diyahbz2rwkv6bq2elzignx8fd8mad23rbigyq4kujs0t9qn82y', paypalEventHandler);
+router.post(
+  '/paypaleventhandler/jocm52kh7qal4diyahbz2rwkv6bq2elzignx8fd8mad23rbigyq4kujs0t9qn82y',
+  paypalEventHandler
+);
 
 export const subscriptionRouter = router;

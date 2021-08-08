@@ -6,7 +6,14 @@ import { Strategy as FacebookStrategy } from 'passport-facebook';
 import { Strategy as LinkedInStrategy } from 'passport-linkedin-oauth2';
 import { User, UserDocument } from '../models/User';
 import logger from '../util/logger';
-import { GOOGLE_ID, GOOGLE_SECRET, FACEBOOK_ID, FACEBOOK_SECRET, LINKEDIN_API_KEY, LINKEDIN_SECRET } from './secrets';
+import {
+  GOOGLE_ID,
+  GOOGLE_SECRET,
+  FACEBOOK_ID,
+  FACEBOOK_SECRET,
+  LINKEDIN_API_KEY,
+  LINKEDIN_SECRET,
+} from './secrets';
 import Stripe from 'stripe';
 import { API_BASE_URL, STRIPE_SECRET_KEY } from './settings';
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
@@ -25,16 +32,21 @@ passport.deserializeUser((id, done) => {
   });
 });
 
-const findUserOrCreateUser = async (profile: Passport.ExtendedProfile, accessToken: string, refreshToken: string): Promise<UserDocument> => {
+const findUserOrCreateUser = async (
+  profile: Passport.ExtendedProfile,
+  accessToken: string,
+  refreshToken: string
+): Promise<UserDocument> => {
   try {
     const { provider, id, name, emails, photos, displayName } = profile;
     const { givenName, middleName, familyName } = name;
 
-    // Sometimes, a name might be empty. 
-    const fullName = displayName
-      || [givenName, familyName].filter(s => !!s).join(' ')
-      || middleName
-      || '';
+    // Sometimes, a name might be empty.
+    const fullName =
+      displayName ||
+      [givenName, familyName].filter((s) => !!s).join(' ') ||
+      middleName ||
+      '';
 
     const email = emails[0].value;
     //let email = '';
@@ -67,7 +79,7 @@ const findUserOrCreateUser = async (profile: Passport.ExtendedProfile, accessTok
         name: fullName,
         picture,
         provider,
-        providerId: id
+        providerId: id,
       },
     });
     user.tokens.push({
@@ -88,11 +100,9 @@ const findUserOrCreateUser = async (profile: Passport.ExtendedProfile, accessTok
 
     await user.save();
     return user;
-
   } catch (error) {
     throw error;
   }
-
 };
 
 /**
@@ -136,7 +146,11 @@ const googleStrategyConfig = new GoogleAuthStratergy(
   async (accessToken, refreshToken, profile, done) => {
     try {
       //console.log(profile);
-      const user = await findUserOrCreateUser(profile, accessToken, refreshToken);
+      const user = await findUserOrCreateUser(
+        profile,
+        accessToken,
+        refreshToken
+      );
       return done(null, user);
     } catch (error) {
       done(error);
@@ -170,7 +184,14 @@ passport.use(
       clientID: FACEBOOK_ID,
       clientSecret: FACEBOOK_SECRET,
       callbackURL: `${API_BASE_URL}/auth/facebook/callback`,
-      profileFields: ['name', 'email', 'link', 'locale', 'timezone', 'picture.type(small)'],
+      profileFields: [
+        'name',
+        'email',
+        'link',
+        'locale',
+        'timezone',
+        'picture.type(small)',
+      ],
       passReqToCallback: true,
     },
     async (
@@ -182,7 +203,11 @@ passport.use(
     ): Promise<void> => {
       try {
         //console.log(profile);
-        const user = await findUserOrCreateUser(profile, accessToken, refreshToken);
+        const user = await findUserOrCreateUser(
+          profile,
+          accessToken,
+          refreshToken
+        );
         return done(null, user);
       } catch (error) {
         done(error);
@@ -212,7 +237,11 @@ passport.use(
     ): Promise<void> => {
       try {
         //console.log(profile);
-        const user = await findUserOrCreateUser(profile, accessToken, refreshToken);
+        const user = await findUserOrCreateUser(
+          profile,
+          accessToken,
+          refreshToken
+        );
         return done(null, user);
       } catch (error) {
         done(error);

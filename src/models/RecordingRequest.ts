@@ -19,8 +19,13 @@ const requestRecordingDef: SchemaDefinition = {
   sealed: { type: Boolean, default: false },
 };
 
-const recordingRequestSchema = new Schema(requestRecordingDef, { timestamps: true });
+const recordingRequestSchema = new Schema(requestRecordingDef, {
+  timestamps: true,
+});
 
 export type RecordingRequestDocument = Document & RecordingRequestType;
 
-export const RecordingRequest = model<RecordingRequestDocument>('RecordingRequest', recordingRequestSchema);
+export const RecordingRequest = model<RecordingRequestDocument>(
+  'RecordingRequest',
+  recordingRequestSchema
+);

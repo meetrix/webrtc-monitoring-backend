@@ -23,12 +23,12 @@ export const handleMissing = (_req: Request, res: Response): void => {
 };
 
 /**
- * Main authenticator middleware. This rejects plugin authentication tokens. 
- * 
- * @param req 
- * @param res 
- * @param next 
- * @returns 
+ * Main authenticator middleware. This rejects plugin authentication tokens.
+ *
+ * @param req
+ * @param res
+ * @param next
+ * @returns
  */
 export const isAuthenticated = async (
   req: Request,
@@ -39,7 +39,7 @@ export const isAuthenticated = async (
     if (!req.headers.authorization) {
       res.status(401).json({
         success: false,
-        error: 'unauthorized'
+        error: 'unauthorized',
       });
       return;
     }
@@ -62,7 +62,7 @@ export const isAuthenticated = async (
     logger.error(error);
     res.status(401).json({
       success: false,
-      error: 'unauthorized'
+      error: 'unauthorized',
     });
   }
 };
@@ -76,9 +76,7 @@ export const hasRoleOrHigher = (level: string): RequestHandler => {
       }
       const token = req.headers.authorization.split('Bearer ')[1];
       req.user = jwt.verify(token, SESSION_SECRET) as Express.User;
-      if (
-        USER_ROLES.indexOf(req.user.role) >= USER_ROLES.indexOf(level)
-      ) {
+      if (USER_ROLES.indexOf(req.user.role) >= USER_ROLES.indexOf(level)) {
         next();
       } else {
         res.sendStatus(403);
