@@ -46,12 +46,12 @@ describe('Middlewares', () => {
   const VALID_USER_TOKEN = `Bearer ${signToken({
     email: 'user@meetrix.io',
     role: 'user',
-    _id: 1234,
+    _id: 1111,
   } as UserDocument)}`;
   const VALID_ADMIN_TOKEN = `Bearer ${signToken({
-    email: 'user@meetrix.io',
+    email: 'admin@meetrix.io',
     role: 'admin',
-    _id: 1234,
+    _id: 2222,
   } as UserDocument)}`;
 
   describe('isAuthenticated', () => {
@@ -85,58 +85,58 @@ describe('Middlewares', () => {
   });
 
   describe('hasRoleOrHigher', () => {
-    it('should call next() - token needs admin role - has admin role', () => {
+    it('should call next() - token needs admin role - has admin role1', async () => {
       const req: any = {
         headers: { authorization: VALID_ADMIN_TOKEN },
       };
       const res = mockResponse();
       const nextMock = jest.fn();
-      hasRoleOrHigher('admin')(req, res, nextMock);
+      await hasRoleOrHigher('admin')(req, res, nextMock);
       expect(nextMock).toHaveBeenCalled();
     });
-    it('should call next() - token needs user role - has admin role', () => {
+    it('should call next() - token needs user role - has admin role', async () => {
       const req: any = {
         headers: { authorization: VALID_ADMIN_TOKEN },
       };
       const res = mockResponse();
       const nextMock = jest.fn();
-      hasRoleOrHigher('user')(req, res, nextMock);
+      await hasRoleOrHigher('user')(req, res, nextMock);
       expect(nextMock).toHaveBeenCalled();
     });
-    it('should call next() - token needs user role - has user role', () => {
+    it('should call next() - token needs user role - has user role', async () => {
       const req: any = {
         headers: { authorization: VALID_USER_TOKEN },
       };
       const res = mockResponse();
       const nextMock = jest.fn();
-      hasRoleOrHigher('user')(req, res, nextMock);
+      await hasRoleOrHigher('user')(req, res, nextMock);
       expect(nextMock).toHaveBeenCalled();
     });
-    it('should return 401 - token needs admin role - has admin role but token is expired', () => {
+    it('should return 401 - token needs admin role - has admin role but token is expired', async () => {
       const req: any = {
         headers: { authorization: EXPIRED_ADMIN_TOKEN },
       };
       const res = mockResponse();
       const nextMock = jest.fn();
-      hasRoleOrHigher('admin')(req, res, nextMock);
+      await hasRoleOrHigher('admin')(req, res, nextMock);
       expect(res.sendStatus).toHaveBeenCalledWith(401);
       expect(nextMock).toBeCalledTimes(0);
     });
-    it('should return 403 - token needs admin role - has user role', () => {
+    it('should return 403 - token needs admin role - has user role', async () => {
       const req: any = {
         headers: { authorization: VALID_USER_TOKEN },
       };
       const res = mockResponse();
       const nextMock = jest.fn();
-      hasRoleOrHigher('admin')(req, res, nextMock);
+      await hasRoleOrHigher('admin')(req, res, nextMock);
       expect(res.sendStatus).toHaveBeenCalledWith(403);
       expect(nextMock).toBeCalledTimes(0);
     });
-    it('should return 401 when the authorization header is missing', () => {
+    it('should return 401 when the authorization header is missing', async () => {
       const req: any = { headers: {} };
       const res = mockResponse();
       const nextMock = jest.fn();
-      hasRoleOrHigher('admin')(req, res, nextMock);
+      await hasRoleOrHigher('admin')(req, res, nextMock);
       expect(res.sendStatus).toHaveBeenCalledWith(401);
       expect(nextMock).toBeCalledTimes(0);
     });
