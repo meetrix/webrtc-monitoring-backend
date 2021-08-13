@@ -108,6 +108,14 @@ Object {
 }
 `;
 
+exports[`API V1 /account POST /reset/:token should return 422 - expired token 2`] = `
+Object {
+  "data": null,
+  "message": "Token expired or something went wrong. Please try again.",
+  "success": false,
+}
+`;
+
 exports[`API V1 /account POST /reset/:token should return 422 - password mismatch, password too short and invalid token 1`] = `
 Object {
   "errors": Array [

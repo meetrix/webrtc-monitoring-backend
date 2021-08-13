@@ -4,6 +4,9 @@ import {
   hasRoleOrHigher,
   handleErrors,
 } from '../../src/middleware';
+import { signToken } from '../../src/util/auth';
+import { UserDocument } from '../../src/models/User';
+jest.mock('../../src/models/User');
 
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
@@ -40,36 +43,42 @@ describe('Middlewares', () => {
   const EXPIRED_ADMIN_TOKEN =
     'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InZhbGlkQGVtYWlsLmNvbSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTU2NTI1OTg3NiwiZXhwIjoxNTY1MjU5ODc3LCJzdWIiOiJjMDgxZmNkMi01MjBiLTRjZDEtOGYwYi01MTdmYTc3ZmZlNGMifQ.iGhhlgB6gh5usj90s92RQyEsBjhU7yzn6Y8YrxSPtJY';
 
-  const VALID_USER_TOKEN =
-    'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InZhbGlkQGVtYWlsLmNvbSIsInJvbGUiOiJ1c2VyIiwiaWF0IjoxNTY1MjU4NjMyLCJzdWIiOiJjMDgxZmNkMi01MjBiLTRjZDEtOGYwYi01MTdmYTc3ZmZlNGMifQ.WPBcEdyjcKObhALdoyFb9825EvjTPzgD8yxb339kmV8';
-  const VALID_ADMIN_TOKEN =
-    'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InZhbGlkQGVtYWlsLmNvbSIsInJvbGUiOiJhZG1pbiIsImlhdCI6MTU2NTI1ODYzMiwic3ViIjoiYzA4MWZjZDItNTIwYi00Y2QxLThmMGItNTE3ZmE3N2ZmZTRjIn0.vabX4sliFmwcfiaR0h7lVgR1tl5jlrHX2uVbP4irnPQ';
+  const VALID_USER_TOKEN = `Bearer ${signToken({
+    email: 'user@meetrix.io',
+    role: 'user',
+    _id: 1234,
+  } as UserDocument)}`;
+  const VALID_ADMIN_TOKEN = `Bearer ${signToken({
+    email: 'user@meetrix.io',
+    role: 'admin',
+    _id: 1234,
+  } as UserDocument)}`;
 
   describe('isAuthenticated', () => {
-    it('should call next()', () => {
+    it('should call next()', async () => {
       const req: any = {
         headers: { authorization: VALID_USER_TOKEN },
       };
       const res = mockResponse();
       const nextMock = jest.fn();
-      isAuthenticated(req, res, nextMock);
+      await isAuthenticated(req, res, nextMock);
       expect(nextMock).toHaveBeenCalled();
     });
-    it('should return status 401 - expired token', () => {
+    it('should return status 401 - expired token', async () => {
       const req: any = {
         headers: { authorization: EXPIRED_USER_TOKEN },
       };
       const res = mockResponse();
       const nextMock = jest.fn();
-      isAuthenticated(req, res, nextMock);
+      await isAuthenticated(req, res, nextMock);
       expect(res.sendStatus).toHaveBeenCalledWith(401);
       expect(nextMock).toBeCalledTimes(0);
     });
-    it('should return status 401 - missing authorization header', () => {
+    it('should return status 401 - missing authorization header', async () => {
       const req: any = { headers: {} };
       const res = mockResponse();
       const nextMock = jest.fn();
-      isAuthenticated(req, res, nextMock);
+      await isAuthenticated(req, res, nextMock);
       expect(res.sendStatus).toHaveBeenCalledWith(401);
       expect(nextMock).toBeCalledTimes(0);
     });

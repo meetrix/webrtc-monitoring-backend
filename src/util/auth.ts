@@ -11,15 +11,19 @@ import { PluginDocument } from '../models/Plugin';
 import { RecordingRequestDocument } from '../models/RecordingRequest';
 import { UserDocument } from '../models/User';
 
-export const signToken = (user: UserDocument): string => {
+export const signToken = (
+  user: UserDocument,
+  secret: string = SESSION_SECRET,
+  expiresIn: string = JWT_EXPIRATION
+): string => {
   return jwt.sign(
     {
       email: user.email,
       role: user.role,
     },
-    SESSION_SECRET,
+    secret,
     {
-      expiresIn: JWT_EXPIRATION,
+      expiresIn: expiresIn,
       subject: user._id.toString(),
     }
   );
