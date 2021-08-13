@@ -2,7 +2,6 @@
 import crypto from 'crypto';
 import passport from 'passport';
 import validator from 'validator';
-import nodemailer from 'nodemailer';
 import { Response, Request, NextFunction } from 'express';
 import { IVerifyOptions } from 'passport-local';
 import { getMailOptions, getTransporter } from '../../../util/mail';
@@ -13,15 +12,9 @@ import {
   STRIPE_SECRET_KEY,
   S3_USER_META_BUCKET,
 } from '../../../config/settings';
-const log = console.log;
 
 import { UserDocument, User } from '../../../models/User';
-// import {
-//     RECOVERY_LANDING,
-//     CONFIRMATION_LANDING, SENDER_EMAIL
-// } from '../../../config/settings';
 import { formatError } from '../../../util/error';
-import { SUCCESSFUL_RESPONSE } from '../../../util/success';
 import { getSubscriptionStatus, signToken } from '../../../util/auth';
 import Stripe from 'stripe';
 import S3 from 'aws-sdk/clients/s3';
@@ -29,6 +22,7 @@ import { AWS_ACCESS_KEY, AWS_ACCESS_KEY_SECRET } from '../../../config/secrets';
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
   apiVersion: '2020-08-27',
 });
+import logger from '../../../util/logger';
 
 // Refresh
 export const refresh = async (
@@ -54,6 +48,7 @@ export const refresh = async (
       message: 'Token issued.',
     });
   } catch (error) {
+    logger.error(error);
     res.status(500).json({
       success: false,
       data: null,
@@ -152,13 +147,13 @@ export const register = async (
 
       transporter.sendMail(mailOptions, (err, data) => {
         if (err) {
-          return log('Error occurs');
+          return logger.error('Error occurs');
         }
-        return log('Email sent to the user successfully.');
+        return logger.info('Email sent to the user successfully.');
         // res.status(201).json({ token: signToken(user) });
       });
 
-      res.status(200).json({
+      res.status(201).json({
         success: true,
         // data: { emailToken },
         message:
@@ -185,7 +180,7 @@ export const register = async (
       return;
     }
   } catch (error) {
-    console.log(error);
+    logger.error(error);
     res.status(500).json({
       success: false,
       data: null,
@@ -244,9 +239,9 @@ export const verify = async (
 
     transporter.sendMail(mailOptions, (err, data) => {
       if (err) {
-        return log('Error occurs');
+        return logger.error('Error occurs');
       }
-      return log('Email sent to the user successfully.');
+      return logger.info('Email sent to the user successfully.');
     });
 
     // A new email signin token issued to get user details to verify at signin
@@ -263,7 +258,7 @@ export const verify = async (
       data: null,
       message: 'Something went wrong. Please try again later.',
     });
-    log('Error occurs while sending email.');
+    logger.error('Error occurs while sending email.');
 
     next(error);
   }
@@ -283,8 +278,12 @@ export const login = async (
 
     // }
 
-    console.log(req.body);
-
+    if (!req?.body?.email || !req?.body?.password) {
+      res.status(403).json({
+        errors: [{ msg: 'Invalid credentials' }],
+      });
+      return;
+    }
     req.body.email = validator.normalizeEmail(req.body.email, {
       gmail_remove_dots: false,
     });
@@ -341,9 +340,9 @@ export const login = async (
           });
           transporter.sendMail(mailOptions, (err, data) => {
             if (err) {
-              return log('Error occurs');
+              return logger.error('Error occurs');
             }
-            return log('Email sent to the user successfully.');
+            return logger.info('Email sent to the user successfully.');
             // res.status(201).json({ token: signToken(user) });
           });
           res.status(403).json({
@@ -367,6 +366,8 @@ export const login = async (
       }
     )(req, res, next);
   } catch (error) {
+    console.log(error);
+    logger.error(error);
     res.status(500).json({
       success: false,
       data: null,
@@ -384,10 +385,8 @@ export const forgot = async (
 ): Promise<void> => {
   try {
     if (!req.body.email) {
-      res.status(500).json({
-        success: false,
-        data: null,
-        message: 'Invalid data.',
+      res.status(422).json({
+        errors: [{ msg: 'Invalid data' }],
       });
       return;
     }
@@ -398,11 +397,12 @@ export const forgot = async (
 
     const user = await User.findOne({ email });
     if (!user) {
-      res.status(500).json({
-        success: false,
-        data: null,
-        message:
-          'Email Address not found in our system. Please signup to enjoy ScreenApp.',
+      res.status(404).json({
+        errors: [
+          {
+            msg: 'Email not found',
+          },
+        ],
       });
       return;
     }
@@ -431,18 +431,18 @@ export const forgot = async (
 
     transporter.sendMail(mailOptions, (err, data) => {
       if (err) {
-        return log(err);
+        return logger.error(err);
       }
-      return log('Email sent to the user successfully. ');
+      return logger.info('Email sent to the user successfully. ');
     });
 
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       message:
         'Password reset link has been sent to your mail successfully. It will be valid for next 60 minutes.',
     });
   } catch (error) {
-    log('Error occurs while sending email.');
+    logger.error('Error occurs while sending email.');
     res.status(500).json({
       success: true,
       data: null,
@@ -479,7 +479,7 @@ export const resetPassword = async (
       message: 'Reset successful. Redirecting...',
     });
   } catch (error) {
-    log('Something went wrong.');
+    logger.error('Something went wrong.');
     res.status(500).json({
       success: false,
       data: null,
@@ -499,24 +499,24 @@ export const reset = async (
     if (!validator.isLength(req.body.password, { min: 6 })) {
       res.status(422).json({
         success: false,
-        data: null,
         message: 'Password must be at least 6 characters long.',
       });
+      return;
     }
     if (req.body.password !== req.body.confirm) {
       res.status(422).json({
         success: false,
-        data: null,
         message:
           'Passwords do not match. Please check and enter the same password.',
       });
+      return;
     }
     if (!validator.isHexadecimal(req.params.token)) {
       res.status(422).json({
         success: false,
-        data: null,
         message: 'Token expired or something went wrong. Please try again.',
       });
+      return;
     }
 
     const user = await User.findOne({
@@ -528,7 +528,6 @@ export const reset = async (
       res.redirect(`${AUTH_LANDING}/#/resetpasswordtoken_expired`);
       res.status(401).json({
         success: false,
-        data: null,
         message:
           'The password reset link is already used or expired. Please try again.',
       });
@@ -558,13 +557,13 @@ export const reset = async (
 
     transporter.sendMail(mailOptions, (err, data) => {
       if (err) {
-        return log('Error occurs');
+        return logger.error('Error occurs');
       }
-      return log('Email sent to the user successfully.');
+      return logger.info('Email sent to the user successfully.');
     });
 
     // res.status(201).json(SUCCESSFUL_RESPONSE);
-    res.status(200).json({
+    res.status(201).json({
       success: true,
       data: null,
       message:
@@ -642,8 +641,19 @@ export const postProfile = async (
 
     // Do not set email
     // user.email = req.body.email;
+    const { name, gender, location, website, picture, provider, providerId } =
+      req.body;
 
-    user.profile.name = req.body.name;
+    user.profile = {
+      ...user.profile,
+      name,
+      gender,
+      location,
+      website,
+      picture,
+      provider,
+      providerId,
+    };
 
     if (req.body.picture) {
       const imgBuffer = Buffer.from(req.body.picture, 'base64');
@@ -703,9 +713,9 @@ export const postProfile = async (
 
       transporter.sendMail(mailOptions, (err, data) => {
         if (err) {
-          return log('Error occurs');
+          return logger.error('Error occurs');
         }
-        return log('Email sent to the user successfully.');
+        return logger.info('Email sent to the user successfully.');
       });
     }
 

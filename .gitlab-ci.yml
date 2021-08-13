@@ -20,7 +20,7 @@ staging_build:
     - docker push $CONTAINER_VERSIONED_IMAGE_STAGING
     - docker push $CONTAINER_RELEASE_IMAGE_STAGING
   only:
-    - master
+    - none
 
 staging_deploy:
   environment:
@@ -30,7 +30,7 @@ staging_deploy:
   script:
     - aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment
   only:
-    - master
+    - none
 
 production_build:
   environment:

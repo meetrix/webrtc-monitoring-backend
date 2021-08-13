@@ -7,6 +7,7 @@ import {
   S3_CONTENT_BUCKET,
   S3_CONTENT_LINK_EXPIRATION,
 } from '../../../config/settings';
+import logger from '../../../util/logger';
 
 const s3 = new S3({
   credentials: {
@@ -63,6 +64,7 @@ export const upload = async (
       data: results,
     });
   } catch (error) {
+    logger.error(error);
     next(error);
   }
 };

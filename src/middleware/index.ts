@@ -37,23 +37,29 @@ export const isAuthenticated = async (
 ): Promise<void> => {
   try {
     if (!req.headers.authorization) {
-      res.status(401).json({
-        success: false,
-        error: 'unauthorized',
-      });
+      res.sendStatus(401);
       return;
     }
     const token = req.headers.authorization.split('Bearer ')[1];
-    const jwtInfo = jwt.verify(token, SESSION_SECRET) as Express.JwtUser;
+    let jwtInfo;
+
+    try {
+      jwtInfo = jwt.verify(token, SESSION_SECRET) as Express.JwtUser;
+    } catch (error) {
+      logger.error(error);
+      res.sendStatus(401);
+      return;
+    }
 
     // Reject *plugin* authentication tokens
-    if ((jwtInfo as Express.IJwtUser as Express.JwtPluginUser).plugin) {
+    if ((jwtInfo as Express.IJwtUser as Express.JwtPluginUser)?.plugin) {
       throw new Error('Plugin authentication tokens cannot be used to log-in.');
     }
 
-    const userDoc = await User.findOne({ _id: jwtInfo.sub });
+    const userDoc = await User.findOne({ email: jwtInfo.email });
     if (!userDoc) {
-      throw Error('user not found');
+      res.sendStatus(401);
+      return;
     }
     req.user = userDoc;
 
@@ -68,14 +74,24 @@ export const isAuthenticated = async (
 };
 
 export const hasRoleOrHigher = (level: string): RequestHandler => {
-  return (req: Request, res: Response, next: NextFunction): void => {
+  return async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
     try {
       if (!req.headers.authorization) {
         res.sendStatus(401);
         return;
       }
       const token = req.headers.authorization.split('Bearer ')[1];
-      req.user = jwt.verify(token, SESSION_SECRET) as Express.User;
+      const { email } = jwt.verify(token, SESSION_SECRET) as Express.User;
+      if (!email) res.sendStatus(403);
+
+      const user = await User.findOne({ email });
+      if (!user?.id) res.sendStatus(403);
+
+      req.user = user;
       if (USER_ROLES.indexOf(req.user.role) >= USER_ROLES.indexOf(level)) {
         next();
       } else {

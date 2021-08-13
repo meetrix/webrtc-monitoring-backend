@@ -10,6 +10,8 @@ import {
   folderSchema,
 } from './FileSystemEntity';
 
+export type Role = 'user' | 'admin' | 'owner';
+
 export interface Profile {
   name?: string;
   gender?: string;
@@ -34,7 +36,7 @@ export interface AuthToken {
 }
 export interface UserAPIFormat {
   email: string;
-  role: string;
+  role: Role;
   package: string;
   /** Maximum package that the user ever had access to. */
   limitedPackage: string;
@@ -71,7 +73,7 @@ export type UserDocument = mongoose.Document & {
   isVerified: boolean;
   isFirstTimeUser: boolean;
   accessToken: string;
-  role: string;
+  role: Role;
   package: string;
   limitedPackage: string;
   trialsConsumed: string[];

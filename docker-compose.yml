@@ -31,10 +31,11 @@ services:
       VIRTUAL_HOST: ${BACKEND_DOMAIN}
     volumes:
       - /usr/src/app/node_modules
+      - /usr/src/app/dist
       - ./:/usr/src/app
     depends_on:
       - mongo
-    command: ['npm', 'run', 'start']
+    command: ['npm', 'start']
 
   nginx:
     image: jwilder/nginx-proxy
