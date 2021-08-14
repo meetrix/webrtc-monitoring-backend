@@ -1,5 +1,9 @@
 import dotenv from 'dotenv';
-dotenv.config();
+if (process.env.NODE_ENV === 'TEST') {
+  dotenv.config({ path: '../.env.test' });
+} else {
+  dotenv.config();
+}
 
 export const NODE_ENV = process.env.NODE_ENV;
 export const PRODUCTION = 'production';
