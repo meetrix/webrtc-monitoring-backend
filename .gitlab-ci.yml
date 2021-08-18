@@ -3,6 +3,7 @@ variables:
   CONTAINER_RELEASE_IMAGE_STAGING: $CI_REGISTRY_IMAGE/staging:latest
   CONTAINER_VERSIONED_IMAGE_PRODUCTION: $CI_REGISTRY_IMAGE/production:$CI_PIPELINE_ID
   CONTAINER_RELEASE_IMAGE_PRODUCTION: $CI_REGISTRY_IMAGE/production:latest
+  PROJECT_NAME: clientify-auth-backend
 
 staging_build:
   environment:
@@ -14,9 +15,9 @@ staging_build:
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    - docker-compose --project-name screenapp -f docker-compose.yml -f docker-compose.staging.yml build
-    - docker tag screenapp_server $CONTAINER_VERSIONED_IMAGE_STAGING
-    - docker tag screenapp_server $CONTAINER_RELEASE_IMAGE_STAGING
+    - docker-compose --project-name $PROJECT_NAME -f docker-compose.yml -f docker-compose.staging.yml build
+    - docker tag $PROJECT_NAME $CONTAINER_VERSIONED_IMAGE_STAGING
+    - docker tag $PROJECT_NAME $CONTAINER_RELEASE_IMAGE_STAGING
     - docker push $CONTAINER_VERSIONED_IMAGE_STAGING
     - docker push $CONTAINER_RELEASE_IMAGE_STAGING
   only:
@@ -42,9 +43,9 @@ production_build:
   before_script:
     - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
   script:
-    - docker-compose --project-name screenapp -f docker-compose.yml -f docker-compose.production.yml build
-    - docker tag screenapp_server $CONTAINER_VERSIONED_IMAGE_PRODUCTION
-    - docker tag screenapp_server $CONTAINER_RELEASE_IMAGE_PRODUCTION
+    - docker-compose --project-name $PROJECT_NAME -f docker-compose.yml -f docker-compose.production.yml build
+    - docker tag $PROJECT_NAME $CONTAINER_VERSIONED_IMAGE_PRODUCTION
+    - docker tag $PROJECT_NAME $CONTAINER_RELEASE_IMAGE_PRODUCTION
     - docker push $CONTAINER_VERSIONED_IMAGE_PRODUCTION
     - docker push $CONTAINER_RELEASE_IMAGE_PRODUCTION
   only:

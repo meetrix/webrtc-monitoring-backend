@@ -43,13 +43,12 @@ if (missingSecrets.length > 0) {
   process.exit(1);
 }
 
-const mongoURI =
+export const MONGO_URI =
   NODE_ENV === PRODUCTION || NODE_ENV === STAGING
     ? `mongodb://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/${process.env.MONGO_DATABASE}?authSource=admin`
     : `mongodb://${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/${process.env.MONGO_DATABASE}`;
 
 export const SESSION_SECRET = process.env['SESSION_SECRET'];
-export const MONGO_URI = mongoURI;
 export const FACEBOOK_ID = process.env['FACEBOOK_ID'];
 export const FACEBOOK_SECRET = process.env['FACEBOOK_SECRET'];
 
