@@ -1,21 +1,11 @@
 import express from 'express';
-import mongoose from 'mongoose';
-import { MONGO_URI } from './config/secrets';
-import logger from './util/logger';
 import { setupExpress } from './config/express';
 import { handleMissing, handleErrors } from './middleware';
+import { setupMongoose } from './config/mongoose';
 import { setupRoutesV1 } from './config/routes';
+import { MONGO_URI } from './config/secrets';
 
-mongoose.set('useNewUrlParser', true);
-mongoose.set('useCreateIndex', true);
-mongoose.set('useUnifiedTopology', true);
-
-mongoose.connect(MONGO_URI).catch((err): void => {
-  logger.error(
-    'MongoDB connection error. Please make sure MongoDB is running. ' + err
-  );
-  process.exit(1);
-});
+setupMongoose(MONGO_URI);
 
 const app = express();
 

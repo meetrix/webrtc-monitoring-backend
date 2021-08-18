@@ -23,6 +23,17 @@ http://localhost:8081/v1/spec
 
 To build the project in VS Code press `cmd + shift + b`. You can also run tasks using the command pallet (`cmd + shift + p`) and select `Tasks: Run Task` > `npm: start` to run `npm start` for you.
 
+## Using cli commands
+
+1. Make sure you are running all the containers with `docker-compose up`
+2. Make sure you have install `ts-node` globally with `npm install -g ts-node`
+3. `cd cli-tools`
+4. `cat .env.dist > .env` this will copy `.env` file that allows local not processes to connect to docker mongo
+5. Make sure you run all the commands in `cli-tools` dir.
+6. Help: `ts-node cli-tools/create-user.ts --help`
+7. Create user : `ts-node cli-tools/user-create.ts -e admin@clientify.io -p admin -r admin`
+8. Get token: `ts-node user-get-token.ts -e admin@clientify.io -v 48h`
+
 ## OpenAPI Spec
 
 Api spec is written with [openAPI 2.0](https://editor.swagger.io)

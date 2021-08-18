@@ -18,7 +18,8 @@
     "build-ts": "tsc",
     "lint": "tsc --noEmit && eslint \"*/**/*.{js,ts}\" --quiet --fix",
     "format": "prettier --write ./*",
-    "check-deps": "npm audit && ncu"
+    "check-deps": "npm audit && ncu",
+    "start:db": "docker-compose up mongo mongo-express"
   },
   "dependencies": {
     "@paypal/checkout-server-sdk": "^1.0.2",
@@ -100,6 +101,7 @@
     "nodemon": "2.0.3",
     "npm-check-updates": "7.0.1",
     "prettier": "^2.3.2",
+    "stdio": "^2.1.1",
     "supertest": "4.0.2",
     "ts-jest": "26.1.0",
     "typescript": "3.8.3"
