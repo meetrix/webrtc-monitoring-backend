@@ -23,6 +23,12 @@ http://localhost:8081/v1/spec
 
 To build the project in VS Code press `cmd + shift + b`. You can also run tasks using the command pallet (`cmd + shift + p`) and select `Tasks: Run Task` > `npm: start` to run `npm start` for you.
 
+## Using OpenAPI Spec
+
+1. Go to [http://localhost:8081/v1/spec]
+2. Click `Authorize` and add a token `Bearer <YOUR_TOKEN>`
+3. Execute any API
+
 ## Using cli commands
 
 1. Make sure you are running all the containers with `docker-compose up`
@@ -140,9 +146,9 @@ This project is using `ESLint` with `typescript-eslint/recommended` settings.
 - [VS Code ESLint extension](https://marketplace.visualstudio.com/items?itemName=dbaeumer.vscode-eslint)
 - [Code Spell Checker](https://marketplace.visualstudio.com/items?itemName=streetsidesoftware.code-spell-checker)
 
-# Dependencies
+## Dependencies
 
-## `production`
+### production
 
 | Package           | Description                                                             |
 | ----------------- | ----------------------------------------------------------------------- |
@@ -167,7 +173,7 @@ This project is using `ESLint` with `typescript-eslint/recommended` settings.
 | validator         | A library of string validators and sanitizers.                          |
 | winston           | Logging library                                                         |
 
-## `development`
+### `development`
 
 | Package           | Description                                                                           |
 | ----------------- | ------------------------------------------------------------------------------------- |
@@ -183,7 +189,7 @@ This project is using `ESLint` with `typescript-eslint/recommended` settings.
 
 If you're the type of person that likes to live life on the bleeding edge feel free to use `npm run check-deps`
 
-# Resources
+## Resources
 
 This section is a list of resources for building an API that can be useful in certain situations
 
