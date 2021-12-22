@@ -1,4 +1,4 @@
-# ScreenApp Auth Backend
+# Node Typescript Auth Backend
 
 Bootstrapped from [feredean/node-api-starter](https://github.com/feredean/node-api-starter).
 Which is bootstrapped from [sahat/hackathon-starter](https://github.com/sahat/hackathon-starter).
