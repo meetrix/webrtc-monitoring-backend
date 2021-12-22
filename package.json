@@ -1,9 +1,9 @@
 {
-  "name": "api",
+  "name": "@meetrix/node-typescript-auth-api-starter",
   "version": "2.0.0",
-  "description": "REST API scaffolding",
+  "description": "Node Typescript AUTH API Starter",
   "license": "MIT",
-  "author": "Tiberiu Feredean",
+  "author": "Meetrix",
   "repository": {
     "type": "git",
     "url": "https://github.com/feredean/node-api-starter"
