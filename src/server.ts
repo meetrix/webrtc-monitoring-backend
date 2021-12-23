@@ -8,9 +8,9 @@ const io = new Server(httpServer);
 
 httpServer.listen(app.get('port'), (): void => {
   logger.info(
-    `App is running at http://localhost:${app.get('port')} in ${app.get(
-      'env'
-    )} mode`
+    `App is running at http://localhost:${app.get(
+      'port'
+    )}/v1/spec/ in ${app.get('env')} mode`
   );
 });
 export default httpServer;
