@@ -1,9 +1,12 @@
-FROM node:12.16
+FROM node:12.16 as base
 
 ENV PORT=9100
 RUN apt-get -y update
 RUN npm install -g typescript pm2
 WORKDIR /usr/src/app
+
+FROM base as deps
+
 COPY package*.json ./
 RUN npm install
 COPY . .
