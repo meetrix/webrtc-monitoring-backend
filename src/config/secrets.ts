@@ -51,7 +51,7 @@ export const MONGO_URI =
     ? `mongodb://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/${process.env.MONGO_DATABASE}?authSource=admin`
     : `mongodb://${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/${process.env.MONGO_DATABASE}`;
 
-export const REDIS_URI = `redis:://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`;
+export const REDIS_URI = `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`;
 
 export const SESSION_SECRET = process.env['SESSION_SECRET'];
 export const FACEBOOK_ID = process.env['FACEBOOK_ID'];
