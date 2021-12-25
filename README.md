@@ -17,13 +17,9 @@ cat .env.example > .env
 
 npm run services up
 
-# Create admin user (For the first time)
+# Create admin user (For the first time). Refer setup commands in package.json for more information
 
-npm run setup-create-admin
-
-# Generate admin token
-
-npm run generate-admin-token
+npm run setup
 
 # Run (development mode) the API
 npm start
@@ -51,6 +47,7 @@ To build the project in VS Code press `cmd + shift + b`. You can also run tasks 
 6. Create user : `ts-node cli-tools/user-create.ts -e dev@meetrix.io -p dev -r admin`
 7. Get token: `ts-node cli-tools/user-get-token.ts -e dev@meetrix.io -v 48h`
 8. Register plugin `ts-node cli-tools/plugin-create -e dev@meetrix.io -d meetrix.io`
+9. Generate token for plugin `ts-node cli-tools/plugin-get-token.ts -d 'meetrix.io'`
 
 ## OpenAPI Spec
 

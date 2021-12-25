@@ -22,10 +22,11 @@
     "start:db": "docker-compose up mongo mongo-express",
     "services-up": "docker-compose up",
     "services-down": "docker-compose down",
-    "setup": "npm run setup-create-admin && npm run setup-generate-admin-token && setup-register-plugin",
+    "setup": "npm run setup-create-admin && npm run setup-generate-admin-token && setup-register-plugin && npm run setup-generate-plugin-token",
     "setup-create-admin": "ts-node cli-tools/user-create.ts -e dev@meetrix.io -p dev -r admin",
     "setup-generate-admin-token": "ts-node cli-tools/user-get-token.ts -e dev@meetrix.io -v 48h",
     "setup-register-plugin": "ts-node cli-tools/plugin-create -e dev@meetrix.io -d meetrix.io",
+    "setup-generate-plugin-token": "ts-node cli-tools/plugin-get-token.ts -d 'meetrix.io'",
     "build-image": "docker-compose build --force-rm"
   },
   "dependencies": {
