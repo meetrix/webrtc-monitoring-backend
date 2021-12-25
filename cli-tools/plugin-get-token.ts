@@ -3,7 +3,6 @@ import { setupMongoose } from '../src/config/mongoose';
 import logger from '../src/util/logger';
 import { signPluginToken } from '../src/util/auth';
 import { Plugin } from '../src/models/Plugin';
-import { SESSION_SECRET } from '../src/config/secrets';
 import { MONGO_URI } from '../src/config/secrets';
 
 interface Options {
