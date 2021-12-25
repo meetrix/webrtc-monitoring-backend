@@ -11,7 +11,7 @@ interface Options {
   validity: string;
 }
 
-const createAdmin = async (): Promise<void> => {
+const getToken = async (): Promise<void> => {
   logger.info('create admin');
   try {
     const { email = 'admin@clientify.io', validity = '48h' } = stdio.getopt({
@@ -33,4 +33,4 @@ const createAdmin = async (): Promise<void> => {
   }
 };
 
-createAdmin();
+getToken();
