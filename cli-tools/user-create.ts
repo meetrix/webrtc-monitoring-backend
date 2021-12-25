@@ -3,11 +3,12 @@ import { setupMongoose } from '../src/config/mongoose';
 import { registerValidUser } from '../test/helpers';
 import logger from '../src/util/logger';
 import { MONGO_URI } from '../src/config/secrets';
+import { role } from '../src/types/app';
 
 interface Options {
   email: string;
   password: string;
-  role: 'user' | 'admin' | 'owner';
+  role: role;
 }
 
 const createAdmin = async (): Promise<void> => {
