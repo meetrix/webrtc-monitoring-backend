@@ -1,4 +1,4 @@
-import { Socket, ExtendedError } from 'socket.io';
+import { Socket } from 'socket.io';
 import logger from '../util/logger';
 import { verify } from '../util/auth';
 import { PluginTokenInformation } from '../types/app';
@@ -10,7 +10,7 @@ interface SocketExtended extends Socket {
 
 export const SocketAuth = async (
   socket: SocketExtended,
-  next: (err?: ExtendedError) => void
+  next: (err?: Error) => void
 ): Promise<void> => {
   if (socket.handshake.query && socket.handshake.query.token) {
     try {
