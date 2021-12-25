@@ -22,7 +22,9 @@
     "start:db": "docker-compose up mongo mongo-express",
     "services-up": "docker-compose up",
     "services-down": "docker-compose down",
-    "build-image": "docker-compose build --force-rm"
+    "build-image": "docker-compose build --force-rm",
+    "create-admin": "ts-node cli-tools/user-create.ts -e dev@meetrix.io -p dev -r admin",
+    "generate-admin-token": "ts-node cli-tools/user-get-token.ts -e dev@meetrix.io -v 48h"
   },
   "dependencies": {
     "@paypal/checkout-server-sdk": "^1.0.2",

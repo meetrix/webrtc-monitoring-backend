@@ -17,6 +17,14 @@ cat .env.example > .env
 
 npm run services up
 
+# Create admin user (For the first time)
+
+npm run create-admin
+
+# Generate admin token
+
+npm run generate-admin-token
+
 # Run (development mode) the API
 npm start
 
@@ -41,7 +49,7 @@ To build the project in VS Code press `cmd + shift + b`. You can also run tasks 
 4. `cat .env.dist > .env` this will copy `.env` file that allows local not processes to connect to docker mongo
 5. Help: `ts-node cli-tools/user-create.ts --help`
 6. Create user : `ts-node cli-tools/user-create.ts -e dev@meetrix.io -p dev -r admin`
-7. Get token: `ts-node user-get-token.ts -e dev@meetrix.io -v 48h`
+7. Get token: `ts-node cli-tools/user-get-token.ts -e dev@meetrix.io -v 48h`
 
 ## OpenAPI Spec
 

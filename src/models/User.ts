@@ -16,7 +16,7 @@ export interface Profile {
   name?: string;
   gender?: string;
   location?: string;
-  website?: string;
+  domain?: string;
   picture?: string;
   provider?: string;
   providerId?: string;
@@ -122,7 +122,7 @@ const userSchema = new mongoose.Schema(
       name: String,
       gender: String,
       location: String,
-      website: String,
+      domain: String,
       picture: String,
       provider: String,
       providerId: String,
@@ -217,7 +217,7 @@ userSchema.methods = {
         name: this.profile.name,
         gender: this.profile.gnder,
         location: this.profile.location,
-        website: this.profile.website,
+        domain: this.profile.domain,
         picture: this.profile.picture,
         provider: this.profile.provider,
         providerId: this.profile.providerId,

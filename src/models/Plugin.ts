@@ -3,12 +3,12 @@ import { Document, Schema, model, SchemaDefinition } from 'mongoose';
 export interface PluginType {
   _id?: string;
   ownerId: string;
-  website: string;
+  domain: string;
 }
 
 const pluginSchemaDef: SchemaDefinition = {
   ownerId: { type: String, index: true },
-  website: String,
+  domain: String,
 };
 
 const pluginSchema = new Schema(pluginSchemaDef, { timestamps: true });

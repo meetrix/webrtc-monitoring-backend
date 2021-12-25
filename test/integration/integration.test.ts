@@ -433,7 +433,7 @@ describe('API V1', () => {
         name: 'Valid User',
         gender: 'User',
         location: 'Userland',
-        website: 'valid.user.com',
+        domain: 'valid.user.com',
       };
 
       it("should return 200 and change the user's profile information", async () => {
@@ -448,7 +448,7 @@ describe('API V1', () => {
         expect(user.profile.name).toBe(PROFILE_DATA.name);
         expect(user.profile.gender).toBe(PROFILE_DATA.gender);
         expect(user.profile.location).toBe(PROFILE_DATA.location);
-        expect(user.profile.website).toBe(PROFILE_DATA.website);
+        expect(user.profile.domain).toBe(PROFILE_DATA.domain);
       });
 
       it('should return 200 and return the profile', async () => {
@@ -473,7 +473,7 @@ describe('API V1', () => {
         expect(user.profile.name).toBeUndefined();
         expect(user.profile.gender).toBeUndefined();
         expect(user.profile.location).toBeUndefined();
-        expect(user.profile.website).toBeUndefined();
+        expect(user.profile.domain).toBeUndefined();
       });
     });
 

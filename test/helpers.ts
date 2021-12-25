@@ -1,5 +1,6 @@
 import crypto from 'crypto';
 import { User } from '../src/models/User';
+import { Plugin, PluginType } from '../src/models/Plugin';
 import { SESSION_SECRET } from '../src/config/secrets';
 import { signToken } from '../src/util/auth';
 
@@ -41,4 +42,22 @@ export const registerValidUser = async ({
 
   const _user = await User.create(user);
   return signToken(_user, SESSION_SECRET, jwtExpiration);
+};
+
+export interface RegisterPluginOptions {
+  email: string;
+  domain: string;
+}
+
+export const registerPlugin = async ({
+  email,
+  domain,
+}: RegisterPluginOptions): Promise<PluginType> => {
+  const user = await User.findOne({ email });
+  if (!user) throw new Error(`User with email: ${email} not found`);
+  const plugin = await Plugin.create({
+    ownerId: user.id,
+    domain,
+  });
+  return plugin;
 };

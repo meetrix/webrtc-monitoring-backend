@@ -19,7 +19,7 @@ declare global {
 
     interface JwtPluginUser extends IJwtUser {
       plugin: boolean;
-      website: string;
+      domain: string;
     }
 
     interface JwtSecondaryUser extends IJwtUser {

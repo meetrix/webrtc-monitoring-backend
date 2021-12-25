@@ -69,7 +69,7 @@ Object {
     "gender": "User",
     "location": "Userland",
     "name": "Valid User",
-    "website": "valid.user.com",
+    "domain": "valid.user.com",
   },
   "role": "user",
 }

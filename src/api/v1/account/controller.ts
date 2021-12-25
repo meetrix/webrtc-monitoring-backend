@@ -641,7 +641,7 @@ export const postProfile = async (
 
     // Do not set email
     // user.email = req.body.email;
-    const { name, gender, location, website, picture, provider, providerId } =
+    const { name, gender, location, domain, picture, provider, providerId } =
       req.body;
 
     user.profile = {
@@ -649,7 +649,7 @@ export const postProfile = async (
       name,
       gender,
       location,
-      website,
+      domain,
       picture,
       provider,
       providerId,

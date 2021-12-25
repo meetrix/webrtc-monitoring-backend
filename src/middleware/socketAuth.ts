@@ -18,7 +18,7 @@ export const SocketAuth = async (
         socket.handshake.query.token as string
       );
       socket.auth = decodedToken;
-      logger.debug(`socket authenticated user.email: ${decodedToken.website}`);
+      logger.debug(`socket authenticated user.email: ${decodedToken.domain}`);
 
       // const user = await User.findOne({ email: decodedToken.email });
       // socket.user = user;

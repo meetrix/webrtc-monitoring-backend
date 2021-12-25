@@ -18,7 +18,7 @@ export interface UserTokenInformation {
 
 export interface PluginTokenInformation {
   plugin: boolean;
-  website: string;
+  domain: string;
 }
 
 export type TokenInformation = UserTokenInformation | PluginTokenInformation;
@@ -46,7 +46,7 @@ export const signPluginToken = (plugin: PluginDocument): string => {
   return jwt.sign(
     {
       plugin: true,
-      website: plugin.website,
+      domain: plugin.domain,
     },
     SESSION_SECRET,
     {
