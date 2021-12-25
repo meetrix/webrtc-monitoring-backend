@@ -26,7 +26,7 @@
     "setup-create-admin": "ts-node cli-tools/user-create.ts -e dev@meetrix.io -p dev -r admin",
     "setup-generate-admin-token": "ts-node cli-tools/user-get-token.ts -e dev@meetrix.io -v 48h",
     "setup-register-plugin": "ts-node cli-tools/plugin-create -e dev@meetrix.io -d meetrix.io",
-    "build-image": "docker-compose build --force-rm",
+    "build-image": "docker-compose build --force-rm"
   },
   "dependencies": {
     "@paypal/checkout-server-sdk": "^1.0.2",
