@@ -14,7 +14,7 @@ interface Options {
 const getToken = async (): Promise<void> => {
   logger.info('create admin');
   try {
-    const { email = 'admin@clientify.io', validity = '48h' } = stdio.getopt({
+    const { email = 'dev@meetrix.io', validity = '48h' } = stdio.getopt({
       email: { key: 'e', args: 1, description: 'email', required: true },
       validity: { key: 'v', args: 1, description: 'role', required: false },
     });

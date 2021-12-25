@@ -3,20 +3,20 @@ import { setupMongoose } from '../src/config/mongoose';
 import { registerValidUser } from '../test/helpers';
 import logger from '../src/util/logger';
 import { MONGO_URI } from '../src/config/secrets';
-import { role } from '../src/types/app';
+import { Role } from '../src/types/app';
 
 interface Options {
   email: string;
   password: string;
-  role: role;
+  role: Role;
 }
 
 const createAdmin = async (): Promise<void> => {
   logger.info('create admin');
   try {
     const {
-      email = 'admin@clientify.io',
-      password = 'admin',
+      email = 'dev@meetrix.io',
+      password = 'dev',
       role = 'user',
     } = stdio.getopt({
       email: { key: 'e', args: 1, description: 'email', required: true },
