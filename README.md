@@ -36,7 +36,7 @@ To build the project in VS Code press `cmd + shift + b`. You can also run tasks 
 3. `cd cli-tools`
 4. `cat .env.dist > .env` this will copy `.env` file that allows local not processes to connect to docker mongo
 5. Make sure you run all the commands in `cli-tools` dir.
-6. Help: `ts-node cli-tools/create-user.ts --help`
+6. Help: `ts-node cli-tools/user-create.ts --help`
 7. Create user : `ts-node cli-tools/user-create.ts -e dev@meetrix.io -p dev -r dev`
 8. Get token: `ts-node user-get-token.ts -e dev@meetrix.io -v 48h`
 
