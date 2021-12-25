@@ -2,7 +2,7 @@ FROM node:12.16 as base
 
 ENV PORT=9100
 RUN apt-get -y update
-RUN npm install -g typescript pm2
+RUN npm install -g typescript pm2 ts-node
 WORKDIR /usr/src/app
 
 FROM base as deps
