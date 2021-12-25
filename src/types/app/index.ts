@@ -1,1 +1,6 @@
-export type role = 'user' | 'admin' | 'owner';
+export { Role } from '../../models/User';
+export {
+  UserTokenInformation,
+  PluginTokenInformation,
+  TokenInformation,
+} from '../../util/auth';

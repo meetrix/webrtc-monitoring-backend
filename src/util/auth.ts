@@ -3,11 +3,25 @@ import jwt from 'jsonwebtoken';
 import { SESSION_SECRET } from '../config/secrets';
 import {
   JWT_EXPIRATION,
+  JWT_EXPIRATION_PLUGIN,
   JWT_EXPIRATION_REC_REQ,
   SUBSCRIPTION_STATUSES,
 } from '../config/settings';
+import { PluginDocument } from '../models/Plugin';
 import { RecordingRequestDocument } from '../models/RecordingRequest';
 import { UserDocument } from '../models/User';
+
+export interface UserTokenInformation {
+  email: string;
+  rome: string;
+}
+
+export interface PluginTokenInformation {
+  plugin: boolean;
+  website: string;
+}
+
+export type TokenInformation = UserTokenInformation | PluginTokenInformation;
 
 export const signToken = (
   user: UserDocument,
@@ -23,6 +37,21 @@ export const signToken = (
     {
       expiresIn: expiresIn,
       subject: user._id.toString(),
+    }
+  );
+};
+
+export const signPluginToken = (plugin: PluginDocument): string => {
+  // What kind of auth?
+  return jwt.sign(
+    {
+      plugin: true,
+      website: plugin.website,
+    },
+    SESSION_SECRET,
+    {
+      expiresIn: JWT_EXPIRATION_PLUGIN,
+      subject: plugin.ownerId,
     }
   );
 };
@@ -63,3 +92,19 @@ export function getSubscriptionStatus(user: UserDocument): {
     return { subscriptionStatus: paypalStatus, subscriptionProvider: 'paypal' };
   }
 }
+
+export const verify = <T>(token: string): Promise<T> => {
+  return new Promise((resolve, reject) => {
+    jwt.verify(
+      token,
+      SESSION_SECRET,
+      { algorithms: ['RS256'] },
+      (err, decoded) => {
+        if (err) {
+          return reject(err);
+        }
+        return resolve(decoded as unknown as T);
+      }
+    );
+  });
+};
