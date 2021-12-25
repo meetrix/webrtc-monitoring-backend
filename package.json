@@ -20,8 +20,9 @@
     "format": "prettier --write ./*",
     "check-deps": "npm audit && ncu",
     "start:db": "docker-compose up mongo mongo-express",
-    "start:all": "docker-compose up",
-    "build:image": "docker-compose build --force-rm"
+    "services-up": "docker-compose up",
+    "services-down": "docker-compose down",
+    "build-image": "docker-compose build --force-rm"
   },
   "dependencies": {
     "@paypal/checkout-server-sdk": "^1.0.2",
