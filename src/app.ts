@@ -12,6 +12,12 @@ const app = express();
 setupExpress(app);
 setupRoutesV1(app);
 
+// TODO: configure CORS
+// app.use(
+//   cors({
+//     origin: true,
+//   })
+// );
 app.use(handleMissing);
 app.use(handleErrors);
 
