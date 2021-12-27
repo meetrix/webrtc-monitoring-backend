@@ -41,16 +41,20 @@ export const signToken = (
   );
 };
 
-export const signPluginToken = (plugin: PluginDocument): string => {
+export const signPluginToken = (
+  plugin: PluginDocument,
+  secret: string = SESSION_SECRET,
+  expiresIn: string = JWT_EXPIRATION_PLUGIN
+): string => {
   // What kind of auth?
   return jwt.sign(
     {
       plugin: true,
       domain: plugin.domain,
     },
-    SESSION_SECRET,
+    secret,
     {
-      expiresIn: JWT_EXPIRATION_PLUGIN,
+      expiresIn,
       subject: plugin.ownerId,
     }
   );
@@ -98,7 +102,7 @@ export const verify = <T>(token: string): Promise<T> => {
     jwt.verify(
       token,
       SESSION_SECRET,
-      { algorithms: ['RS256'] },
+      { algorithms: ['RS256', 'HS256'] },
       (err, decoded) => {
         if (err) {
           return reject(err);

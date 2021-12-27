@@ -1,8 +1,8 @@
 {
-  "name": "@meetrix/node-typescript-auth-api-starter",
-  "version": "2.0.0",
-  "description": "Node Typescript AUTH API Starter",
-  "license": "MIT",
+  "name": "@meetrix/webrtc-monitoring-backend",
+  "version": "0.1.0",
+  "description": "WebRTC Monitoring Backend",
+  "license": "Commercial",
   "author": "Meetrix",
   "repository": {
     "type": "git",
@@ -24,9 +24,9 @@
     "services-down": "docker-compose down",
     "setup": "npm run setup-create-admin && npm run setup-generate-admin-token && setup-register-plugin && npm run setup-generate-plugin-token",
     "setup-create-admin": "ts-node cli-tools/user-create.ts -e dev@meetrix.io -p dev -r admin",
-    "setup-generate-admin-token": "ts-node cli-tools/user-get-token.ts -e dev@meetrix.io -v 48h",
+    "setup-generate-admin-token": "ts-node cli-tools/user-get-token.ts -e dev@meetrix.io -v 1000d",
     "setup-register-plugin": "ts-node cli-tools/plugin-create -e dev@meetrix.io -d meetrix.io",
-    "setup-generate-plugin-token": "ts-node cli-tools/plugin-get-token.ts -d 'meetrix.io'",
+    "setup-generate-plugin-token": "ts-node cli-tools/plugin-get-token.ts -d 'meetrix.io' -v 1000d",
     "build-image": "docker-compose build --force-rm"
   },
   "dependencies": {
@@ -39,7 +39,7 @@
     "body-parser": "1.19.0",
     "compression": "1.7.4",
     "cookie-parser": "^1.4.5",
-    "cors": "2.8.5",
+    "cors": "^2.8.5",
     "csv-stringify": "^5.6.1",
     "dotenv": "8.2.0",
     "express": "4.17.1",

@@ -13,6 +13,8 @@ export const JWT_EXPIRATION = '7d';
 export const JWT_EXPIRATION_PLUGIN = '2h';
 export const JWT_EXPIRATION_REC_REQ = '365d'; // TODO-> change to one day (1d)
 export const APP_PORT = 9100;
+
+export const APP_SOCKET_PATH = '/stats';
 export const UNSUBSCRIBE_LANDING = '';
 export const CONFIRMATION_LANDING = 'https://screenapp.io/auth';
 export const RECOVERY_LANDING = 'https://screenapp.io/auth';

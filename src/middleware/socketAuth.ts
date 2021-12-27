@@ -12,10 +12,10 @@ export const SocketAuth = async (
   socket: SocketExtended,
   next: (err?: Error) => void
 ): Promise<void> => {
-  if (socket.handshake.query && socket.handshake.query.token) {
+  if (socket.handshake.auth && socket.handshake.auth.token) {
     try {
       const decodedToken = await verify<PluginTokenInformation>(
-        socket.handshake.query.token as string
+        socket.handshake.auth.token as string
       );
       socket.auth = decodedToken;
       logger.debug(`socket authenticated user.email: ${decodedToken.domain}`);
@@ -24,6 +24,7 @@ export const SocketAuth = async (
       // socket.user = user;
       next();
     } catch (error) {
+      logger.error(`socket authentication failed: `, error);
       next(new Error('Authentication error'));
     }
   } else {
