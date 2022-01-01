@@ -13,7 +13,7 @@ import { UserDocument } from '../models/User';
 
 export interface UserTokenInformation {
   email: string;
-  rome: string;
+  role: string;
 }
 
 export interface PluginTokenInformation {
