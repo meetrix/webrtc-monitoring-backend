@@ -50,6 +50,7 @@ To build the project in VS Code press `cmd + shift + b`. You can also run tasks 
 ## OpenAPI Spec
 
 Api spec is written with [openAPI 2.0](https://editor.swagger.io)
+Use `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImRldkBtZWV0cml4LmlvIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNjQwNTExNTYzLCJleHAiOjE3MjY5MTE1NjMsInN1YiI6IjYxYzZmMjY2Yzc1OTIwMzBkYmM1YjdhMCJ9.9UZSBzIS-JCkF487Sfx3ZRxaoKKM6PxMD37TAn_MoNg` for authentication
 
 ## Socket Connection
 
@@ -70,12 +71,12 @@ Api spec is written with [openAPI 2.0](https://editor.swagger.io)
 
 1. [Google auth](https://developers.google.com/identity/sign-in/web/sign-in)
 
-## Show mongodb collections
+## Show MongoDB collections
 
 Go to [http://mongo.localhost:8081/](http://mongo.localhost:8081/)
-
-
 
 ## Running tests
 
 To run the tests simply use `npm test`. If you want to use jest `watch mode` use `npm run watch-test`.
+
+## Redis

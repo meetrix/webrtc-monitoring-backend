@@ -1,6 +1,6 @@
 import passport from 'passport';
 import passportLocal from 'passport-local';
-import { Express } from 'express';
+import { Express, Request } from 'express';
 import { OAuth2Strategy as GoogleAuthStratergy } from 'passport-google-oauth';
 import { Strategy as FacebookStrategy } from 'passport-facebook';
 import { Strategy as LinkedInStrategy } from 'passport-linkedin-oauth2';
@@ -19,6 +19,10 @@ import { API_BASE_URL, STRIPE_SECRET_KEY } from './settings';
 const stripe = new Stripe(STRIPE_SECRET_KEY, {
   apiVersion: '2020-08-27',
 });
+
+export interface AuthAwareRequest extends Request {
+  user: UserDocument;
+}
 
 const LocalStrategy = passportLocal.Strategy;
 

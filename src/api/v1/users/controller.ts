@@ -1,8 +1,9 @@
 import { Response, Request, NextFunction } from 'express';
 import { User, UserAPIFormat } from '../../../models/User';
+import { AuthAwareRequest } from '../../../config/passport';
 
 export const index = async (
-  _req: Request,
+  _req: AuthAwareRequest,
   res: Response,
   next: NextFunction
 ): Promise<void> => {

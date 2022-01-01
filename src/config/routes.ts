@@ -6,6 +6,7 @@ import { uploadRouter } from '../api/v1/upload';
 import { authRouter } from '../api/v1/auth';
 import { subscriptionRouter } from '../api/v1/subscription';
 import { miscRouter } from '../api/v1/misc';
+import { clientsRouter } from '../api/v1/clients';
 
 export const setupRoutesV1 = (app: Express): void => {
   app.use('/v1/spec', specRouter);
@@ -15,4 +16,5 @@ export const setupRoutesV1 = (app: Express): void => {
   app.use('/v1/auth', authRouter);
   app.use('/v1/subscription', subscriptionRouter);
   app.use('/v1/misc', miscRouter);
+  app.use('/v1/clients', clientsRouter);
 };

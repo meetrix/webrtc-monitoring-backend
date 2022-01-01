@@ -15,6 +15,14 @@ export const JWT_EXPIRATION_REC_REQ = '365d'; // TODO-> change to one day (1d)
 export const APP_PORT = 9100;
 
 export const APP_SOCKET_PATH = '/stats';
+
+export const APP_SOCKET_CLIENT_SPACE = '/clients';
+
+export const APP_SOCKET_USER_SPACE = '/users';
+
+// Redis
+
+export const APP_REDIS_PLUGINS_CLIENT_IDS_ACTIVE = 'plugins:client_ids:active';
 export const UNSUBSCRIBE_LANDING = '';
 export const CONFIRMATION_LANDING = 'https://screenapp.io/auth';
 export const RECOVERY_LANDING = 'https://screenapp.io/auth';
