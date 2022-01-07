@@ -21,6 +21,7 @@ export default (io: Server): void => {
     socket.on(SOCKET_ROOM_JOIN, (data: any) => {
       const { room } = data;
       if (room) {
+        logger.info(`socket: ${socket.id} joined room ${room}`);
         socket.join(room);
       }
     });

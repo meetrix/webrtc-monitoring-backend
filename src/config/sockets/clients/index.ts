@@ -4,6 +4,7 @@ import {
   SOCKET_CLIENT_LEFT,
   ClientType,
   ResponseType,
+  SOCKET_REPORT_STATS,
 } from '@meetrix/webrtc-monitoring-common-lib';
 import logger from '../../../util/logger';
 import {
@@ -34,8 +35,9 @@ export default async (io: Server): Promise<void> => {
       clientId,
       domain,
     });
-    socket.on('report', (data) => {
-      io.to(room).emit('report', data);
+    socket.on('stats', (data) => {
+      logger.debug(`emitting stats to room: ${room}`);
+      userSpace.to(room).emit(SOCKET_REPORT_STATS, data);
     });
     socket.on('disconnect', () => {
       removePluginClient({
