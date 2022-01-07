@@ -8,6 +8,8 @@
 - [x] Does this include unit/acceptance tests?
 - [ ] Does this MR requires any config changes?
 - [ ] Have you updated the README (If necessary)?
+- [ ] Are there any breaking changes ?
+- [ ] Have you included the correct branch of `webrtc-monitoring-common-lib` in dependencies
 
 ## How to test
 
@@ -19,7 +21,13 @@
 
 ## Related MRs
 
-- [https://gitlab.com/meetrix/products/screenapp/online-screen-recorder/-/merge_requests/202]
+- `webrtc-monitoring-common-lib`: N/A
+
+- `lib-webrtc-monitoring`: N/A
+
+- `webrtc-monitoring-backend`: N/A
+
+- `webrtc-monitoring-frontend`: N/A
 
 ## Deployment instructions
 

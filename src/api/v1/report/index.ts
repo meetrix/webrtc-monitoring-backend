@@ -1,13 +1,13 @@
 import express from 'express';
 import { hasRoleOrHigher } from '../../../middleware';
-import { getByDomain } from './controller';
+import { getReport } from './controller';
 
 const router = express.Router();
 
 /**
  * @swagger
  *
- * /clients/{domain}:
+ * /report/{domain}/{clientId}:
  *    get:
  *     description: Get active clients for a given domain name
  *     produces:
@@ -21,16 +21,17 @@ const router = express.Router();
  *         required: true
  *         schema:
  *             type: string
+ *       - name: "clientId"
+ *         description: "Client Id"
+ *         in: path
+ *         required: true
+ *         schema:
+ *             type: string
  *     responses:
  *       200:
  *          description: Get active clients for a given domain name
  *          schema:
- *              type: array
- *              items:
- *                 type: object
- *                 properties:
- *                   id:
- *                    type: string
+ *              type: object
  *
  *       500:
  *          description: Unsuccessful Fetching User Profile
@@ -48,6 +49,6 @@ const router = express.Router();
  *                      example: Something went wrong. Please try again later.
  */
 
-router.get('/:domain', hasRoleOrHigher('user'), getByDomain);
+router.get('/:domain/:clientId', hasRoleOrHigher('user'), getReport);
 
-export const clientsRouter = router;
+export const reportRouter = router;
