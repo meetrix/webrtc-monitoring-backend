@@ -30,6 +30,7 @@
     "build-image": "docker-compose build --force-rm"
   },
   "dependencies": {
+    "@meetrix/webrtc-monitoring-common-lib": "git+https://gitlab.com/meetrix/products/webrtc-monitoring/webrtc-monitoring-common-lib.git#feat/dashboard-log-devices-browserinfo",
     "@paypal/checkout-server-sdk": "^1.0.2",
     "@socket.io/redis-adapter": "^7.1.0",
     "@types/express-handlebars": "^3.1.0",
@@ -48,7 +49,6 @@
     "handlebars": "^4.7.6",
     "jsonwebtoken": "8.5.1",
     "lodash": "4.17.19",
-    "@meetrix/webrtc-monitoring-common-lib": "git+https://gitlab.com/meetrix/products/webrtc-monitoring/webrtc-monitoring-common-lib.git#master",
     "mongoose": "^6.0.12",
     "morgan": "1.10.0",
     "multer": "1.4.2",
