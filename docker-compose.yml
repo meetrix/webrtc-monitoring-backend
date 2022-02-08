@@ -26,5 +26,23 @@ services:
     ports:
       - 6379:6379
 
+  server:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    container_name: webrtc-backend-server
+    ports:
+      - 9111:9100
+    environment:
+      VIRTUAL_HOST: ${BACKEND_DOMAIN}
+    volumes:
+      - /usr/src/app/node_modules
+      - /usr/src/app/dist
+      - ./:/usr/src/app
+    depends_on:
+      - mongo
+      - redis
+    command: [ 'npm', 'start' ]
+
 volumes:
   mongodata: null

@@ -14,7 +14,7 @@
     "test:watch": "npm run test -- --watchAll",
     "test:debugger": "node --inspect-brk node_modules/.bin/jest --runInBand --testTimeout=300000",
     "test:debugger:watch": "npm run test:debugger -- --watchAll",
-    "build": "npm run build-ts && npm run lint",
+    "build": "npm run build-ts",
     "build-ts": "tsc",
     "lint": "tsc --noEmit && eslint \"*/**/*.{js,ts}\" --quiet --fix",
     "format": "prettier --write ./*",
