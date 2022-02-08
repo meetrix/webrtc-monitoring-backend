@@ -1,4 +1,4 @@
-FROM node:12.16 as base
+FROM node:12-bullseye as base
 
 ENV PORT=9100
 RUN apt-get -y update
@@ -8,7 +8,7 @@ RUN echo "https://webrtc_monitoring_common_lib_deploy_token_user_staging:cmxDFgH
 RUN npm install -g typescript pm2 ts-node
 WORKDIR /usr/src/app
 COPY . .
-RUN npm install && cd node_modules/@meetrix/webrtc-monitoring-common-lib && npm install && cd /usr/src/app && npm run build
+RUN npm install && npm run build
 
 WORKDIR /usr/src/app/dist
 
