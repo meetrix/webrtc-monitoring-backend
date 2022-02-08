@@ -8,7 +8,8 @@ RUN echo "https://webrtc_monitoring_common_lib_deploy_token_user_staging:cmxDFgH
 RUN npm install -g typescript pm2 ts-node
 WORKDIR /usr/src/app
 COPY . .
-RUN npm install && npm run build
+RUN npm install
+RUN npm run build
 
 WORKDIR /usr/src/app/dist
 
