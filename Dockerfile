@@ -7,8 +7,9 @@ RUN git config --global credential.helper store
 RUN echo "https://webrtc_monitoring_common_lib_deploy_token_user_staging:cmxDFgHeno_emJ7V91i2@gitlab.com" > ~/.git-credentials
 RUN npm install -g typescript pm2 ts-node
 WORKDIR /usr/src/app
-COPY . .
+COPY package*.json ./
 RUN npm install
+COPY . .
 RUN npm run build
 
 WORKDIR /usr/src/app/dist
