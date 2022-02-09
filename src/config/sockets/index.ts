@@ -10,7 +10,7 @@ export default async (httpServer: HttpServer): Promise<void> => {
   const io = new SocketServer(httpServer, {
     path: APP_SOCKET_PATH,
     cors: {
-      origin: true,
+      origin: false,
     },
   });
   const pubClient = await getNewClient();
