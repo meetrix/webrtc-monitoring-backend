@@ -1,9 +1,5 @@
 version: '3.8'
 services:
-  mongo:
-    restart: always
-  mongo-express:
-    restart: always
   redis:
     restart: always
   server:
@@ -35,6 +31,5 @@ services:
       - /usr/src/app/node_modules
       - /usr/src/app/dist
     depends_on:
-      - mongo
       - redis
     command: [ 'npm', 'start' ]

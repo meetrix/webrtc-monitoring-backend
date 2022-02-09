@@ -1,5 +1,23 @@
 version: '3.8'
 services:
+  mongo:
+    image: mongo:4.0
+    container_name: webrtc-backend-mongodb
+    volumes:
+      - mongodata:/data/db
+    ports:
+      - 27018:27017
+  mongo-express:
+    image: mongo-express
+    container_name: webrtc-backend-mongo-express
+    environment:
+      VIRTUAL_HOST: ${MONGO_EXPRESS_DOMAIN}
+      ME_CONFIG_BASICAUTH_USERNAME: ${ME_CONFIG_BASICAUTH_USERNAME}
+      ME_CONFIG_BASICAUTH_PASSWORD: ${ME_CONFIG_BASICAUTH_PASSWORD}
+    ports:
+      - 9084:8081
+    depends_on:
+      - mongo
   nginx:
     image: jwilder/nginx-proxy
     container_name: webrtc-backend-nginx
