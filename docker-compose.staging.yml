@@ -1,5 +1,11 @@
 version: '3.8'
 services:
+  mongo:
+    restart: always
+  mongo-express:
+    restart: always
+  redis:
+    restart: always
   server:
     build:
       context: ./
@@ -7,6 +13,7 @@ services:
     container_name: webrtc-backend-server
     ports:
       - 9111:9100
+    restart: always
     environment:
       VIRTUAL_HOST: ${BACKEND_DOMAIN}
       SESSION_SECRET: ${SESSION_SECRET}
