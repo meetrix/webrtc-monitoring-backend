@@ -28,3 +28,6 @@ services:
       - /var/run/docker.sock:/tmp/docker.sock:ro
     depends_on:
       - mongo-express
+
+volumes:
+  mongodata: null
