@@ -2,11 +2,9 @@ import { Server } from 'socket.io';
 import {
   SOCKET_CLIENT_JOINED,
   SOCKET_CLIENT_LEFT,
-  ClientType,
-  ResponseType,
   SOCKET_REPORT_STATS,
   SOCKET_CONNECTION_INFO,
-  SOCKET_OTHER,
+  SOCKET_OTHER_INFO,
 } from '@meetrix/webrtc-monitoring-common-lib';
 import logger from '../../../util/logger';
 import {
@@ -47,7 +45,7 @@ export default async (io: Server): Promise<void> => {
     });
     socket.on('other', (data) => {
       logger.debug(`emitting other to room: ${room}`);
-      userSpace.to(room).emit(SOCKET_OTHER, data);
+      userSpace.to(room).emit(SOCKET_OTHER_INFO, data);
     });
     socket.on('disconnect', () => {
       removePluginClient({
