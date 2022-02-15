@@ -43,31 +43,3 @@ export const RECEIVER_EMAIL =
   process.env['RECEIVER_EMAIL'] || 'support@screenapp.io';
 export const SENDER_EMAIL = process.env['SENDER_EMAIL'] || 'hello@screenapp.io';
 export const S3_CONTENT_LINK_EXPIRATION = 15 * 60; // 15 min
-export const STRIPE_SECRET_KEY = process.env['STRIPE_SECRET_KEY'];
-export const STRIPE_STANDARD_PRICE_ID = process.env['STRIPE_STANDARD_PRICE_ID'];
-export const STRIPE_PREMIUM_PRICE_ID = process.env['STRIPE_PREMIUM_PRICE_ID'];
-export const STRIPE_STANDARD_MONTHLY_PRICE_ID =
-  process.env['STRIPE_STANDARD_MONTHLY_PRICE_ID'];
-export const STRIPE_PREMIUM_MONTHLY_PRICE_ID =
-  process.env['STRIPE_PREMIUM_MONTHLY_PRICE_ID'];
-export const STRIPE_FREE_PRICE_ID = process.env['STRIPE_FREE_PRICE_ID'];
-export const STRIPE_WEBHOOK_SECRET = process.env['STRIPE_WEBHOOK_SECRET'];
-
-export const PAYPAL_REST_API_URL = process.env['PAYPAL_REST_API_URL'];
-export const PAYPAL_CLIENT_ID = process.env['PAYPAL_CLIENT_ID'];
-export const PAYPAL_CLIENT_SECRET = process.env['PAYPAL_CLIENT_SECRET'];
-export const PAYPAL_FREE_PLAN_ID = process.env['PAYPAL_FREE_PLAN_ID'];
-export const PAYPAL_STANDARD_PLAN_ID = process.env['PAYPAL_STANDARD_PLAN_ID'];
-export const PAYPAL_PREMIUM_PLAN_ID = process.env['PAYPAL_PREMIUM_PLAN_ID'];
-export const PAYPAL_STANDARD_TRIAL_PLAN_ID =
-  process.env['PAYPAL_STANDARD_TRIAL_PLAN_ID'];
-export const PAYPAL_PREMIUM_TRIAL_PLAN_ID =
-  process.env['PAYPAL_PREMIUM_TRIAL_PLAN_ID'];
-export const PAYPAL_STANDARD_MONTHLY_PLAN_ID =
-  process.env['PAYPAL_STANDARD_MONTHLY_PLAN_ID'];
-export const PAYPAL_PREMIUM_MONTHLY_PLAN_ID =
-  process.env['PAYPAL_PREMIUM_MONTHLY_PLAN_ID'];
-export const PAYPAL_STANDARD_MONTHLY_TRIAL_PLAN_ID =
-  process.env['PAYPAL_STANDARD_MONTHLY_TRIAL_PLAN_ID'];
-export const PAYPAL_PREMIUM_MONTHLY_TRIAL_PLAN_ID =
-  process.env['PAYPAL_PREMIUM_MONTHLY_TRIAL_PLAN_ID'];
