@@ -35,15 +35,15 @@ export default async (io: Server): Promise<void> => {
       clientId,
       domain,
     });
-    socket.on('stats', (data) => {
+    socket.on(SOCKET_REPORT_STATS, (data) => {
       logger.debug(`emitting stats to room: ${room}`);
       userSpace.to(room).emit(SOCKET_REPORT_STATS, data);
     });
-    socket.on('connectionInfo', (data) => {
+    socket.on(SOCKET_CONNECTION_INFO, (data) => {
       logger.debug(`emitting connectionInfo to room: ${room}`);
       userSpace.to(room).emit(SOCKET_CONNECTION_INFO, data);
     });
-    socket.on('other', (data) => {
+    socket.on(SOCKET_OTHER_INFO, (data) => {
       logger.debug(`emitting other to room: ${room}`);
       userSpace.to(room).emit(SOCKET_OTHER_INFO, data);
     });
