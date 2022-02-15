@@ -9,7 +9,6 @@ RUN npm install -g typescript pm2 ts-node
 WORKDIR /usr/src/app
 COPY package*.json ./
 RUN npm install
-RUN cd node_modules/@meetrix/webrtc-monitoring-common-lib && npm install && cd node_modules/@peermetrics/webrtc-stats && npm install && npm run build
 COPY . .
 RUN npm run build
 
