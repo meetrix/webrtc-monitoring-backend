@@ -31,6 +31,7 @@
   },
   "dependencies": {
     "@meetrix/webrtc-monitoring-common-lib": "git+https://gitlab.com/meetrix/products/webrtc-monitoring/webrtc-monitoring-common-lib.git#feat/dashboard-log-devices-browserinfo",
+    "@peermetrics/webrtc-stats": "github:buddhikajay/webrtc-stats",
     "@socket.io/redis-adapter": "^7.1.0",
     "@types/swagger-ui-express": "^4.1.2",
     "bcrypt": "5.0.0",
