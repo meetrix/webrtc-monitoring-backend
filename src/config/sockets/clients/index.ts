@@ -5,6 +5,7 @@ import {
   SOCKET_REPORT_STATS,
   SOCKET_CONNECTION_INFO,
   SOCKET_OTHER_INFO,
+  SOCKET_MEDIA_INFO,
 } from '@meetrix/webrtc-monitoring-common-lib';
 import logger from '../../../util/logger';
 import {
@@ -46,6 +47,10 @@ export default async (io: Server): Promise<void> => {
     socket.on(SOCKET_OTHER_INFO, (data) => {
       logger.debug(`emitting other to room: ${room}`);
       userSpace.to(room).emit(SOCKET_OTHER_INFO, data);
+    });
+    socket.on(SOCKET_MEDIA_INFO, (data) => {
+      logger.debug(`emitting mediaInfo to room: ${room}`);
+      userSpace.to(room).emit(SOCKET_MEDIA_INFO, data);
     });
     socket.on('disconnect', () => {
       removePluginClient({
