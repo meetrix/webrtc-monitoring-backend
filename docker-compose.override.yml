@@ -15,7 +15,7 @@ services:
       ME_CONFIG_BASICAUTH_USERNAME: ${ME_CONFIG_BASICAUTH_USERNAME}
       ME_CONFIG_BASICAUTH_PASSWORD: ${ME_CONFIG_BASICAUTH_PASSWORD}
     ports:
-      - 9084:8081
+      - 9086:8081
     depends_on:
       - mongo
   nginx:
