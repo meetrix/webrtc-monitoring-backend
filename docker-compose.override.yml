@@ -6,7 +6,7 @@ services:
     volumes:
       - mongodata:/data/db
     ports:
-      - 27018:27017
+      - 27025:27017
   mongo-express:
     image: mongo-express
     container_name: webrtc-backend-mongo-express

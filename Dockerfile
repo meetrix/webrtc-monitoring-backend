@@ -1,4 +1,4 @@
-FROM node:12-bullseye as base
+FROM node:12-bullseye-slim as base
 
 ENV PORT=9100
 RUN apt-get -y update

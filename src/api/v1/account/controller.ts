@@ -160,7 +160,6 @@ export const register = async (
   }
 };
 
-
 // Login
 export const login = async (
   req: any,
