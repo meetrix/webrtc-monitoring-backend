@@ -14,7 +14,7 @@ staging_build:
     - export DOCKER_HOST=ssh://$SSH_USER@$SSH_HOST
     - docker-compose -f docker-compose.yml -f docker-compose.staging.yml --env-file $ENVFILE build
   only:
-    - feat/dashboard-log-devices-browserinfo
+    - master
 
 staging_deploy:
   stage: deploy
@@ -38,7 +38,7 @@ staging_deploy:
     - docker-compose -f docker-compose.yml -f docker-compose.staging.yml --env-file $ENVFILE up -d redis
     - ssh $SSH_USER@$SSH_HOST "docker logs -f webrtc-backend-redis >> /var/log/webrtc-backend/redis.log 2>&1 &"
   only:
-    - feat/dashboard-log-devices-browserinfo
+    - master
 
 production_build:
   stage: build
