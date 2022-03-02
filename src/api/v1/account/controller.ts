@@ -4,24 +4,17 @@ import passport from 'passport';
 import validator from 'validator';
 import { Response, Request, NextFunction } from 'express';
 import { IVerifyOptions } from 'passport-local';
-import { getMailOptions, getTransporter } from '../../../util/mail';
 import {
   AUTH_LANDING,
   API_BASE_URL,
   SUPPORT_URL,
-  STRIPE_SECRET_KEY,
   S3_USER_META_BUCKET,
 } from '../../../config/settings';
 
 import { UserDocument, User } from '../../../models/User';
 import { formatError } from '../../../util/error';
 import { getSubscriptionStatus, signToken } from '../../../util/auth';
-import Stripe from 'stripe';
-import S3 from 'aws-sdk/clients/s3';
 import { AWS_ACCESS_KEY, AWS_ACCESS_KEY_SECRET } from '../../../config/secrets';
-const stripe = new Stripe(STRIPE_SECRET_KEY, {
-  apiVersion: '2020-08-27',
-});
 import logger from '../../../util/logger';
 
 // Refresh
@@ -130,29 +123,6 @@ export const register = async (
 
       const clientName = user.profile.name;
 
-      const transporter = getTransporter();
-
-      const mailOptions = getMailOptions({
-        subject: 'Confirm Your Email Address - ScreenApp.IO',
-        to: `<${user.email}>`,
-        template: 'emailVerification',
-        context: {
-          clientName,
-          emailToken,
-          API_BASE_URL,
-          AUTH_LANDING,
-          SUPPORT_URL,
-        },
-      });
-
-      transporter.sendMail(mailOptions, (err, data) => {
-        if (err) {
-          return logger.error('Error occurs');
-        }
-        return logger.info('Email sent to the user successfully.');
-        // res.status(201).json({ token: signToken(user) });
-      });
-
       res.status(201).json({
         success: true,
         // data: { emailToken },
@@ -186,80 +156,6 @@ export const register = async (
       data: null,
       message: 'Registration failed. Please try again in few minutes.',
     });
-    next(error);
-  }
-};
-
-// User account verification & auto signin at first attempt
-export const verify = async (
-  req: any,
-  res: Response,
-  next: NextFunction
-): Promise<any> => {
-  try {
-    const user = await User.findOne({ emailToken: req.query.token });
-    if (!user) {
-      // res.redirect(`${AUTH_LANDING}/#/verificationtoken_expired`);
-      res.status(401).json({
-        success: false,
-        data: null,
-        message:
-          'The verification link is already used or expired. Please try again.',
-      });
-      return;
-    }
-
-    const customer = await stripe.customers.create({
-      email: user.email,
-      name: user.profile.name,
-      metadata: {
-        userId: user._id.toString(),
-      },
-    });
-
-    user.stripe.customerId = customer.id;
-    user.emailToken = null;
-    (user.isVerified = true), await user.save();
-
-    const clientName = user.profile.name;
-
-    const transporter = getTransporter();
-
-    const mailOptions = getMailOptions({
-      subject: 'Account Successfully Verifed - ScreenApp.IO',
-      to: `<${user.email}>`,
-      template: 'emailVerificationConfirmation',
-      context: {
-        clientName,
-        API_BASE_URL,
-        AUTH_LANDING,
-        SUPPORT_URL,
-      },
-    });
-
-    transporter.sendMail(mailOptions, (err, data) => {
-      if (err) {
-        return logger.error('Error occurs');
-      }
-      return logger.info('Email sent to the user successfully.');
-    });
-
-    // A new email signin token issued to get user details to verify at signin
-    (user.accessToken = signToken(user)), await user.save();
-
-    res.status(200).json({
-      success: true,
-      data: { accessToken: user.accessToken },
-      message: 'Verification successfull. Redirecting...',
-    });
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      data: null,
-      message: 'Something went wrong. Please try again later.',
-    });
-    logger.error('Error occurs while sending email.');
-
     next(error);
   }
 };
@@ -325,26 +221,6 @@ export const login = async (
 
           const clientName = user.profile.name;
 
-          const transporter = getTransporter();
-          const mailOptions = getMailOptions({
-            subject: 'Confirm Your Email Address - ScreenApp.IO',
-            to: `<${user.email}>`,
-            template: 'emailVerification',
-            context: {
-              clientName,
-              emailToken,
-              API_BASE_URL,
-              AUTH_LANDING,
-              SUPPORT_URL,
-            },
-          });
-          transporter.sendMail(mailOptions, (err, data) => {
-            if (err) {
-              return logger.error('Error occurs');
-            }
-            return logger.info('Email sent to the user successfully.');
-            // res.status(201).json({ token: signToken(user) });
-          });
           res.status(403).json({
             success: false,
             // data: { emailToken },
@@ -413,28 +289,6 @@ export const forgot = async (
     await user.save();
 
     const clientName = user.profile.name;
-
-    const transporter = getTransporter();
-
-    const mailOptions = getMailOptions({
-      subject: 'Reset Your Password - ScreenApp.IO',
-      to: `<${user.email}>`,
-      template: 'passwordReset',
-      context: {
-        clientName,
-        emailToken,
-        API_BASE_URL,
-        AUTH_LANDING,
-        SUPPORT_URL,
-      },
-    });
-
-    transporter.sendMail(mailOptions, (err, data) => {
-      if (err) {
-        return logger.error(err);
-      }
-      return logger.info('Email sent to the user successfully. ');
-    });
 
     res.status(201).json({
       success: true,
@@ -541,27 +395,6 @@ export const reset = async (
 
     const clientName = user.profile.name;
 
-    const transporter = getTransporter();
-
-    const mailOptions = getMailOptions({
-      subject: 'Password Reset Successful - ScreenApp.IO',
-      to: `<${user.email}>`,
-      template: 'passwordResetConfirmation',
-      context: {
-        clientName,
-        API_BASE_URL,
-        AUTH_LANDING,
-        SUPPORT_URL,
-      },
-    });
-
-    transporter.sendMail(mailOptions, (err, data) => {
-      if (err) {
-        return logger.error('Error occurs');
-      }
-      return logger.info('Email sent to the user successfully.');
-    });
-
     // res.status(201).json(SUCCESSFUL_RESPONSE);
     res.status(201).json({
       success: true,
@@ -577,31 +410,6 @@ export const reset = async (
     });
     next(error);
   }
-};
-
-const uploadProfilePicture = async (
-  key: string,
-  imgBuffer: Buffer,
-  imgMime: string
-): Promise<string> => {
-  const s3 = new S3({
-    credentials: {
-      accessKeyId: AWS_ACCESS_KEY,
-      secretAccessKey: AWS_ACCESS_KEY_SECRET,
-    },
-  });
-
-  const s3Response = await s3
-    .upload({
-      Bucket: S3_USER_META_BUCKET,
-      Key: key,
-      Body: imgBuffer,
-      ContentType: imgMime,
-      ACL: 'public-read',
-    })
-    .promise();
-
-  return s3Response.Location;
 };
 
 export const clearFirstTimeUserFlag = async (
@@ -659,11 +467,7 @@ export const postProfile = async (
       const imgBuffer = Buffer.from(req.body.picture, 'base64');
       const emailHex = Buffer.from(user.email).toString('hex');
       const key = `profile-pictures/${emailHex}`; // Replace profile picture if exists
-      const imgPath = await uploadProfilePicture(
-        key,
-        imgBuffer,
-        req.body.pictureMime
-      );
+      const imgPath = '';
       user.profile.picture = imgPath;
     }
 
@@ -696,27 +500,6 @@ export const postProfile = async (
       //Password change notification
 
       const clientName = user.profile.name;
-
-      const transporter = getTransporter();
-
-      const mailOptions = getMailOptions({
-        subject: 'Password Reset Successful - ScreenApp.IO',
-        to: `<${user.email}>`,
-        template: 'passwordResetConfirmation',
-        context: {
-          clientName,
-          API_BASE_URL,
-          AUTH_LANDING,
-          SUPPORT_URL,
-        },
-      });
-
-      transporter.sendMail(mailOptions, (err, data) => {
-        if (err) {
-          return logger.error('Error occurs');
-        }
-        return logger.info('Email sent to the user successfully.');
-      });
     }
 
     await user.save();

@@ -1,62 +1,83 @@
-variables:
-  CONTAINER_VERSIONED_IMAGE_STAGING: $CI_REGISTRY_IMAGE/staging:$CI_PIPELINE_ID
-  CONTAINER_RELEASE_IMAGE_STAGING: $CI_REGISTRY_IMAGE/staging:latest
-  CONTAINER_VERSIONED_IMAGE_PRODUCTION: $CI_REGISTRY_IMAGE/production:$CI_PIPELINE_ID
-  CONTAINER_RELEASE_IMAGE_PRODUCTION: $CI_REGISTRY_IMAGE/production:latest
-  PROJECT_NAME: clientify-auth-backend
-
 staging_build:
+  stage: build
+  image: meetrix/docker-compose-sshd
   environment:
     name: staging
-  stage: build
-  image: docker/compose:1.27.0
-  services:
-    - docker:19.03.12-dind
   before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
   script:
-    - docker-compose --project-name $PROJECT_NAME -f docker-compose.yml -f docker-compose.staging.yml build
-    - docker tag $PROJECT_NAME $CONTAINER_VERSIONED_IMAGE_STAGING
-    - docker tag $PROJECT_NAME $CONTAINER_RELEASE_IMAGE_STAGING
-    - docker push $CONTAINER_VERSIONED_IMAGE_STAGING
-    - docker push $CONTAINER_RELEASE_IMAGE_STAGING
+    - export DOCKER_HOST=ssh://$SSH_USER@$SSH_HOST
+    - docker-compose -f docker-compose.yml -f docker-compose.staging.yml --env-file $ENVFILE build
   only:
-    - none
+    - feat/dashboard-log-devices-browserinfo
 
 staging_deploy:
+  stage: deploy
+  image: meetrix/docker-compose-sshd
   environment:
     name: staging
-  stage: deploy
-  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
+  before_script:
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
   script:
-    - aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment
+    - export DOCKER_HOST=ssh://$SSH_USER@$SSH_HOST
+    - ssh $SSH_USER@$SSH_HOST "sudo mkdir -p /var/log/webrtc-backend && sudo chmod 777 -R /var/log/webrtc-backend"
+    - ssh $SSH_USER@$SSH_HOST "kill -9 \$(ps aux | grep 'logs -f webrtc-backend-server' | grep 'docker' | awk '{print \$2}') &"
+    - docker-compose -f docker-compose.yml -f docker-compose.staging.yml --env-file $ENVFILE up -d server
+    - ssh $SSH_USER@$SSH_HOST "docker logs -f webrtc-backend-server >> /var/log/webrtc-backend/server.log 2>&1 &"
+    - ssh $SSH_USER@$SSH_HOST "kill -9 \$(ps aux | grep 'logs -f webrtc-backend-redis' | grep 'docker' | awk '{print \$2}') &"
+    - docker-compose -f docker-compose.yml -f docker-compose.staging.yml --env-file $ENVFILE up -d redis
+    - ssh $SSH_USER@$SSH_HOST "docker logs -f webrtc-backend-redis >> /var/log/webrtc-backend/redis.log 2>&1 &"
   only:
-    - none
+    - feat/dashboard-log-devices-browserinfo
 
 production_build:
+  stage: build
+  image: meetrix/docker-compose-sshd
   environment:
     name: production
-  stage: build
-  image: docker/compose:1.27.0
-  services:
-    - docker:19.03.12-dind
   before_script:
-    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
   script:
-    - docker-compose --project-name $PROJECT_NAME -f docker-compose.yml -f docker-compose.production.yml build
-    - docker tag $PROJECT_NAME $CONTAINER_VERSIONED_IMAGE_PRODUCTION
-    - docker tag $PROJECT_NAME $CONTAINER_RELEASE_IMAGE_PRODUCTION
-    - docker push $CONTAINER_VERSIONED_IMAGE_PRODUCTION
-    - docker push $CONTAINER_RELEASE_IMAGE_PRODUCTION
+    - export DOCKER_HOST=ssh://$SSH_USER@$SSH_HOST
+    - docker-compose -f docker-compose.yml -f docker-compose.production.yml --env-file $ENVFILE build
   only:
     - tags
 
 production_deploy:
+  stage: deploy
+  image: meetrix/docker-compose-sshd
   environment:
     name: production
-  stage: deploy
-  image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
+  before_script:
+    - eval $(ssh-agent -s)
+    - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
+    - mkdir -p ~/.ssh
+    - chmod 700 ~/.ssh
+    - echo "$SSH_KNOWN_HOSTS" >> ~/.ssh/known_hosts
+    - chmod 644 ~/.ssh/known_hosts
   script:
-    - aws ecs update-service --cluster $ECS_CLUSTER --service $ECS_SERVICE --force-new-deployment
+    - export DOCKER_HOST=ssh://$SSH_USER@$SSH_HOST
+    - ssh $SSH_USER@$SSH_HOST "sudo mkdir -p /var/log/webrtc-backend && sudo chmod 777 -R /var/log/webrtc-backend"
+    - ssh $SSH_USER@$SSH_HOST "kill -9 \$(ps aux | grep 'logs -f webrtc-backend-server' | grep 'docker' | awk '{print \$2}') &"
+    - docker-compose -f docker-compose.yml -f docker-compose.production.yml --env-file $ENVFILE up -d server
+    - ssh $SSH_USER@$SSH_HOST "docker logs -f webrtc-backend-server >> /var/log/webrtc-backend/server.log 2>&1 &"
+    - ssh $SSH_USER@$SSH_HOST "kill -9 \$(ps aux | grep 'logs -f webrtc-backend-redis' | grep 'docker' | awk '{print \$2}') &"
+    - docker-compose -f docker-compose.yml -f docker-compose.production.yml --env-file $ENVFILE up -d redis
+    - ssh $SSH_USER@$SSH_HOST "docker logs -f webrtc-backend-redis >> /var/log/webrtc-backend/redis.log 2>&1 &"
   only:
     - tags

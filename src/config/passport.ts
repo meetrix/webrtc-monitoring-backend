@@ -1,9 +1,6 @@
 import passport from 'passport';
 import passportLocal from 'passport-local';
 import { Express, Request } from 'express';
-import { OAuth2Strategy as GoogleAuthStratergy } from 'passport-google-oauth';
-import { Strategy as FacebookStrategy } from 'passport-facebook';
-import { Strategy as LinkedInStrategy } from 'passport-linkedin-oauth2';
 import { User, UserDocument } from '../models/User';
 import logger from '../util/logger';
 import {
@@ -14,11 +11,7 @@ import {
   LINKEDIN_API_KEY,
   LINKEDIN_SECRET,
 } from './secrets';
-import Stripe from 'stripe';
-import { API_BASE_URL, STRIPE_SECRET_KEY } from './settings';
-const stripe = new Stripe(STRIPE_SECRET_KEY, {
-  apiVersion: '2020-08-27',
-});
+import { API_BASE_URL } from './settings';
 
 export interface AuthAwareRequest extends Request {
   user: UserDocument;
@@ -91,18 +84,7 @@ const findUserOrCreateUser = async (
       accessToken,
       refreshToken,
     });
-    await user.save();
-
-    const customer = await stripe.customers.create({
-      email: user.email,
-      name: fullName,
-      metadata: {
-        userId: user._id.toString(),
-      },
-    });
-    user.stripe.customerId = customer.id;
-
-    await user.save();
+    await user.save()
     return user;
   } catch (error) {
     throw error;
@@ -136,119 +118,6 @@ passport.use(
         done(null, user);
       } catch (error) {
         return done(error);
-      }
-    }
-  )
-);
-
-const googleStrategyConfig = new GoogleAuthStratergy(
-  {
-    clientID: GOOGLE_ID,
-    clientSecret: GOOGLE_SECRET,
-    callbackURL: `${API_BASE_URL}/auth/google/callback`,
-  },
-  async (accessToken, refreshToken, profile, done) => {
-    try {
-      //console.log(profile);
-      const user = await findUserOrCreateUser(
-        profile,
-        accessToken,
-        refreshToken
-      );
-      return done(null, user);
-    } catch (error) {
-      done(error);
-    }
-  }
-);
-
-passport.use('google', googleStrategyConfig);
-
-/**
- * OAuth Strategy Overview
- *
- * - User is already logged in.
- *   - Check if there is an existing account with a provider id.
- *     - If there is, return an error message. (Account merging not supported)
- *     - Else link new OAuth account with currently logged-in user.
- * - User is not logged in.
- *   - Check if it's a returning user.
- *     - If returning user, sign in and we are done.
- *     - Else check if there is an existing account with user's email.
- *       - If there is, return an error message.
- *       - Else create a new account.
- */
-
-/**
- * Sign in with Facebook.
- */
-passport.use(
-  new FacebookStrategy(
-    {
-      clientID: FACEBOOK_ID,
-      clientSecret: FACEBOOK_SECRET,
-      callbackURL: `${API_BASE_URL}/auth/facebook/callback`,
-      profileFields: [
-        'name',
-        'email',
-        'link',
-        'locale',
-        'timezone',
-        'picture.type(small)',
-      ],
-      passReqToCallback: true,
-    },
-    async (
-      req: any,
-      accessToken: string,
-      refreshToken: string,
-      profile: Passport.ExtendedProfile,
-      done: Function
-    ): Promise<void> => {
-      try {
-        //console.log(profile);
-        const user = await findUserOrCreateUser(
-          profile,
-          accessToken,
-          refreshToken
-        );
-        return done(null, user);
-      } catch (error) {
-        done(error);
-      }
-    }
-  )
-);
-
-/**
- * Sign in with LinkedIn.
- */
-passport.use(
-  new LinkedInStrategy(
-    {
-      clientID: LINKEDIN_API_KEY,
-      clientSecret: LINKEDIN_SECRET,
-      callbackURL: `${API_BASE_URL}/auth/linkedin/callback`,
-      profileFields: ['name', 'email', 'link', 'locale', 'timezone'],
-      passReqToCallback: true,
-    },
-    async (
-      req: any,
-      accessToken: string,
-      refreshToken: string,
-      profile: Passport.ExtendedProfile,
-      done: Function
-    ): Promise<void> => {
-      try {
-        //console.log(profile);
-        const user = await findUserOrCreateUser(
-          profile,
-          accessToken,
-          refreshToken
-        );
-        return done(null, user);
-      } catch (error) {
-        done(error);
       }
     }
   )

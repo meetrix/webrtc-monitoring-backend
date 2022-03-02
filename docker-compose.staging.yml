@@ -1,0 +1,38 @@
+version: '3.8'
+services:
+  redis:
+    restart: always
+  server:
+    build:
+      context: ./
+      dockerfile: ./Dockerfile
+    container_name: webrtc-backend-server
+    ports:
+      - 9111:9100
+    restart: always
+    environment:
+      NODE_ENV: ${NODE_ENV}
+      VIRTUAL_HOST: ${BACKEND_DOMAIN}
+      SESSION_SECRET: ${SESSION_SECRET}
+      MONGO_DATABASE: ${MONGO_DATABASE}
+      MONGO_USERNAME: ${MONGO_USERNAME}
+      MONGO_PASSWORD: ${MONGO_PASSWORD}
+      MONGO_HOST: ${MONGO_HOST}
+      MONGO_PORT: ${MONGO_PORT}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+      GOOGLE_ID: ${GOOGLE_ID}
+      GOOGLE_SECRET: ${GOOGLE_SECRET}
+      LINKEDIN_API_KEY: ${LINKEDIN_API_KEY}
+      LINKEDIN_SECRET: ${LINKEDIN_SECRET}
+      FACEBOOK_ID: ${FACEBOOK_ID}
+      FACEBOOK_SECRET: ${FACEBOOK_SECRET}
+      AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
+      AWS_ACCESS_KEY_SECRET: ${AWS_ACCESS_KEY_SECRET}
+      CORS_REGEX: ${CORS_REGEX}
+    volumes:
+      - /usr/src/app/node_modules
+      - /usr/src/app/dist
+    depends_on:
+      - redis
+    command: [ 'npm', 'start' ]

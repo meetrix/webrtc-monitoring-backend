@@ -10,7 +10,6 @@ import {
   postProfile,
   deleteAccount,
   password,
-  verify,
   resetPassword,
   clearFirstTimeUserFlag,
 } from './controller';
@@ -23,7 +22,6 @@ const router = express.Router();
 router.get('/jwt/refresh', isAuthenticated, refresh);
 
 // Verify user account via email
-router.get('/verify', rateLimiterMiddleware, verify);
 
 router.get('/resetpassword', rateLimiterMiddleware, resetPassword);
 
