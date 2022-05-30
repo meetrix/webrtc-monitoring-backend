@@ -23,7 +23,7 @@ const getToken = async (): Promise<void> => {
     if (!plugin) throw new Error('Plugin not found');
 
     const token = signPluginToken(plugin, SESSION_SECRET, validity as string);
-    logger.info(`plugin toke for domain ${domain}: ${token}`);
+    logger.info(`Plugin token for domain ${domain}: ${token}`);
     process.exit(0);
   } catch (error) {
     logger.error('Failed to generate token for plugin');

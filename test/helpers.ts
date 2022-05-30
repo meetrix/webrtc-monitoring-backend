@@ -38,6 +38,7 @@ export const registerValidUser = async ({
       : email,
     password: password,
     role: role,
+    isVerified: true,
   };
 
   const _user = await User.create(user);

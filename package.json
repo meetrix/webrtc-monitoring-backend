@@ -10,6 +10,7 @@
   },
   "scripts": {
     "start": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"tsc -w\" \"nodemon dist/server.js\"",
+    "clean": "rm -rf dist",
     "test": "jest --coverage --verbose",
     "test:watch": "npm run test -- --watchAll",
     "test:debugger": "node --inspect-brk node_modules/.bin/jest --runInBand --testTimeout=300000",
@@ -22,8 +23,8 @@
     "start:db": "docker-compose up mongo mongo-express",
     "services-up": "docker-compose up",
     "services-down": "docker-compose down",
-    "setup": "npm run setup-create-admin && npm run setup-generate-admin-token && setup-register-plugin && npm run setup-generate-plugin-token",
-    "setup-create-admin": "ts-node cli-tools/user-create.ts -e dev@meetrix.io -p dev -r admin",
+    "setup": "npm run setup-create-admin && npm run setup-generate-admin-token && npm run setup-register-plugin && npm run setup-generate-plugin-token",
+    "setup-create-admin": "ts-node cli-tools/user-create.ts -e dev@meetrix.io -p dev12345 -r admin",
     "setup-generate-admin-token": "ts-node cli-tools/user-get-token.ts -e dev@meetrix.io -v 1000d",
     "setup-register-plugin": "ts-node cli-tools/plugin-create -e dev@meetrix.io -d meetrix.io",
     "setup-generate-plugin-token": "ts-node cli-tools/plugin-get-token.ts -d 'meetrix.io' -v 1000d",
@@ -91,6 +92,7 @@
     "stdio": "^2.1.1",
     "supertest": "4.0.2",
     "ts-jest": "26.1.0",
+    "ts-node": "^10.7.0",
     "typescript": "^4.5.4"
   },
   "husky": {
