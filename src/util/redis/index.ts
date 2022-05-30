@@ -13,7 +13,7 @@ export const getNewClient = async (): Promise<RedisClientType> => {
     logger.info('a new redis client created');
     return redis;
   } catch (error) {
-    logger.error('failed to connect to redis', error);
+    logger.error('failed to connect to redis ', error);
     throw error;
   }
 };
