@@ -78,5 +78,3 @@ Go to [http://mongo.localhost:8081/](http://mongo.localhost:8081/)
 ## Running tests
 
 To run the tests simply use `npm test`. If you want to use jest `watch mode` use `npm run watch-test`.
-
-## Redis
