@@ -24,14 +24,14 @@ npm start
 
 # Check whether the api is running
 
-http://localhost:8081/v1/spec
+http://localhost:9100/v1/spec
 ```
 
 To build the project in VS Code press `cmd + shift + b`. You can also run tasks using the command pallet (`cmd + shift + p`) and select `Tasks: Run Task` > `npm: start` to run `npm start` for you.
 
 ## Using OpenAPI Spec
 
-1. Go to [http://localhost:8081/v1/spec]
+1. Go to [http://localhost:9100/v1/spec]
 2. Click `Authorize` and add a token `Bearer <YOUR_TOKEN>`
 3. Execute any API
 
