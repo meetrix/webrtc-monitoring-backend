@@ -142,7 +142,7 @@ export const regenerate = async (
  * Generate JWT token for the plugin using a plugin id.
  * @param req Request
  * @param res Response
- * @returns JWT Token
+ * @returns Promise<void>
  */
 export const getJwtToken = async (
   req: Request,
