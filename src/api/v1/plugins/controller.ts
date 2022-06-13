@@ -1,6 +1,7 @@
 import { Request, Response } from 'express';
 import { SESSION_SECRET } from '../../../config/secrets';
 
+import { IceServerConfig } from '../../../models/ICEServerConfig';
 import { Plugin, PluginDocument } from '../../../models/Plugin';
 import { signPluginToken } from '../../../util/auth';
 
@@ -158,6 +159,83 @@ export const getJwtToken = async (
     res.json({
       success: true,
       data: token,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, error: 'Unknown server error.' });
+  }
+};
+
+export const getConfig = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const plugin = req.params.id
+      ? await Plugin.findById(req.params.id)
+      : // TODO: Remove this once we can config turn servers per token
+        await Plugin.findOne({
+          ownerId: req.user.id,
+          revoked: false,
+        });
+    if (!plugin) {
+      res.status(404).json({ success: false, error: 'App token not found.' });
+      return;
+    }
+
+    const config = await IceServerConfig.findOne({
+      ownerId: req.user.id,
+      pluginId: plugin.id,
+    });
+    if (!config) {
+      res.status(404).json({ success: false, error: 'ICE config not found.' });
+      return;
+    }
+
+    res.json({
+      success: true,
+      data: config,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, error: 'Unknown server error.' });
+  }
+};
+
+export const setConfig = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const plugin = req.params.id
+      ? await Plugin.findById(req.params.id)
+      : // TODO: Remove this once we can config turn servers per token
+        await Plugin.findOne({
+          ownerId: req.user.id,
+          revoked: false,
+        });
+    if (!plugin) {
+      res.status(404).json({ success: false, error: 'App token not found.' });
+      return;
+    }
+
+    let config = await IceServerConfig.findOne({
+      ownerId: req.user.id,
+      pluginId: plugin.id,
+    });
+    if (!config) {
+      config = new IceServerConfig({
+        ownerId: req.user.id,
+        pluginId: plugin.id,
+      });
+    } else if (config.mode !== req.body.mode) {
+      await config.delete();
+      config = new IceServerConfig({
+        ownerId: req.user.id,
+        pluginId: plugin.id,
+      });
+    }
+
+    config.set(req.body);
+    await config.save();
+
+    res.json({
+      success: true,
+      data: config,
     });
   } catch (error) {
     console.log(error);

@@ -1,7 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 
 // jest.mock('nodemailer');
-import nodemailer from 'nodemailer';
 import bcrypt from 'bcrypt';
 import request from 'supertest';
 import jwt from 'jsonwebtoken';
