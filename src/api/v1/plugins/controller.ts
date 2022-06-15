@@ -1,7 +1,10 @@
 import { Request, Response } from 'express';
+import { isValidObjectId } from 'mongoose';
+import { SESSION_SECRET } from '../../../config/secrets';
 
 import { IceServerConfig } from '../../../models/ICEServerConfig';
 import { Plugin, PluginDocument } from '../../../models/Plugin';
+import { signPluginToken } from '../../../util/auth';
 
 // TODO: Usually we don't show the old tokens to the user, but the UI has placeholders right now.
 const sanitize = ({
@@ -67,7 +70,10 @@ export const create = async (req: Request, res: Response): Promise<void> => {
 
 export const get = async (req: Request, res: Response): Promise<void> => {
   try {
-    const plugin = await Plugin.findById(req.params.id);
+    const plugin = await Plugin.findOne({
+      _id: req.params.id,
+      revoked: req.query?.revoked === 'true' || false,
+    });
     if (!plugin) {
       res.status(404).json({ success: false, error: 'App token not found.' });
       return;
@@ -128,7 +134,40 @@ export const regenerate = async (
     }).save();
     res.json({
       success: true,
-      data: sanitize(newPlugin),
+      data: { ...sanitize(newPlugin), synonyms: newPlugin.synonyms },
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ success: false, error: 'Unknown server error.' });
+  }
+};
+
+/**
+ * Generate JWT token for the plugin using a plugin id.
+ * @param req Request
+ * @param res Response
+ * @returns Promise<void>
+ */
+export const getJwtToken = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    if (!isValidObjectId(req.params.id)) {
+      res.status(400).json({ success: false, error: 'Invalid token.' });
+      return;
+    }
+
+    const plugin = await Plugin.findById(req.params.id);
+    if (!plugin) {
+      res.status(404).json({ success: false, error: 'App token not found.' });
+      return;
+    }
+
+    const token = signPluginToken(plugin, SESSION_SECRET, '12h');
+    res.json({
+      success: true,
+      data: token,
     });
   } catch (error) {
     console.log(error);

@@ -1,12 +1,14 @@
 import express from 'express';
 
 import { hasRoleOrHigher } from '../../../middleware';
+import rateLimiterMiddleware from '../../../middleware/rateLimiterMemory';
 import {
   getAll,
   create,
   get,
   revoke,
   regenerate,
+  getJwtToken,
   getConfig,
   setConfig,
 } from './controller';
@@ -398,6 +400,7 @@ router.delete('/:id', hasRoleOrHigher('user'), revoke);
  *             message:
  *               type: string
  *               example: App token not found.
+ *
  *       500:
  *         description: Unknown error
  *         schema:
@@ -411,6 +414,59 @@ router.delete('/:id', hasRoleOrHigher('user'), revoke);
  *               example: Unknown server error.
  */
 router.patch('/:id', hasRoleOrHigher('user'), regenerate);
+
+/**
+ * @swagger
+ *
+ * /plugins/{id}/token:
+ *   get:
+ *     description: Get JWT token for specific plugin
+ *     produces:
+ *       - application/json
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: "id"
+ *         description: "Token/plugin Id"
+ *         in: path
+ *         required: true
+ *         schema:
+ *           type: string
+ *     responses:
+ *       200:
+ *         description: JWT token
+ *         schema:
+ *           type: object
+ *           properties:
+ *             success:
+ *               type: boolean
+ *               example: true
+ *             data:
+ *               type: string
+ *       404:
+ *         description: Plugin not found
+ *         schema:
+ *           type: object
+ *           properties:
+ *             success:
+ *               type: string
+ *               example: false
+ *             message:
+ *               type: string
+ *               example: App token not found.
+ *       500:
+ *         description: Unknown error
+ *         schema:
+ *           type: object
+ *           properties:
+ *             success:
+ *               type: string
+ *               example: false
+ *             message:
+ *               type: string
+ *               example: Unknown server error.
+ */
+router.get('/:id/token', rateLimiterMiddleware, getJwtToken);
 
 /**
  * @swagger
