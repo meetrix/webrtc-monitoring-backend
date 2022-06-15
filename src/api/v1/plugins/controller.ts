@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import { isValidObjectId } from 'mongoose';
 import { SESSION_SECRET } from '../../../config/secrets';
 
 import { IceServerConfig } from '../../../models/ICEServerConfig';
@@ -69,7 +70,10 @@ export const create = async (req: Request, res: Response): Promise<void> => {
 
 export const get = async (req: Request, res: Response): Promise<void> => {
   try {
-    const plugin = await Plugin.findById(req.params.id);
+    const plugin = await Plugin.findOne({
+      _id: req.params.id,
+      revoked: req.query?.revoked === 'true' || false,
+    });
     if (!plugin) {
       res.status(404).json({ success: false, error: 'App token not found.' });
       return;
@@ -130,7 +134,7 @@ export const regenerate = async (
     }).save();
     res.json({
       success: true,
-      data: sanitize(newPlugin),
+      data: { ...sanitize(newPlugin), synonyms: newPlugin.synonyms },
     });
   } catch (error) {
     console.log(error);
@@ -149,6 +153,11 @@ export const getJwtToken = async (
   res: Response
 ): Promise<void> => {
   try {
+    if (!isValidObjectId(req.params.id)) {
+      res.status(400).json({ success: false, error: 'Invalid token.' });
+      return;
+    }
+
     const plugin = await Plugin.findById(req.params.id);
     if (!plugin) {
       res.status(404).json({ success: false, error: 'App token not found.' });
