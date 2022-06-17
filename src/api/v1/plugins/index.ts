@@ -1,6 +1,6 @@
 import express from 'express';
 
-import { hasRoleOrHigher } from '../../../middleware';
+import { hasRoleOrHigher, isPluginOwnerOrUser } from '../../../middleware';
 import rateLimiterMiddleware from '../../../middleware/rateLimiterMemory';
 import {
   getAll,
@@ -68,7 +68,7 @@ const router = express.Router();
  *               type: string
  *               example: Unknown server error.
  */
-router.get('/:id/ice-servers', hasRoleOrHigher('user'), getConfig);
+router.get('/:id/ice-servers', isPluginOwnerOrUser(), getConfig);
 
 /**
  * @swagger
@@ -177,7 +177,7 @@ router.put('/:id/ice-servers', hasRoleOrHigher('user'), setConfig);
  *               type: string
  *               example: Unknown server error.
  */
-router.get('/ice-servers', hasRoleOrHigher('user'), getConfig);
+router.get('/ice-servers', isPluginOwnerOrUser(), getConfig);
 
 /**
  * @swagger

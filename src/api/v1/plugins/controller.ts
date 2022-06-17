@@ -4,6 +4,7 @@ import { SESSION_SECRET } from '../../../config/secrets';
 
 import { IceServerConfig } from '../../../models/ICEServerConfig';
 import { Plugin, PluginDocument } from '../../../models/Plugin';
+import { createTurnConfig } from './iceServers';
 import { signPluginToken } from '../../../util/auth';
 
 // TODO: Usually we don't show the old tokens to the user, but the UI has placeholders right now.
@@ -177,21 +178,8 @@ export const getJwtToken = async (
 
 export const getConfig = async (req: Request, res: Response): Promise<void> => {
   try {
-    const plugin = req.params.id
-      ? await Plugin.findById(req.params.id)
-      : // TODO: Remove this once we can config turn servers per token
-        await Plugin.findOne({
-          ownerId: req.user.id,
-          revoked: false,
-        });
-    if (!plugin) {
-      res.status(404).json({ success: false, error: 'App token not found.' });
-      return;
-    }
-
     const config = await IceServerConfig.findOne({
-      ownerId: req.user.id,
-      pluginId: plugin.id,
+      pluginId: req.params.id,
     });
     if (!config) {
       res.status(404).json({ success: false, error: 'ICE config not found.' });
@@ -200,7 +188,7 @@ export const getConfig = async (req: Request, res: Response): Promise<void> => {
 
     res.json({
       success: true,
-      data: config,
+      data: req.user ? config : await createTurnConfig(config),
     });
   } catch (error) {
     console.log(error);
@@ -223,7 +211,6 @@ export const setConfig = async (req: Request, res: Response): Promise<void> => {
     }
 
     let config = await IceServerConfig.findOne({
-      ownerId: req.user.id,
       pluginId: plugin.id,
     });
     if (!config) {
