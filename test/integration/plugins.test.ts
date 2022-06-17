@@ -1,12 +1,14 @@
 import request from 'supertest';
+import axios from 'axios';
 
 import { registerValidUser } from '../helpers';
 import { clearDB, disconnectMongo, initMongo } from '../setup';
 import app from '../../src/app';
 
+jest.mock('axios');
+
 describe('Plugins', () => {
   beforeAll(async () => await initMongo());
-  // beforeEach(async () => await clearDB());
   afterAll(async () => await disconnectMongo());
 
   describe('/plugins', () => {
@@ -235,7 +237,403 @@ describe('Plugins', () => {
           body: { data: pluginToken },
         } = await request(app).get(`/v1/plugins/${_id}/token`).expect(200);
         expect(pluginToken).toBeDefined();
-        console.log(pluginToken);
+      });
+    });
+  });
+
+  describe('/plugins/:id/ice-servers', () => {
+    let token = '';
+    beforeAll(async () => {
+      await clearDB();
+      token = await registerValidUser({ jwtExpiration: '1d' });
+    });
+
+    describe('PUT /plugins/:id/ice-servers', () => {
+      it('should return 200 and add static configs', async () => {
+        const plugin = {
+          domain: 'static.xyz',
+        };
+
+        const {
+          body: {
+            data: { domain, _id },
+          },
+        } = await request(app)
+          .post('/v1/plugins')
+          .set('authorization', `Bearer ${token}`)
+          .send(plugin)
+          .expect(201);
+        expect(domain).toBe(plugin.domain);
+
+        const iceServers = {
+          mode: 'static',
+          iceServers: [
+            {
+              urls: ['stun:0.not.a.real.url'],
+            },
+            {
+              username: 'username',
+              credential: 'credential',
+              urls: ['turn:1.not.a.real.url', 'turns:2.not.a.real.url'],
+            },
+          ],
+        };
+
+        const {
+          body: { data: iceServers1 },
+        } = await request(app)
+          .put(`/v1/plugins/${_id}/ice-servers`)
+          .set('authorization', `Bearer ${token}`)
+          .send(iceServers)
+          .expect(200);
+        expect(iceServers1.mode).toBe(iceServers.mode);
+        expect(iceServers1.iceServers).toEqual(iceServers.iceServers);
+      });
+
+      it('should return 200 and add shared secret configs', async () => {
+        const plugin = {
+          domain: 'shared-secret.xyz',
+        };
+
+        const {
+          body: {
+            data: { domain, _id },
+          },
+        } = await request(app)
+          .post('/v1/plugins')
+          .set('authorization', `Bearer ${token}`)
+          .send(plugin)
+          .expect(201);
+        expect(domain).toBe(plugin.domain);
+
+        const iceServers = {
+          mode: 'shared-secret',
+          secret: 'not.so.secret',
+        };
+
+        const {
+          body: { data: iceServers1 },
+        } = await request(app)
+          .put(`/v1/plugins/${_id}/ice-servers`)
+          .set('authorization', `Bearer ${token}`)
+          .send(iceServers)
+          .expect(200);
+        expect(iceServers1.mode).toBe(iceServers.mode);
+        expect(iceServers1.secret).toBe(iceServers.secret);
+      });
+
+      it('should return 200 and add url-based configs', async () => {
+        const plugin = {
+          domain: 'url.xyz',
+        };
+
+        const {
+          body: {
+            data: { domain, _id },
+          },
+        } = await request(app)
+          .post('/v1/plugins')
+          .set('authorization', `Bearer ${token}`)
+          .send(plugin)
+          .expect(201);
+        expect(domain).toBe(plugin.domain);
+
+        const iceServers = {
+          mode: 'url',
+          url: 'not.so.url',
+        };
+
+        const {
+          body: { data: iceServers1 },
+        } = await request(app)
+          .put(`/v1/plugins/${_id}/ice-servers`)
+          .set('authorization', `Bearer ${token}`)
+          .send(iceServers)
+          .expect(200);
+        expect(iceServers1.mode).toBe(iceServers.mode);
+        expect(iceServers1.url).toBe(iceServers.url);
+      });
+    });
+
+    describe('GET /plugins/:id/ice-servers', () => {
+      it('should return 200 and raw static config for owner', async () => {
+        const plugin = {
+          domain: 'owner.static.io',
+        };
+
+        const {
+          body: {
+            data: { _id },
+          },
+        } = await request(app)
+          .post('/v1/plugins')
+          .set('authorization', `Bearer ${token}`)
+          .send(plugin);
+
+        const iceServers = {
+          mode: 'static',
+          iceServers: [
+            {
+              urls: ['stun:0.not.a.real.url'],
+            },
+            {
+              username: 'username',
+              credential: 'credential',
+              urls: ['turn:1.not.a.real.url', 'turns:2.not.a.real.url'],
+            },
+          ],
+        };
+
+        await request(app)
+          .put(`/v1/plugins/${_id}/ice-servers`)
+          .set('authorization', `Bearer ${token}`)
+          .send(iceServers);
+
+        const {
+          body: { data: iceServers2 },
+        } = await request(app)
+          .get(`/v1/plugins/${_id}/ice-servers`)
+          .set('authorization', `Bearer ${token}`)
+          .expect(200);
+        expect(iceServers2.mode).toBe(iceServers.mode);
+        expect(iceServers2.iceServers).toEqual(iceServers.iceServers);
+      });
+
+      it('should return 200 and raw shared-secret config for owner', async () => {
+        const plugin = {
+          domain: 'owner.shared-secret.io',
+        };
+
+        const {
+          body: {
+            data: { _id },
+          },
+        } = await request(app)
+          .post('/v1/plugins')
+          .set('authorization', `Bearer ${token}`)
+          .send(plugin);
+
+        const iceServers = {
+          mode: 'shared-secret',
+          secret: 'not.so.secret',
+          uri: 'not.so.uri',
+        };
+
+        const {
+          body: {},
+        } = await request(app)
+          .put(`/v1/plugins/${_id}/ice-servers`)
+          .set('authorization', `Bearer ${token}`)
+          .send(iceServers);
+
+        const {
+          body: { data: iceServers2 },
+        } = await request(app)
+          .get(`/v1/plugins/${_id}/ice-servers`)
+          .set('authorization', `Bearer ${token}`)
+          .expect(200);
+        expect(iceServers2.mode).toBe(iceServers.mode);
+        expect(iceServers2.secret).toBe(iceServers.secret);
+        expect(iceServers2.uri).toBe(iceServers.uri);
+      });
+
+      it('should return 200 and raw url-based config for owner', async () => {
+        const plugin = {
+          domain: 'owner.url.io',
+        };
+
+        const {
+          body: {
+            data: { _id },
+          },
+        } = await request(app)
+          .post('/v1/plugins')
+          .set('authorization', `Bearer ${token}`)
+          .send(plugin);
+
+        const iceServers = {
+          mode: 'url',
+          url: 'not.so.url',
+        };
+
+        await request(app)
+          .put(`/v1/plugins/${_id}/ice-servers`)
+          .set('authorization', `Bearer ${token}`)
+          .send(iceServers);
+
+        const {
+          body: { data: iceServers2 },
+        } = await request(app)
+          .get(`/v1/plugins/${_id}/ice-servers`)
+          .set('authorization', `Bearer ${token}`)
+          .expect(200);
+        expect(iceServers2.mode).toBe(iceServers.mode);
+        expect(iceServers2.url).toBe(iceServers.url);
+      });
+
+      it('should return 200 and processed iceServers from static config for user', async () => {
+        const plugin = {
+          domain: 'static.io',
+        };
+
+        const {
+          body: {
+            data: { _id },
+          },
+        } = await request(app)
+          .post('/v1/plugins')
+          .set('authorization', `Bearer ${token}`)
+          .send(plugin);
+
+        const iceServers = {
+          mode: 'static',
+          iceServers: [
+            {
+              urls: ['stun:0.not.a.real.url'],
+            },
+            {
+              username: 'username',
+              credential: 'credential',
+              urls: ['turn:1.not.a.real.url', 'turns:2.not.a.real.url'],
+            },
+          ],
+        };
+
+        await request(app)
+          .put(`/v1/plugins/${_id}/ice-servers`)
+          .set('authorization', `Bearer ${token}`)
+          .send(iceServers);
+
+        const {
+          body: { data: pluginToken },
+        } = await request(app).get(`/v1/plugins/${_id}/token`).expect(200);
+        expect(pluginToken).toBeDefined();
+
+        const {
+          body: { data: iceServers2 },
+        } = await request(app)
+          .get(`/v1/plugins/${_id}/ice-servers`)
+          .set('authorization', `Bearer ${pluginToken}`)
+          .expect(200);
+        expect(iceServers2.iceServers).toEqual(iceServers.iceServers);
+      });
+
+      it('should return 200 and processed iceServers from shared-secret config for user', async () => {
+        const spy = jest
+          .spyOn(Date, 'now')
+          .mockImplementation(() => 1654254083000); // Friday, June 3, 2022 11:01:23 AM UTC
+
+        const plugin = {
+          domain: 'shared-secret.io',
+        };
+
+        const {
+          body: {
+            data: { _id },
+          },
+        } = await request(app)
+          .post('/v1/plugins')
+          .set('authorization', `Bearer ${token}`)
+          .send(plugin);
+
+        const iceServers = {
+          mode: 'shared-secret',
+          secret: 'not.so.secret',
+          uri: 'not.so.uri',
+        };
+
+        const {
+          body: {},
+        } = await request(app)
+          .put(`/v1/plugins/${_id}/ice-servers`)
+          .set('authorization', `Bearer ${token}`)
+          .send(iceServers);
+
+        // Output of the below linux command:
+        // secret=not.so.secret && \
+        // time=1654254083 && \
+        // expiry=8400 && \
+        // username=$(( $time + $expiry )) &&\
+        // echo username: $username && \
+        // echo password: $(echo -n $username | openssl dgst -binary -sha1 -hmac $secret | openssl base64)
+        const username = '1654262483';
+        const password = 'YTddDier2bjLrmQKVZWdWgNf46A=';
+
+        const {
+          body: { data: pluginToken },
+        } = await request(app).get(`/v1/plugins/${_id}/token`).expect(200);
+        expect(pluginToken).toBeDefined();
+
+        const {
+          body: { data: iceServers2 },
+        } = await request(app)
+          .get(`/v1/plugins/${_id}/ice-servers`)
+          .set('authorization', `Bearer ${pluginToken}`)
+          .expect(200);
+
+        expect(iceServers2.iceServers).toEqual([
+          {
+            username,
+            credential: password,
+            urls: ['not.so.uri'],
+          },
+        ]);
+
+        spy.mockRestore();
+      });
+
+      it('should return 200 and processed iceServers from url-based config for user', async () => {
+        const plugin = {
+          domain: 'url.io',
+        };
+
+        const {
+          body: {
+            data: { _id },
+          },
+        } = await request(app)
+          .post('/v1/plugins')
+          .set('authorization', `Bearer ${token}`)
+          .send(plugin);
+
+        const iceServers = {
+          mode: 'url',
+          url: 'not.so.url',
+        };
+
+        await request(app)
+          .put(`/v1/plugins/${_id}/ice-servers`)
+          .set('authorization', `Bearer ${token}`)
+          .send(iceServers);
+
+        const mockResult = {
+          iceServers: [
+            {
+              urls: ['stun:0.not.a.real.url'],
+            },
+            {
+              username: 'username',
+              credential: 'credential',
+              urls: ['turn:1.not.a.real.url', 'turns:2.not.a.real.url'],
+            },
+          ],
+        };
+        (axios.request as any).mockResolvedValueOnce({
+          data: mockResult,
+        });
+
+        const {
+          body: { data: pluginToken },
+        } = await request(app).get(`/v1/plugins/${_id}/token`).expect(200);
+        expect(pluginToken).toBeDefined();
+
+        const {
+          body: { data: iceServers2 },
+        } = await request(app)
+          .get(`/v1/plugins/${_id}/ice-servers`)
+          .set('authorization', `Bearer ${pluginToken}`)
+          .expect(200);
+        expect(iceServers2.iceServers).toEqual(mockResult);
       });
     });
   });

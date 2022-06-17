@@ -6,18 +6,18 @@ declare global {
   namespace Express {
     interface User extends UserDocument {}
 
-    interface IJwtUser {
+    export interface IJwtUser {
       sub: string;
       iat: number;
       exp: number;
     }
 
-    interface JwtUser extends IJwtUser {
+    export interface JwtUser extends IJwtUser {
       email: string;
       role: string;
     }
 
-    interface JwtPluginUser extends IJwtUser {
+    export interface JwtPluginUser extends IJwtUser {
       plugin: boolean;
       domain: string;
     }
