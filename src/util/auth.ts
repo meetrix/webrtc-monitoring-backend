@@ -46,10 +46,9 @@ export const signPluginToken = (
   secret: string = SESSION_SECRET,
   expiresIn: string = JWT_EXPIRATION_PLUGIN
 ): string => {
-  // What kind of auth?
   return jwt.sign(
     {
-      plugin: true,
+      plugin: plugin._id,
       domain: plugin.domain,
     },
     secret,

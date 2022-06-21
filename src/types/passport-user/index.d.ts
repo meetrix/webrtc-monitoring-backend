@@ -18,7 +18,7 @@ declare global {
     }
 
     export interface JwtPluginUser extends IJwtUser {
-      plugin: boolean;
+      plugin: string;
       domain: string;
     }
 

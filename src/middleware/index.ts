@@ -131,19 +131,27 @@ export const isPluginOwnerOrUser = (): RequestHandler => {
         console.log('Plugin: No auth', req.path);
         return;
       }
-
       const token = req.headers.authorization.split('Bearer ')[1];
       const result = jwt.verify(token, SESSION_SECRET) as Express.IJwtUser;
+      const isPluginToken = Boolean((result as Express.JwtPluginUser).plugin);
+      const pluginId =
+        req.params.id || (result as Express.JwtPluginUser).plugin || '';
 
-      const plugin = await Plugin.findById(req.params.id);
+      // Load default plugin if no plugin is specified
+      const plugin = pluginId
+        ? await Plugin.findById(pluginId)
+        : await Plugin.findOne({
+            ownerId: result.sub,
+            revoked: false,
+          });
       if (!plugin?.id) {
         res.status(404).json({ success: false, error: 'App token not found.' });
         console.log('Plugin: No plugin', req.path);
         return;
       }
+      req.params.id = plugin.id;
 
-      // User used a plugin token
-      if ((result as Express.JwtPluginUser).plugin) {
+      if (isPluginToken) {
         if (plugin.revoked) {
           res
             .status(404)
@@ -154,14 +162,13 @@ export const isPluginOwnerOrUser = (): RequestHandler => {
         req.user = null;
         next();
       } else {
+        // User token
         const user = await User.findById(result.sub);
         if (!user?.id) {
           res.status(404).json({ success: false, error: 'Account not found.' });
           console.log('Plugin: No user', req.path, result);
           return;
         }
-        req.user = user;
-
         if (plugin.ownerId !== user.id) {
           res
             .status(403)
@@ -170,6 +177,7 @@ export const isPluginOwnerOrUser = (): RequestHandler => {
           return;
         }
 
+        req.user = user;
         next();
       }
     } catch (error) {
