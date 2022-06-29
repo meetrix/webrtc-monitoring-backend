@@ -186,3 +186,64 @@ export const isPluginOwnerOrUser = (): RequestHandler => {
     }
   };
 };
+
+/**
+ * Allows using a plugin for a user
+ * @returns
+ */
+export const isPluginUser = (): RequestHandler => {
+  return async (
+    req: Request,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> => {
+    try {
+      if (!req.headers.authorization) {
+        res
+          .status(401)
+          .json({ success: false, error: 'No authentication token provided.' });
+        console.log('Plugin: No auth', req.path);
+        return;
+      }
+      const token = req.headers.authorization.split('Bearer ')[1];
+      const result = jwt.verify(token, SESSION_SECRET) as Express.IJwtUser;
+
+      const isPluginToken = Boolean((result as Express.JwtPluginUser).plugin);
+      if (!isPluginToken) {
+        res.status(403).json({ success: false, error: 'Invalid token' });
+        console.log('Plugin: Invalid token', req.path);
+        return;
+      }
+      const pluginId =
+        req.params.id || (result as Express.JwtPluginUser).plugin || '';
+      // Load default plugin if no plugin is specified
+      const plugin = pluginId
+        ? await Plugin.findById(pluginId)
+        : await Plugin.findOne({
+            ownerId: result.sub,
+            // revoked: false, // Doesn't matter if the plugin is revoked
+          });
+      if (!plugin?.id) {
+        res.status(401).json({ success: false, error: 'App token not found.' });
+        console.log('Plugin: No plugin', req.path);
+        return;
+      }
+      if (plugin.revoked) {
+        res
+          .status(403)
+          .json({ success: false, error: 'App token is expired.' });
+        console.log('Plugin: Revoked', req.path);
+        return;
+      }
+      req.body.clientId = req.headers['x-client-id'];
+      req.body.pluginId = plugin.id;
+      req.body.ownerId = plugin.ownerId;
+      req.user = null;
+
+      next();
+    } catch (error) {
+      console.log(error);
+      res.status(401).json({ success: false, error: 'Authentication error.' });
+    }
+  };
+};
