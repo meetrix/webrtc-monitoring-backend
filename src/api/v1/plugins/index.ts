@@ -30,7 +30,8 @@ const router = express.Router();
  *         description: "Token/plugin Id"
  *         in: path
  *         required: true
- *         type: string
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
  *         description: ICE Server config
@@ -84,13 +85,32 @@ router.get('/:id/ice-servers', isPluginOwnerOrUser(), getConfig);
  *         description: "Token/plugin Id"
  *         in: path
  *         required: true
- *         type: string
+ *         schema:
+ *           type: string
  *       - name: "ice-servers"
  *         description: ICE Server config
  *         in: body
  *         required: true
  *         schema:
  *           type: object
+ *           properties:
+ *              mode:
+ *                type: string
+ *                example: static
+ *              iceServers:
+ *                type: array
+ *                items:
+ *                  type: object
+ *                  properties:
+ *                    urls:
+ *                      type: string
+ *                      example: turn:openrelay.metered.ca:80
+ *                    username:
+ *                      type: string
+ *                      example: openrelayproject
+ *                    credential:
+ *                      type: string
+ *                      example: openrelayproject
  *     responses:
  *       200:
  *         description: ICE Server config
@@ -247,7 +267,8 @@ router.put('/ice-servers', hasRoleOrHigher('user'), setConfig);
  *         description: "Token/plugin Id"
  *         in: path
  *         required: true
- *         type: string
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
  *         description: Plugin details
@@ -306,7 +327,8 @@ router.get('/:id', hasRoleOrHigher('user'), get);
  *         description: "Token/plugin Id"
  *         in: path
  *         required: true
- *         type: string
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
  *         description: Plugin details
@@ -365,7 +387,8 @@ router.delete('/:id', hasRoleOrHigher('user'), revoke);
  *         description: "Token/plugin Id"
  *         in: path
  *         required: true
- *         type: string
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
  *         description: New plugin details
@@ -425,7 +448,8 @@ router.patch('/:id', hasRoleOrHigher('user'), regenerate);
  *         description: "Token/plugin Id"
  *         in: path
  *         required: true
- *         type: string
+ *         schema:
+ *           type: string
  *     responses:
  *       200:
  *         description: JWT token
