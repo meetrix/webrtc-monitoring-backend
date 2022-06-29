@@ -13,6 +13,7 @@ const options = {
     // https://github.com/Surnet/swagger-jsdoc/issues/61
     securityDefinitions: {
       bearerAuth: {
+        in: 'header',
         type: 'apiKey',
         name: 'Authorization',
       },

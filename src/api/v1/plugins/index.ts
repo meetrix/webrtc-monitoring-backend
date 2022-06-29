@@ -30,8 +30,7 @@ const router = express.Router();
  *         description: "Token/plugin Id"
  *         in: path
  *         required: true
- *         schema:
- *           type: string
+ *         type: string
  *     responses:
  *       200:
  *         description: ICE Server config
@@ -85,8 +84,7 @@ router.get('/:id/ice-servers', isPluginOwnerOrUser(), getConfig);
  *         description: "Token/plugin Id"
  *         in: path
  *         required: true
- *         schema:
- *           type: string
+ *         type: string
  *       - name: "ice-servers"
  *         description: ICE Server config
  *         in: body
@@ -249,8 +247,7 @@ router.put('/ice-servers', hasRoleOrHigher('user'), setConfig);
  *         description: "Token/plugin Id"
  *         in: path
  *         required: true
- *         schema:
- *           type: string
+ *         type: string
  *     responses:
  *       200:
  *         description: Plugin details
@@ -309,8 +306,7 @@ router.get('/:id', hasRoleOrHigher('user'), get);
  *         description: "Token/plugin Id"
  *         in: path
  *         required: true
- *         schema:
- *           type: string
+ *         type: string
  *     responses:
  *       200:
  *         description: Plugin details
@@ -369,8 +365,7 @@ router.delete('/:id', hasRoleOrHigher('user'), revoke);
  *         description: "Token/plugin Id"
  *         in: path
  *         required: true
- *         schema:
- *           type: string
+ *         type: string
  *     responses:
  *       200:
  *         description: New plugin details
@@ -430,8 +425,7 @@ router.patch('/:id', hasRoleOrHigher('user'), regenerate);
  *         description: "Token/plugin Id"
  *         in: path
  *         required: true
- *         schema:
- *           type: string
+ *         type: string
  *     responses:
  *       200:
  *         description: JWT token

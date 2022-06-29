@@ -7,6 +7,7 @@ import { usersRouter } from '../api/v1/users';
 import { authRouter } from '../api/v1/auth';
 import { miscRouter } from '../api/v1/misc';
 import { reportRouter } from '../api/v1/report';
+import { troubleshooterRouter } from '../api/v1/troubleshooter';
 
 export const setupRoutesV1 = (app: Express): void => {
   app.use('/v1/spec', specRouter);
@@ -16,4 +17,5 @@ export const setupRoutesV1 = (app: Express): void => {
   app.use('/v1/auth', authRouter);
   app.use('/v1/misc', miscRouter);
   app.use('/v1/report', reportRouter);
+  app.use('/v1/troubleshooter', troubleshooterRouter);
 };

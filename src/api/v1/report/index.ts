@@ -19,14 +19,12 @@ const router = express.Router();
  *         description: "Domain name"
  *         in: path
  *         required: true
- *         schema:
- *             type: string
+ *         type: string
  *       - name: "clientId"
  *         description: "Client Id"
  *         in: path
  *         required: true
- *         schema:
- *             type: string
+ *         type: string
  *     responses:
  *       200:
  *          description: Get active clients for a given domain name
