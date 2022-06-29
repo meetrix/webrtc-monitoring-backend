@@ -43,10 +43,10 @@ router.get('/resetpassword', rateLimiterMiddleware, resetPassword);
  *              properties:
  *                  email:
  *                      type: string
- *                      example: "beta@meetrix.io"
+ *                      example: "dev@meetrix.io"
  *                  password:
  *                      type: string
- *                      example: test1234
+ *                      example: dev12345
  *      responses:
  *        200:
  *           description: "Successful Signin"
@@ -111,10 +111,10 @@ router.post('/login', rateLimiterMiddleware, login);
  *              properties:
  *                  email:
  *                      type: string
- *                      example: beta@meetrix.io
+ *                      example: dev@meetrix.io
  *                  password:
  *                      type: string
- *                      example: test1234
+ *                      example: dev12345
  *     responses:
  *       200:
  *          description: Successful Registration (Account should be verifed by email confirmation)
@@ -179,7 +179,7 @@ router.post('/register', rateLimiterMiddleware, register);
  *              properties:
  *                  email:
  *                      type: string
- *                      example: "beta@meetrix.io"
+ *                      example: "dev@meetrix.io"
  *
  *      responses:
  *        200:
