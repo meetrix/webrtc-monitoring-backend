@@ -130,7 +130,8 @@ export const register = async (
       const transporter = getTransporter();
 
       const mailOptions = getMailOptions({
-        subject: 'Confirm Your Email Address - ScreenApp.IO',
+        subject:
+          'Confirm Your Email Address - Meetrix WebRTC Monitoring Application',
         to: `<${user.email}>`,
         template: 'emailVerification',
         context: {
@@ -684,7 +685,8 @@ export const verify = async (
     const transporter = getTransporter();
 
     const mailOptions = getMailOptions({
-      subject: 'Account Successfully Verified - ScreenApp.IO',
+      subject:
+        'Account Successfully Verified - Meetrix WebRTC Monitoring Application',
       to: `<${user.email}>`,
       template: 'emailVerificationConfirmation',
       context: {

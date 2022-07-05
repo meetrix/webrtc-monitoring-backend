@@ -11,9 +11,9 @@ interface ExtendedSendMailOptions extends SendMailOptions {
 export const getMailOptions = (
   options: ExtendedSendMailOptions
 ): ExtendedSendMailOptions => ({
-  from: `"ScreenApp.IO Messenger" <${SENDER_EMAIL}>`,
+  from: `"Meetrix WebRTC Monitoring Application" <${SENDER_EMAIL}>`,
   to: RECEIVER_EMAIL,
-  subject: 'Welcome to ScreenApp!',
+  subject: 'Welcome to Meetrix WebRTC Monitoring Application!',
   ...options,
 });
 
