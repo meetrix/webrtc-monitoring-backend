@@ -29,6 +29,7 @@ export interface TroubleshooterSessionType {
   clientId: string;
   pluginId: string;
   ownerId: string;
+  email: string;
   createdAt: Date;
   updatedAt: Date;
   tests: {
@@ -46,6 +47,7 @@ const troubleshooterSessionSchemaDef: SchemaDefinition = {
   clientId: { type: String, index: true },
   pluginId: { type: String, index: true },
   ownerId: { type: String, index: true },
+  email: { type: String, index: true },
 
   tests: {
     browser: {
