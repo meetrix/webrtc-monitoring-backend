@@ -16,6 +16,8 @@ import { formatError } from '../../../util/error';
 import { getSubscriptionStatus, signToken } from '../../../util/auth';
 import { AWS_ACCESS_KEY, AWS_ACCESS_KEY_SECRET } from '../../../config/secrets';
 import logger from '../../../util/logger';
+import { getMailOptions, getTransporter } from '../../../util/mail';
+const log = console.log;
 
 // Refresh
 export const refresh = async (
@@ -108,6 +110,8 @@ export const register = async (
           picture: null,
           provider: 'manual',
           providerId: null,
+          companyName: req.body.companyName,
+          contactNumber: req.body.contactNumber,
         },
         tag: {
           tagId: null,
@@ -123,7 +127,30 @@ export const register = async (
 
       const clientName = user.profile.name;
 
-      res.status(201).json({
+      const transporter = getTransporter();
+
+      const mailOptions = getMailOptions({
+        subject:
+          'Confirm Your Email Address - Meetrix WebRTC Monitoring Application',
+        to: `<${user.email}>`,
+        template: 'emailVerification',
+        context: {
+          clientName,
+          emailToken,
+          API_BASE_URL,
+          AUTH_LANDING,
+          SUPPORT_URL,
+        },
+      });
+
+      transporter.sendMail(mailOptions, (err, data) => {
+        if (err) {
+          return log('Error occurs');
+        }
+        return log('Email sent to the user successfully.');
+      });
+
+      res.status(200).json({
         success: true,
         // data: { emailToken },
         message:
@@ -449,8 +476,17 @@ export const postProfile = async (
 
     // Do not set email
     // user.email = req.body.email;
-    const { name, gender, location, domain, picture, provider, providerId } =
-      req.body;
+    const {
+      name,
+      gender,
+      location,
+      domain,
+      picture,
+      provider,
+      providerId,
+      companyName,
+      contactNumber,
+    } = req.body;
 
     user.profile = {
       ...user.profile,
@@ -461,6 +497,8 @@ export const postProfile = async (
       picture,
       provider,
       providerId,
+      companyName,
+      contactNumber,
     };
 
     if (req.body.picture) {
@@ -615,6 +653,71 @@ export const deleteAccount = async (
       data: null,
       message: 'Something went wrong. Please try again later.',
     });
+    next(error);
+  }
+};
+
+// User account verification & auto signin at first attempt
+export const verify = async (
+  req: any,
+  res: Response,
+  next: NextFunction
+): Promise<any> => {
+  try {
+    const user = await User.findOne({ emailToken: req.query.token });
+    if (!user) {
+      res.status(401).json({
+        success: false,
+        data: null,
+        message:
+          'The verification link is already used or expired. Please try again.',
+      });
+      return;
+    }
+
+    user.emailToken = null;
+    user.isVerified = true;
+
+    await user.save();
+
+    const clientName = user.profile.name;
+
+    const transporter = getTransporter();
+
+    const mailOptions = getMailOptions({
+      subject:
+        'Account Successfully Verified - Meetrix WebRTC Monitoring Application',
+      to: `<${user.email}>`,
+      template: 'emailVerificationConfirmation',
+      context: {
+        clientName,
+        API_BASE_URL,
+        AUTH_LANDING,
+        SUPPORT_URL,
+      },
+    });
+
+    transporter.sendMail(mailOptions, (err, data) => {
+      if (err) {
+        return log('Error occurs');
+      }
+      return log('Email sent to the user successfully.');
+    });
+    log('ssf', signToken(user));
+
+    res.status(200).json({
+      success: true,
+      data: { token: signToken(user) },
+      message: 'Verification successful. Redirecting...',
+    });
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      data: null,
+      message: 'Something went wrong. Please try again later.',
+    });
+    log('Error occurs while sending email.');
+
     next(error);
   }
 };

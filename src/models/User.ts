@@ -20,6 +20,8 @@ export interface Profile {
   picture?: string;
   provider?: string;
   providerId?: string;
+  companyName?: string;
+  contactNumber?: string;
 }
 
 export interface Tag {
@@ -126,6 +128,8 @@ const userSchema = new mongoose.Schema(
       picture: String,
       provider: String,
       providerId: String,
+      companyName: String,
+      contactNumber: String,
     },
 
     tag: {
@@ -221,6 +225,8 @@ userSchema.methods = {
         picture: this.profile.picture,
         provider: this.profile.provider,
         providerId: this.profile.providerId,
+        companyName: this.profile.companyName,
+        contactNumber: this.profile.contactNumber,
       },
       tag: {
         tagId: this.tag.tagId,

@@ -40,6 +40,6 @@ export const S3_CONTENT_BUCKET = 'starter-content';
 export const S3_USER_META_BUCKET = process.env['USER_META_BUCKET'];
 export const S3_USER_RECORDINGS_BUCKET = process.env['USER_RECORDINGS_BUCKET'];
 export const RECEIVER_EMAIL =
-  process.env['RECEIVER_EMAIL'] || 'support@screenapp.io';
-export const SENDER_EMAIL = process.env['SENDER_EMAIL'] || 'hello@screenapp.io';
+  process.env['RECEIVER_EMAIL'] || 'support@meetrix.io';
+export const SENDER_EMAIL = process.env['SENDER_EMAIL'] || 'hello@meetrix.io';
 export const S3_CONTENT_LINK_EXPIRATION = 15 * 60; // 15 min
