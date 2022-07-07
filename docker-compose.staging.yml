@@ -35,6 +35,9 @@ services:
       SMTP_PASSWORD: ${SMTP_PASSWORD}
       RECEIVER_EMAIL: ${RECEIVER_EMAIL}
       SENDER_EMAIL: ${SENDER_EMAIL}
+      AUTH_LANDING: ${AUTH_LANDING}
+      API_BASE_URL: ${API_BASE_URL}
+      SUPPORT_URL: ${SUPPORT_URL}
     volumes:
       - /usr/src/app/node_modules
       - /usr/src/app/dist
