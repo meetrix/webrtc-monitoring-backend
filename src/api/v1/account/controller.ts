@@ -145,7 +145,7 @@ export const register = async (
 
       transporter.sendMail(mailOptions, (err, data) => {
         if (err) {
-          return log('Error occurs');
+          return log('Error occurs', err.message);
         }
         return log('Email sent to the user successfully.');
       });
@@ -699,7 +699,7 @@ export const verify = async (
 
     transporter.sendMail(mailOptions, (err, data) => {
       if (err) {
-        return log('Error occurs');
+        return log('Error occurs', err.message);
       }
       return log('Email sent to the user successfully.');
     });
