@@ -30,6 +30,11 @@ services:
       AWS_ACCESS_KEY: ${AWS_ACCESS_KEY}
       AWS_ACCESS_KEY_SECRET: ${AWS_ACCESS_KEY_SECRET}
       CORS_REGEX: ${CORS_REGEX}
+      SMTP_HOST: ${SMTP_HOST}
+      SMTP_USER: ${SMTP_USER}
+      SMTP_PASSWORD: ${SMTP_PASSWORD}
+      RECEIVER_EMAIL: ${RECEIVER_EMAIL}
+      SENDER_EMAIL: ${SENDER_EMAIL}
     volumes:
       - /usr/src/app/node_modules
       - /usr/src/app/dist
