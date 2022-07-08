@@ -74,14 +74,27 @@ export const getSessions = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    const { limit, offset, pluginId, clientId, startTime, endTime } = req.query;
+    const {
+      limit,
+      offset,
+      pluginId,
+      clientId,
+      startTime,
+      endTime,
+      sortBy,
+      direction,
+      testId,
+    } = req.query;
     const limitNumber = parseInt((limit as string) || '10', 10);
     const offsetNumber = parseInt((offset as string) || '0', 10);
+    const sortOrder = sortBy.toString();
+    const inputTextId = testId?.toString();
 
     const sessions = await TroubleshooterSession.find({
       ownerId: req.user.id as string,
       ...(pluginId && { pluginId: pluginId as string }),
       ...(clientId && { clientId: clientId as string }),
+      ...(testId && { _id: inputTextId }),
       ...(startTime &&
         endTime && {
           createdAt: {
@@ -90,10 +103,28 @@ export const getSessions = async (
           },
         }),
     })
+      .sort({ [sortOrder]: direction })
       .limit(limitNumber)
       .skip(offsetNumber);
 
-    res.status(200).json({ success: true, data: sessions });
+    const totalDataCount = await TroubleshooterSession.find().count({
+      ownerId: req.user.id as string,
+      ...(pluginId && { pluginId: pluginId as string }),
+      ...(clientId && { clientId: clientId as string }),
+      ...(testId && { _id: inputTextId }),
+      ...(startTime &&
+        endTime && {
+          createdAt: {
+            $gte: new Date(startTime as string),
+            $lt: new Date(endTime as string),
+          },
+        }),
+    });
+
+    res.status(200).json({
+      success: true,
+      data: { sessions: sessions, total: totalDataCount },
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({
