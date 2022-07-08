@@ -207,14 +207,14 @@ describe('Plugins', () => {
       token = await registerValidUser({ jwtExpiration: '1d' });
     });
 
-    describe('GET /plugins/:id/token', () => {
+    describe('POST /plugins/:id/token', () => {
       it('should return 400', async () => {
-        await request(app).get('/v1/plugins/123/token').expect(400);
+        await request(app).post('/v1/plugins/123/token').expect(400);
       });
 
       it('should return 404 not found', async () => {
         await request(app)
-          .get('/v1/plugins/0123456789abcdef12345678/token')
+          .post('/v1/plugins/0123456789abcdef12345678/token')
           .expect(404);
       });
 
@@ -235,7 +235,7 @@ describe('Plugins', () => {
 
         const {
           body: { data: pluginToken },
-        } = await request(app).get(`/v1/plugins/${_id}/token`).expect(200);
+        } = await request(app).post(`/v1/plugins/${_id}/token`).expect(200);
         expect(pluginToken).toBeDefined();
       });
     });
@@ -570,7 +570,7 @@ describe('Plugins', () => {
 
         const {
           body: { data: pluginToken },
-        } = await request(app).get(`/v1/plugins/${_id}/token`).expect(200);
+        } = await request(app).post(`/v1/plugins/${_id}/token`).expect(200);
         expect(pluginToken).toBeDefined();
 
         const {
@@ -625,7 +625,7 @@ describe('Plugins', () => {
 
         const {
           body: { data: pluginToken },
-        } = await request(app).get(`/v1/plugins/${_id}/token`).expect(200);
+        } = await request(app).post(`/v1/plugins/${_id}/token`).expect(200);
         expect(pluginToken).toBeDefined();
 
         const {
@@ -688,7 +688,7 @@ describe('Plugins', () => {
 
         const {
           body: { data: pluginToken },
-        } = await request(app).get(`/v1/plugins/${_id}/token`).expect(200);
+        } = await request(app).post(`/v1/plugins/${_id}/token`).expect(200);
         expect(pluginToken).toBeDefined();
 
         const {
@@ -756,7 +756,7 @@ describe('Plugins', () => {
 
         const {
           body: { data: pluginToken0 },
-        } = await request(app).get(`/v1/plugins/${id0}/token`).expect(200);
+        } = await request(app).post(`/v1/plugins/${id0}/token`).expect(200);
         expect(pluginToken0).toBeDefined();
         const {
           body: { data: iceServersX },
@@ -768,7 +768,7 @@ describe('Plugins', () => {
 
         const {
           body: { data: pluginToken1 },
-        } = await request(app).get(`/v1/plugins/${id1}/token`).expect(200);
+        } = await request(app).post(`/v1/plugins/${id1}/token`).expect(200);
         expect(pluginToken1).toBeDefined();
         const {
           body: { data: iceServersY },

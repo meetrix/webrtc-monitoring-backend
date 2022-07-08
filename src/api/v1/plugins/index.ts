@@ -437,7 +437,7 @@ router.patch('/:id', hasRoleOrHigher('user'), regenerate);
  * @swagger
  *
  * /plugins/{id}/token:
- *   get:
+ *   post:
  *     description: Get JWT token for specific plugin
  *     produces:
  *       - application/json
@@ -484,7 +484,7 @@ router.patch('/:id', hasRoleOrHigher('user'), regenerate);
  *               type: string
  *               example: Unknown server error.
  */
-router.get('/:id/token', rateLimiterMiddleware, getJwtToken);
+router.post('/:id/token', rateLimiterMiddleware, getJwtToken);
 
 /**
  * @swagger
