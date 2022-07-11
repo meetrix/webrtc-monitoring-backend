@@ -13,9 +13,9 @@ const defaultIceServers = JSON.stringify({
   mode: 'static',
   iceServers: [
     {
-      urls: ['turn:openrelay.metered.ca:80'],
-      username: 'openrelayproject',
-      credential: 'openrelayproject',
+      username: 'user',
+      credential: 'asdfasdf',
+      urls: ['turn:127.0.0.1:3478?transport=tcp'],
     },
   ],
 });

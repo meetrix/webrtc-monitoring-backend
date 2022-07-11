@@ -4,7 +4,7 @@ Bootstrapped from [meetrix/node-typescript-auth-backend](https://gitlab.com/meet
 
 ## Getting started
 
-Set VSCode's Typescript import module specifier for the workspace to `relative` for more information have a look [here](#import-path-quirks)
+0. Set VSCode's Typescript import module specifier for the workspace to `relative` for more information have a look [here](#import-path-quirks)
 
 1. Create a [personal access token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html#create-a-personal-access-token) (required for two-factor authentication (2FA)), with the scope set to `api`. You can save this for future use too.
 
@@ -26,26 +26,28 @@ Set VSCode's Typescript import module specifier for the workspace to `relative` 
 
    Be careful not to accidentally commit `.npmrc`; add it to your `.gitignore` file.
 
-```shell
+3. Run these commands
 
-# Copy the .env.example contents into the .env
-cat .env.example > .env
+   ```shell
 
-# Start services
+   # Copy the .env.example contents into the .env
+   cat .env.example > .env
 
-npm run services-up
+   # Start services
 
-# Create admin user (For the first time). Refer setup commands in package.json for more information
+   npm run services-up
 
-npm run setup
+   # Create admin user (For the first time). Refer setup commands in package.json for more information
 
-# Run (development mode) the API
-npm start
+   npm run setup
 
-# Check whether the api is running
+   # Run (development mode) the API
+   npm start
 
-http://localhost:9100/v1/spec
-```
+   # Check whether the api is running
+
+   http://localhost:9100/v1/spec
+   ```
 
 To build the project in VS Code press `cmd + shift + b`. You can also run tasks using the command pallet (`cmd + shift + p`) and select `Tasks: Run Task` > `npm: start` to run `npm start` for you.
 
