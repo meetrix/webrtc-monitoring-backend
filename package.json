@@ -1,9 +1,9 @@
 {
   "name": "@meetrix/webrtc-monitoring-backend",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "WebRTC Monitoring Backend",
-  "license": "Commercial",
   "author": "Meetrix",
+  "private":"true",
   "repository": {
     "type": "git",
     "url": "https://github.com/feredean/node-api-starter"
@@ -32,7 +32,7 @@
     "build-image": "docker-compose build --force-rm"
   },
   "dependencies": {
-    "@meetrix/webrtc-monitoring-common-lib": "git+https://gitlab.com/meetrix/products/webrtc-monitoring/webrtc-monitoring-common-lib.git",
+    "@meetrix/webrtc-monitoring-common-lib": "^0.1.18",
     "@peermetrics/webrtc-stats": "github:buddhikajay/webrtc-stats",
     "@socket.io/redis-adapter": "^7.1.0",
     "@types/swagger-ui-express": "^4.1.2",

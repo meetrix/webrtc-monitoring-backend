@@ -8,6 +8,7 @@ RUN echo "https://webrtc_monitoring_common_lib_deploy_token_user_staging:cmxDFgH
 RUN npm install -g typescript pm2 ts-node
 WORKDIR /usr/src/app
 COPY package*.json ./
+COPY *.npmrc ./
 RUN npm install
 RUN cd node_modules/@peermetrics/webrtc-stats && npm install && npm run build
 COPY . .
