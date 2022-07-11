@@ -6,6 +6,26 @@ Bootstrapped from [meetrix/node-typescript-auth-backend](https://gitlab.com/meet
 
 Set VSCode's Typescript import module specifier for the workspace to `relative` for more information have a look [here](#import-path-quirks)
 
+1. Create a [personal access token](https://docs.gitlab.com/ee/user/profile/personal_access_tokens.html#create-a-personal-access-token) (required for two-factor authentication (2FA)), with the scope set to `api`. You can save this for future use too.
+
+2. Run the below commands (sets config for the current user; use a `-g` after `set` to set for all users)
+
+   ```sh
+   npm config set '@meetrix:registry' https://gitlab.com/api/v4/packages/npm/
+   npm config set -- '//gitlab.com/api/v4/packages/npm/:_authToken' "<your_token>"
+   ```
+
+   Alternatively, you can also create a `.npmrc` file in project root with the below command to set it for just the current project
+
+   ```sh
+   {
+     echo "@meetrix:registry=https://gitlab.com/api/v4/packages/npm/"
+     echo "//gitlab.com/api/v4/packages/npm/:_authToken=<your_token>"
+   } >> .npmrc
+   ```
+
+   Be careful not to accidentally commit `.npmrc`; add it to your `.gitignore` file.
+
 ```shell
 
 # Copy the .env.example contents into the .env
@@ -64,7 +84,7 @@ Use `Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6ImRldkBtZWV0cml4Lml
       path: '/stats/',
       auth: {
         token: 'xxxx'
-}        
+}
 ```
 
 ## Auth 2.0
