@@ -79,11 +79,11 @@ export const register = async (
       });
       return;
     }
-    if (!validator.isLength(req.body.password, { min: 6 })) {
+    if (!validator.isLength(req.body.password, { min: 8 })) {
       res.status(422).json({
         success: false,
         data: null,
-        message: 'Password must be at least 6 characters long.',
+        message: 'Password must be at least 8 characters long.',
       });
       return;
     }
@@ -248,6 +248,27 @@ export const login = async (
 
           const clientName = user.profile.name;
 
+          const transporter = getTransporter();
+          const mailOptions = getMailOptions({
+            subject:
+              'Confirm Your Email Address - Meetrix WebRTC Monitoring Application',
+            to: `<${user.email}>`,
+            template: 'emailVerification',
+            context: {
+              clientName,
+              emailToken,
+              API_BASE_URL,
+              AUTH_LANDING,
+              SUPPORT_URL,
+            },
+          });
+          transporter.sendMail(mailOptions, (err, data) => {
+            if (err) {
+              return log('Error occurs');
+            }
+            return log('Email sent to the user successfully.');
+          });
+
           res.status(403).json({
             success: false,
             // data: { emailToken },
@@ -377,10 +398,10 @@ export const reset = async (
   next: NextFunction
 ): Promise<void> => {
   try {
-    if (!validator.isLength(req.body.password, { min: 6 })) {
+    if (!validator.isLength(req.body.password, { min: 8 })) {
       res.status(422).json({
         success: false,
-        message: 'Password must be at least 6 characters long.',
+        message: 'Password must be at least 8 characters long.',
       });
       return;
     }
@@ -524,11 +545,11 @@ export const postProfile = async (
       }
 
       // Validate new password
-      if (!validator.isLength(req.body.password, { min: 6 })) {
+      if (!validator.isLength(req.body.password, { min: 8 })) {
         res.status(422).json({
           success: false,
           data: null,
-          message: 'Password must be at least 6 characters long.',
+          message: 'Password must be at least 8 characters long.',
         });
         return;
       }
@@ -703,7 +724,6 @@ export const verify = async (
       }
       return log('Email sent to the user successfully.');
     });
-    log('ssf', signToken(user));
 
     res.status(200).json({
       success: true,
