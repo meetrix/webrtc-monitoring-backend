@@ -181,10 +181,10 @@ export const getConfig = async (req: Request, res: Response): Promise<void> => {
     const config = await IceServerConfig.findOne({
       pluginId: req.params.id,
     });
-    // if (!config) {
-    //   res.status(404).json({ success: false, error: 'ICE config not found.' });
-    //   return;
-    // }
+    if (!config) {
+      res.status(404).json({ success: false, error: 'ICE config not found.' });
+      return;
+    }
 
     res.json({
       success: true,

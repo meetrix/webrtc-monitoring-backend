@@ -28,6 +28,17 @@ services:
       - /var/run/docker.sock:/tmp/docker.sock:ro
     depends_on:
       - mongo-express
+  coturn:
+    build:
+      context: ./coturn-docker
+      dockerfile: Dockerfile
+    container_name: webrtc-backend-coturn
+    restart: always
+    ports:
+      - 3478:3478
+      - 5349:5349
+      - 5766:5766
+      - 20000-20020:20000-20020
 
 volumes:
   mongodata: null
