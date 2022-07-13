@@ -133,3 +133,51 @@ export const getSessions = async (
     });
   }
 };
+
+export const getSessionSummary = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { pluginId, clientId, startTime, endTime } = req.query;
+
+    const summary = await TroubleshooterSession.aggregate()
+      .match({
+        ownerId: req.user.id as string,
+        ...(pluginId && { pluginId: pluginId as string }),
+        ...(clientId && { clientId: clientId as string }),
+        ...(startTime &&
+          endTime && {
+            createdAt: {
+              $gte: new Date(startTime as string),
+              $lt: new Date(endTime as string),
+            },
+          }),
+      })
+      .project({
+        tests: 1,
+        createdAt: 1,
+      })
+      .group({
+        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+        total: { $sum: 1 },
+        passed: { $sum: { $toInt: '$tests.overall.status' } },
+        browser: { $sum: { $toInt: '$tests.browser.status' } },
+        microphone: { $sum: { $toInt: '$tests.microphone.status' } },
+        camera: { $sum: { $toInt: '$tests.camera.status' } },
+        network: { $sum: { $toInt: '$tests.network.status' } },
+      });
+
+    res.status(200).json({
+      success: true,
+      data: summary,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+    });
+  }
+};
