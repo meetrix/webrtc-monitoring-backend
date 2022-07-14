@@ -1,7 +1,12 @@
 import express from 'express';
 import { hasRoleOrHigher, isPluginUser } from '../../../middleware';
 
-import { getSession, getSessions, postSession } from './controller';
+import {
+  getSession,
+  getSessions,
+  getSessionSummary,
+  postSession,
+} from './controller';
 
 const router = express.Router();
 
@@ -44,6 +49,63 @@ const router = express.Router();
  *               example: No authentication token provided.
  */
 router.post('/', isPluginUser(), postSession);
+
+/**
+ * @swagger
+ * /troubleshooter:
+ *   get:
+ *     description: Gets details of many troubleshooter sessions
+ *     produces:
+ *       - application/json
+ *     security:
+ *       - bearerAuth: []
+ *     parameters:
+ *       - name: startTime
+ *         description: Start time (inclusive)
+ *         in: query
+ *         required: false
+ *         type: time
+ *       - name: endTime
+ *         description: End time (exclusive)
+ *         in: query
+ *         required: false
+ *         type: time
+ *       - name: pluginId
+ *         description: Filter by plugin id
+ *         in: query
+ *         required: false
+ *         type: string
+ *       - name: clientId
+ *         description: Filter by client id
+ *         in: query
+ *         required: false
+ *         type: string
+ *     responses:
+ *       200:
+ *         description: Selected/All troubleshooter session documents
+ *         schema:
+ *           type: object
+ *           properties:
+ *             success:
+ *               type: boolean
+ *               example: true
+ *             data:
+ *               type: array
+ *               items:
+ *                 type: object
+ *       401:
+ *         description: No auth provided
+ *         schema:
+ *           type: object
+ *           properties:
+ *             success:
+ *               type: boolean
+ *               example: false
+ *             error:
+ *               type: string
+ *               example: No authentication token provided.
+ */
+router.get('/summary', hasRoleOrHigher('user'), getSessionSummary);
 
 /**
  * @swagger
