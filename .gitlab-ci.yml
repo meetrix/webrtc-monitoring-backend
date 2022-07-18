@@ -56,7 +56,7 @@ staging_deploy:
 
 production_build:
   stage: build
-  image: docker/compose:1.29.2
+  image: docker/compose:debian-1.29.2
   environment:
     name: production
   before_script:
