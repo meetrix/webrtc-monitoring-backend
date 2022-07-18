@@ -56,10 +56,11 @@ staging_deploy:
 
 production_build:
   stage: build
-  image: meetrix/docker-compose-sshd
+  image: docker/compose:1.29.2
   environment:
     name: production
   before_script:
+    - apt update && apt -y install ssh
     - eval $(ssh-agent -s)
     - echo "$SSH_PRIVATE_KEY" | tr -d '\r' | ssh-add -
     - mkdir -p ~/.ssh
