@@ -338,6 +338,28 @@ export const forgot = async (
 
     const clientName = user.profile.name;
 
+    const transporter = getTransporter();
+
+    const mailOptions = getMailOptions({
+      subject: 'Reset Your Password - Meetrix WebRTC Monitoring Application',
+      to: `<${user.email}>`,
+      template: 'passwordReset',
+      context: {
+        clientName,
+        emailToken,
+        API_BASE_URL,
+        AUTH_LANDING,
+        SUPPORT_URL,
+      },
+    });
+
+    transporter.sendMail(mailOptions, (err, data) => {
+      if (err) {
+        return log(err);
+      }
+      return log('Email sent to the user successfully. ');
+    });
+
     res.status(201).json({
       success: true,
       message:
@@ -427,7 +449,7 @@ export const reset = async (
       .where('passwordResetExpires')
       .gt(Date.now());
     if (!user) {
-      res.redirect(`${AUTH_LANDING}/#/resetpasswordtoken_expired`);
+      res.redirect(`${AUTH_LANDING}/resetpasswordtoken_expired`);
       res.status(401).json({
         success: false,
         message:
@@ -442,6 +464,28 @@ export const reset = async (
     await user.save();
 
     const clientName = user.profile.name;
+
+    const transporter = getTransporter();
+
+    const mailOptions = getMailOptions({
+      subject:
+        'Password Reset Successful - Meetrix WebRTC Monitoring Application',
+      to: `<${user.email}>`,
+      template: 'passwordResetConfirmation',
+      context: {
+        clientName,
+        API_BASE_URL,
+        AUTH_LANDING,
+        SUPPORT_URL,
+      },
+    });
+
+    transporter.sendMail(mailOptions, (err, data) => {
+      if (err) {
+        return log('Error occurs');
+      }
+      return log('Email sent to the user successfully.');
+    });
 
     // res.status(201).json(SUCCESSFUL_RESPONSE);
     res.status(201).json({
