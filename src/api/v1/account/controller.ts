@@ -87,7 +87,38 @@ export const register = async (
       });
       return;
     }
-
+    if (!/[A-Z]/.test(req.body.password)) {
+      res.status(422).json({
+        success: false,
+        data: null,
+        message: 'Password must be contain at least one upper case letter.',
+      });
+      return;
+    }
+    if (!/[a-z]/.test(req.body.password)) {
+      res.status(422).json({
+        success: false,
+        data: null,
+        message: 'Password must be contain at least one lower case letter.',
+      });
+      return;
+    }
+    if (!/[0-9]/.test(req.body.password)) {
+      res.status(422).json({
+        success: false,
+        data: null,
+        message: 'Password must be contain at least one nemrical character.',
+      });
+      return;
+    }
+    if (!/\W/.test(req.body.password)) {
+      res.status(422).json({
+        success: false,
+        data: null,
+        message: 'Password must be contain at least one special character.',
+      });
+      return;
+    }
     req.body.email = validator.normalizeEmail(req.body.email, {
       gmail_remove_dots: false,
     });
@@ -427,6 +458,34 @@ export const reset = async (
       });
       return;
     }
+    if (!/[A-Z]/.test(req.body.password)) {
+      res.status(422).json({
+        success: false,
+        message: 'Password must be contain at least one upper case letter.',
+      });
+      return;
+    }
+    if (!/[a-z]/.test(req.body.password)) {
+      res.status(422).json({
+        success: false,
+        message: 'Password must be contain at least one lower case letter.',
+      });
+      return;
+    }
+    if (!/[0-9]/.test(req.body.password)) {
+      res.status(422).json({
+        success: false,
+        message: 'Password must be contain at least one nemrical character.',
+      });
+      return;
+    }
+    if (!/\W/.test(req.body.password)) {
+      res.status(422).json({
+        success: false,
+        message: 'Password must be contain at least one special character.',
+      });
+      return;
+    }
     if (req.body.password !== req.body.confirm) {
       res.status(422).json({
         success: false,
@@ -597,6 +656,38 @@ export const postProfile = async (
         });
         return;
       }
+      if (!/[A-Z]/.test(req.body.password)) {
+        res.status(422).json({
+          success: false,
+          data: null,
+          message: 'Password must be contain at least one upper case letter.',
+        });
+        return;
+      }
+      if (!/[a-z]/.test(req.body.password)) {
+        res.status(422).json({
+          success: false,
+          data: null,
+          message: 'Password must be contain at least one lower case letter.',
+        });
+        return;
+      }
+      if (!/[0-9]/.test(req.body.password)) {
+        res.status(422).json({
+          success: false,
+          data: null,
+          message: 'Password must be contain at least one nemrical character.',
+        });
+        return;
+      }
+      if (!/\W/.test(req.body.password)) {
+        res.status(422).json({
+          success: false,
+          data: null,
+          message: 'Password must be contain at least one special character.',
+        });
+        return;
+      }
 
       user.password = req.body.password;
 
@@ -670,7 +761,27 @@ export const password = async (
   try {
     const validationErrors = [];
     if (!validator.isLength(req.body.password, { min: 8 })) {
-      validationErrors.push('Password must be at least 8 characters long');
+      validationErrors.push('Password must be at least 8 characters long\n');
+    }
+    if (!/[A-Z]/.test(req.body.password)) {
+      validationErrors.push(
+        'Password must be contain at least one upper case letter.Password must be at least 8 characters long\n'
+      );
+    }
+    if (!/[a-z]/.test(req.body.password)) {
+      validationErrors.push(
+        'Password must be contain at least one lower case letter\n'
+      );
+    }
+    if (!/[0-9]/.test(req.body.password)) {
+      validationErrors.push(
+        'Password must be contain at least one nemrical character\n'
+      );
+    }
+    if (!/\W/.test(req.body.password)) {
+      validationErrors.push(
+        'Password must be contain at least one special character\n'
+      );
     }
     if (req.body.password !== req.body.confirm) {
       validationErrors.push('Passwords do not match');
