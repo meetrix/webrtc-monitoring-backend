@@ -1,7 +1,13 @@
 import express from 'express';
 import { hasRoleOrHigher } from '../../../middleware';
 import rateLimiterMiddleware from '../../../middleware/rateLimiterMemory';
-import { getReport, paricipantsStats, roomStats } from './controller';
+import {
+  getReport,
+  postParicipantsStats,
+  postRoomStats,
+  getRoomStats,
+  getParticipantStats,
+} from './controller';
 
 const router = express.Router();
 
@@ -49,7 +55,9 @@ const router = express.Router();
  */
 
 router.get('/:domain/:clientId', hasRoleOrHigher('user'), getReport);
-router.post('/room', rateLimiterMiddleware, roomStats);
-router.post('/paricipant', rateLimiterMiddleware, paricipantsStats);
+router.post('/room', rateLimiterMiddleware, postRoomStats);
+router.get('/room', rateLimiterMiddleware, getRoomStats);
+router.post('/paricipant', rateLimiterMiddleware, postParicipantsStats);
+router.get('/paricipant', rateLimiterMiddleware, getParticipantStats);
 
 export const reportRouter = router;

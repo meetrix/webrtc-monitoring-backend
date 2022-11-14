@@ -11,7 +11,7 @@ export const getReport = async (
   return res.status(200).json({});
 };
 
-export const roomStats = async (
+export const postRoomStats = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -78,7 +78,130 @@ export const roomStats = async (
   }
 };
 
-export const paricipantsStats = async (
+export const getRoomStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const {
+      limit,
+      offset,
+      roomId,
+      roomJid,
+      startTime,
+      endTime,
+      sortBy,
+      direction,
+    } = req.query;
+    const limitNumber = parseInt((limit as string) || '10', 10);
+    const offsetNumber = parseInt((offset as string) || '0', 10);
+    const sortOrder = sortBy.toString();
+
+    const rooms = await Room.find({
+      ...(roomId && { _id: roomId as string }),
+      ...(roomJid && { roomJid: roomJid as string }),
+      ...(startTime &&
+        endTime && {
+          createdAt: {
+            $gte: new Date(startTime as string),
+            $lt: new Date(endTime as string),
+          },
+        }),
+    })
+      .sort({ [sortOrder]: direction })
+      .limit(limitNumber)
+      .skip(offsetNumber);
+
+    const totalDataCount = await Room.find().count({
+      ...(roomJid && { roomJid: roomJid as string }),
+      ...(startTime &&
+        endTime && {
+          createdAt: {
+            $gte: new Date(startTime as string),
+            $lt: new Date(endTime as string),
+          },
+        }),
+    });
+
+    res.status(200).json({
+      success: true,
+      data: { rooms: rooms, total: totalDataCount },
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+    });
+  }
+};
+
+export const getParticipantStats = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const {
+      limit,
+      offset,
+      roomId,
+      participantId,
+      participantJid,
+      startTime,
+      endTime,
+      sortBy,
+      direction,
+    } = req.query;
+    const limitNumber = parseInt((limit as string) || '10', 10);
+    const offsetNumber = parseInt((offset as string) || '0', 10);
+    const sortOrder = sortBy.toString();
+
+    const participants = await Participant.find({
+      ...(participantId && {
+        _id: participantId as string,
+      }),
+      ...(participantJid && { participantJid: participantJid as string }),
+      ...(roomId && { roomId: roomId as string }),
+      ...(startTime &&
+        endTime && {
+          createdAt: {
+            $gte: new Date(startTime as string),
+            $lt: new Date(endTime as string),
+          },
+        }),
+    })
+      .sort({ [sortOrder]: direction })
+      .limit(limitNumber)
+      .skip(offsetNumber);
+
+    const totalDataCount = await Participant.find().count({
+      ...(roomId && { roomId: roomId as string }),
+      ...(participantJid && { participantJid: participantJid as string }),
+      ...(startTime &&
+        endTime && {
+          createdAt: {
+            $gte: new Date(startTime as string),
+            $lt: new Date(endTime as string),
+          },
+        }),
+    });
+
+    res.status(200).json({
+      success: true,
+      data: { participants: participants, total: totalDataCount },
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+    });
+  }
+};
+
+export const postParicipantsStats = async (
   req: Request,
   res: Response,
   next: NextFunction

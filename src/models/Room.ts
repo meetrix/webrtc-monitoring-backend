@@ -4,8 +4,8 @@ export interface RoomType {
   _id?: string;
   roomName: string;
   roomJid: string;
-  created?: number;
-  destroyed?: number;
+  created: number;
+  destroyed: number;
 }
 
 const RoomSchemaDef: SchemaDefinition = {

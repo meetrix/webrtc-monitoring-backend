@@ -8,8 +8,8 @@ export interface ParticipantType {
   roomName: string;
   roomJid: string;
   roomId: string;
-  joined?: number;
-  left?: number;
+  joined: number;
+  left: number;
 }
 
 const ParticipantSchemaDef: SchemaDefinition = {

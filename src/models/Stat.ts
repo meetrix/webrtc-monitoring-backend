@@ -28,10 +28,12 @@ export interface StatType {
   _id?: string;
   event: string;
   peerId: string;
-  userId?: string;
-  userName?: string;
-  roomId?: string;
-  roomName?: string;
+  participantId: string;
+  participantJid: string;
+  participantName: string;
+  roomId: string;
+  roomJid: string;
+  roomName: string;
   tag: string;
   data: {
     connection: Connection;
@@ -43,9 +45,17 @@ export interface StatType {
 const StatSchemaDef: SchemaDefinition = {
   event: { type: String, default: [], index: true },
   peerId: { type: String, index: true },
-  userId: { type: String, index: true },
-  userName: { type: String, index: true },
-  roomId: { type: String, index: true },
+  participantId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Participant',
+  },
+  participantJid: { type: String, index: true },
+  participantName: { type: String, index: true },
+  roomId: {
+    type: Schema.Types.ObjectId,
+    ref: 'Room',
+  },
+  roomJid: { type: String, index: true },
   roomName: { type: String, index: true },
   tag: { type: String, index: true },
   data: Object,
