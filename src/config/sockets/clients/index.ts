@@ -58,7 +58,7 @@ export const insertErrorEvents = async (data: StatType): Promise<void> => {
 export const dblogger = async (data: StatType): Promise<void> => {
   try {
     const participant = await Participant.findOne({
-      participantRoomJid: 'r1@conference.alpha.jitsi.net/9d1ef55b',
+      participantRoomJid: data.participantJid,
     }).sort({
       joined: 'desc',
     });
