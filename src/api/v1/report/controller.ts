@@ -205,7 +205,7 @@ export const getParticipantStats = async (
   }
 };
 
-export const postParicipantsStats = async (
+export const postParticipantsStats = async (
   req: Request,
   res: Response,
   next: NextFunction

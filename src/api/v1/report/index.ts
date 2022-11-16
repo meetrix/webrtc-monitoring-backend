@@ -3,7 +3,7 @@ import { hasRoleOrHigher } from '../../../middleware';
 import rateLimiterMiddleware from '../../../middleware/rateLimiterMemory';
 import {
   getReport,
-  postParicipantsStats,
+  postParticipantsStats,
   postRoomStats,
   getRoomStats,
   getParticipantStats,
@@ -58,8 +58,8 @@ const router = express.Router();
 router.get('/:domain/:clientId', hasRoleOrHigher('user'), getReport);
 router.post('/room', rateLimiterMiddleware, postRoomStats);
 router.get('/room', rateLimiterMiddleware, getRoomStats);
-router.post('/paricipant', rateLimiterMiddleware, postParicipantsStats);
-router.get('/paricipant', rateLimiterMiddleware, getParticipantStats);
+router.post('/participant', rateLimiterMiddleware, postParticipantsStats);
+router.get('/participant', rateLimiterMiddleware, getParticipantStats);
 router.get('/summary', rateLimiterMiddleware, getSummary);
 
 export const reportRouter = router;
