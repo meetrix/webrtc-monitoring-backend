@@ -212,12 +212,7 @@ export const postParticipantsStats = async (
 ): Promise<void> => {
   try {
     // Check for a Required parameters
-    if (
-      !req.body.bareJid ||
-      !req.body.roomUserJid ||
-      !req.body.displayName ||
-      !req.body.roomJid
-    ) {
+    if (!req.body.bareJid || !req.body.roomUserJid || !req.body.roomJid) {
       res
         .status(400)
         .json({ success: false, error: 'Required parameters not set' });
@@ -235,8 +230,11 @@ export const postParticipantsStats = async (
           .json({ success: false, data: null, message: 'Room not found' });
         return;
       }
+
       const payload = {
-        participantName: req.body.displayName,
+        participantName: req.body.displayName
+          ? req.body.displayName
+          : 'Felllow Jitster',
         participantJid: req.body.bareJid,
         participantRoomJid: req.body.roomUserJid,
         roomName: req.body.roomName,
