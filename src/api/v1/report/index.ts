@@ -7,6 +7,7 @@ import {
   postRoomStats,
   getRoomStats,
   getParticipantStats,
+  getSummary,
 } from './controller';
 
 const router = express.Router();
@@ -59,5 +60,6 @@ router.post('/room', rateLimiterMiddleware, postRoomStats);
 router.get('/room', rateLimiterMiddleware, getRoomStats);
 router.post('/paricipant', rateLimiterMiddleware, postParicipantsStats);
 router.get('/paricipant', rateLimiterMiddleware, getParticipantStats);
+router.get('/summary', rateLimiterMiddleware, getSummary);
 
 export const reportRouter = router;

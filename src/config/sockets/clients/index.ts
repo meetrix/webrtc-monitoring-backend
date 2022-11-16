@@ -66,6 +66,7 @@ export default async (io: Server): Promise<void> => {
     socket.on(SOCKET_CONNECTION_INFO, (data) => {
       logger.debug(`emitting connectionInfo to room: ${room}`);
       userSpace.to(room).emit(SOCKET_CONNECTION_INFO, data);
+      dblogger(data);
     });
     socket.on(SOCKET_OTHER_INFO, (data) => {
       logger.debug(`emitting other to room: ${room}`);
@@ -75,6 +76,7 @@ export default async (io: Server): Promise<void> => {
     socket.on(SOCKET_MEDIA_INFO, (data) => {
       logger.debug(`emitting mediaInfo to room: ${room}`);
       userSpace.to(room).emit(SOCKET_MEDIA_INFO, data);
+      dblogger(data);
     });
     socket.on('disconnect', () => {
       removePluginClient({

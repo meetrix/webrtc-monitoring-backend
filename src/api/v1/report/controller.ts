@@ -1,7 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
+import { Types } from 'mongoose';
 import { AuthAwareRequest } from '../../../config/passport';
 import { Participant } from '../../../models/Participant';
 import { Room } from '../../../models/Room';
+import { Stat } from '../../../models/Stat';
 
 export const getReport = async (
   req: AuthAwareRequest,
@@ -270,6 +272,64 @@ export const postParicipantsStats = async (
       console.log('Unidentified event', req.path, req.body);
       return;
     }
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+    });
+  }
+};
+
+export const getSummary = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const { participantId, startTime, endTime } = req.query;
+    console.log(participantId);
+
+    const summary = await Stat.aggregate()
+      .match({
+        ...(participantId && {
+          participantId: new Types.ObjectId(participantId as string),
+        }),
+        event: {
+          $in: ['onicecandidate', 'onsignalingstatechange', 'mediaInfo'],
+        },
+        ...(startTime &&
+          endTime && {
+            createdAt: {
+              $gte: new Date(startTime as string),
+              $lt: new Date(endTime as string),
+            },
+          }),
+      })
+      .sort({ createdAt: 'ASC' })
+      .group({
+        _id: '$event',
+        total: { $sum: 1 },
+        icecandidates: { $push: '$data.candidate' },
+        data: { $last: '$data' },
+      });
+
+    const summaryPayload = {
+      icecandidates: summary.find((obj) => {
+        return obj._id === 'onicecandidate';
+      }),
+      sdp: summary.find((obj) => {
+        return obj._id === 'onsignalingstatechange';
+      }),
+      mediaInfo: summary.find((obj) => {
+        return obj._id === 'mediaInfo';
+      }),
+    };
+
+    res.status(200).json({
+      success: true,
+      data: summaryPayload,
+    });
   } catch (error) {
     console.log(error);
     res.status(500).json({
