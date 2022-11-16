@@ -4,6 +4,7 @@ import { AuthAwareRequest } from '../../../config/passport';
 import { Participant } from '../../../models/Participant';
 import { Room } from '../../../models/Room';
 import { Stat } from '../../../models/Stat';
+import { ErrorEvent } from '../../../models/ErrorEvent';
 
 export const getReport = async (
   req: AuthAwareRequest,
@@ -44,6 +45,7 @@ export const postRoomStats = async (
       const payload = {
         roomName: req.body.roomName,
         roomJid: req.body.roomJid,
+        faulty: 0,
         created: Date.now(),
         destroyed: 0,
       };
@@ -281,7 +283,7 @@ export const postParicipantsStats = async (
   }
 };
 
-export const getSummary = async (
+export const getSummary2 = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -329,6 +331,56 @@ export const getSummary = async (
     res.status(200).json({
       success: true,
       data: summaryPayload,
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({
+      success: false,
+      error: 'Internal server error',
+    });
+  }
+};
+
+export const getSummary = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  try {
+    const {
+      limit,
+      offset,
+      roomId,
+      participantId,
+      startTime,
+      endTime,
+      sortBy,
+      direction,
+    } = req.query;
+    const limitNumber = parseInt((limit as string) || '10', 10);
+    const offsetNumber = parseInt((offset as string) || '0', 10);
+    const sortOrder = sortBy.toString();
+
+    const participants = await ErrorEvent.find({
+      ...(participantId && {
+        participantId: participantId as string,
+      }),
+      ...(roomId && { roomId: roomId as string }),
+      ...(startTime &&
+        endTime && {
+          createdAt: {
+            $gte: new Date(startTime as string),
+            $lt: new Date(endTime as string),
+          },
+        }),
+    })
+      .sort({ [sortOrder]: direction })
+      .limit(limitNumber)
+      .skip(offsetNumber);
+
+    res.status(200).json({
+      success: true,
+      data: participants,
     });
   } catch (error) {
     console.log(error);

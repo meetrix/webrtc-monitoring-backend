@@ -22,6 +22,7 @@ export interface OutboundStream {
   type?: string;
   ssrc?: string;
   kind?: string;
+  qualityLimitationReason?: string;
 }
 
 export interface StatType {
@@ -37,8 +38,8 @@ export interface StatType {
   tag: string;
   data: {
     connection: Connection;
-    audio: { inbound: InboundStream[]; outbound: OutboundStream[] };
-    video: { inbound: InboundStream[]; outbound: OutboundStream[] };
+    outbound: OutboundStream[];
+    inbound: InboundStream[];
   };
 }
 

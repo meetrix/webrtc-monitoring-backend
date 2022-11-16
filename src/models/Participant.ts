@@ -8,6 +8,7 @@ export interface ParticipantType {
   roomName: string;
   roomJid: string;
   roomId: string;
+  faulty: number;
   joined: number;
   left: number;
 }
@@ -22,6 +23,7 @@ const ParticipantSchemaDef: SchemaDefinition = {
     type: Schema.Types.ObjectId,
     ref: 'Room',
   },
+  faulty: { type: Number, index: true },
   joined: { type: Number, index: true },
   left: { type: Number, index: false },
 };

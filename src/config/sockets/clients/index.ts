@@ -19,27 +19,67 @@ import {
 import { APP_SOCKET_CLIENT_SPACE, APP_SOCKET_USER_SPACE } from '../../settings';
 import { Stat, StatType } from '../../../models/Stat';
 import { Participant } from '../../../models/Participant';
+import { Room } from '../../../models/Room';
+import { ErrorEvent } from '../../../models/ErrorEvent';
+
+export const updateFaultyRoomsUsers = async (data: StatType): Promise<void> => {
+  if (data.data && data.data.outbound) {
+    for (const track of data.data.outbound) {
+      if (track.kind == 'video' && track.qualityLimitationReason != 'none') {
+        await Room.findByIdAndUpdate(data.roomId, { faulty: 1 });
+        await Participant.findByIdAndUpdate(data.participantId, { faulty: 1 });
+        break;
+      }
+    }
+  }
+};
+
+export const insertErrorEvents = async (data: StatType): Promise<void> => {
+  if (data.data && data.data.outbound) {
+    for (const track of data.data.outbound) {
+      if (track.kind == 'video' && track.qualityLimitationReason != 'none') {
+        const payload = {
+          roomId: data.roomId,
+          participantId: data.participantId,
+          eventSourceType: 'track',
+          eventSourceId: track.id,
+          errorType: 'qualityLimitationFactor',
+          errorValue: track.qualityLimitationReason,
+          timestamp: track.timestamp,
+        };
+
+        const errorEvent = new ErrorEvent(payload);
+        errorEvent.save();
+      }
+    }
+  }
+};
 
 export const dblogger = async (data: StatType): Promise<void> => {
-  const participant = await Participant.findOne({
-    participantRoomJid: data.participantJid,
-  }).sort({
-    joined: 'desc',
-  });
-  if (!participant) {
-    logger.debug(`Participant not found: ${data.participantJid}`);
-    return;
+  try {
+    const participant = await Participant.findOne({
+      participantRoomJid: 'r1@conference.alpha.jitsi.net/9d1ef55b',
+    }).sort({
+      joined: 'desc',
+    });
+    if (!participant) {
+      logger.debug(`Participant not found: ${data.participantJid}`);
+      return;
+    }
+    const payload = {
+      ...data,
+      participantId: participant._id,
+      roomId: participant.roomId,
+    };
+    await updateFaultyRoomsUsers(payload);
+    await insertErrorEvents(payload);
+    const stat = new Stat(payload);
+    stat.save();
+  } catch (error) {
+    logger.error(error);
   }
-  const payload = {
-    ...data,
-    participantId: participant._id,
-    roomId: participant.roomId,
-  };
-  const stat = new Stat(payload);
-  stat.save();
-
-  console.log(stat);
 };
+
 export default async (io: Server): Promise<void> => {
   const clientSpace = io.of(APP_SOCKET_CLIENT_SPACE);
   const userSpace = io.of(APP_SOCKET_USER_SPACE);
