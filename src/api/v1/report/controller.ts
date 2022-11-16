@@ -240,6 +240,7 @@ export const postParticipantsStats = async (
         roomName: req.body.roomName,
         roomJid: req.body.roomJid,
         roomId: room._id,
+        faulty: 0,
         joined: Date.now(),
         left: 0,
       };
