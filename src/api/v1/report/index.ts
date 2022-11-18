@@ -57,9 +57,9 @@ const router = express.Router();
 
 router.get('/:domain/:clientId', hasRoleOrHigher('user'), getReport);
 router.post('/room', rateLimiterMiddleware, postRoomStats);
-router.get('/room', rateLimiterMiddleware, getRoomStats);
+router.get('/room', hasRoleOrHigher('user'), getRoomStats);
 router.post('/participant', rateLimiterMiddleware, postParticipantsStats);
-router.get('/participant', rateLimiterMiddleware, getParticipantStats);
-router.get('/summary', rateLimiterMiddleware, getSummary);
+router.get('/participant', hasRoleOrHigher('user'), getParticipantStats);
+router.get('/summary', hasRoleOrHigher('user'), getSummary);
 
 export const reportRouter = router;
