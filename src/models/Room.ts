@@ -5,16 +5,16 @@ export interface RoomType {
   roomName: string;
   roomJid: string;
   faulty: number;
-  created: number;
-  destroyed: number;
+  created: Date;
+  destroyed: Date | null;
 }
 
 const RoomSchemaDef: SchemaDefinition = {
   roomName: { type: String, index: true },
   roomJid: { type: String, index: true },
   faulty: { type: Number, index: true },
-  created: { type: Number, index: true },
-  destroyed: { type: Number, index: false },
+  created: { type: Date, index: true },
+  destroyed: { type: Date, index: false },
 };
 
 const RoomSchema = new Schema(RoomSchemaDef, { timestamps: true });

@@ -1,8 +1,8 @@
 import { NextFunction, Request, Response } from 'express';
 import { Types } from 'mongoose';
 import { AuthAwareRequest } from '../../../config/passport';
-import { Participant } from '../../../models/Participant';
-import { Room } from '../../../models/Room';
+import { Participant, ParticipantType } from '../../../models/Participant';
+import { Room, RoomType } from '../../../models/Room';
 import { Stat } from '../../../models/Stat';
 import { ErrorEvent } from '../../../models/ErrorEvent';
 
@@ -42,12 +42,12 @@ export const postRoomStats = async (
     }
 
     if (req.body.event == 'create') {
-      const payload = {
+      const payload: RoomType = {
         roomName: req.body.roomName,
         roomJid: req.body.roomJid,
         faulty: 0,
-        created: Date.now(),
-        destroyed: 0,
+        created: new Date(),
+        destroyed: null,
       };
 
       const saved = await new Room(payload).save();
@@ -63,7 +63,7 @@ export const postRoomStats = async (
           .json({ success: false, data: null, message: 'Room not found' });
         return;
       }
-      room.destroyed = Date.now();
+      room.destroyed = new Date();
       await room.save();
 
       res.status(201).json({ success: true, data: null });
@@ -231,7 +231,7 @@ export const postParticipantsStats = async (
         return;
       }
 
-      const payload = {
+      const payload: ParticipantType = {
         participantName: req.body.displayName
           ? req.body.displayName
           : 'Felllow Jitster',
@@ -241,8 +241,8 @@ export const postParticipantsStats = async (
         roomJid: req.body.roomJid,
         roomId: room._id,
         faulty: 0,
-        joined: Date.now(),
-        left: 0,
+        joined: new Date(),
+        left: null,
       };
 
       const saved = await new Participant(payload).save();
@@ -263,7 +263,7 @@ export const postParticipantsStats = async (
         });
         return;
       }
-      participant.left = Date.now();
+      participant.left = new Date();
       await participant.save();
 
       res.status(201).json({ success: true, data: null });
