@@ -9,8 +9,8 @@ export interface ParticipantType {
   roomJid: string;
   roomId: string;
   faulty: number;
-  joined: number;
-  left: number;
+  joined: Date;
+  left: Date | null;
 }
 
 const ParticipantSchemaDef: SchemaDefinition = {
@@ -24,8 +24,8 @@ const ParticipantSchemaDef: SchemaDefinition = {
     ref: 'Room',
   },
   faulty: { type: Number, index: true },
-  joined: { type: Number, index: true },
-  left: { type: Number, index: false },
+  joined: { type: Date, index: true },
+  left: { type: Date, index: false },
 };
 
 const ParticipantSchema = new Schema(ParticipantSchemaDef, {
