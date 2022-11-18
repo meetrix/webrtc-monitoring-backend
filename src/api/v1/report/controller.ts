@@ -192,6 +192,7 @@ export const getParticipantStats = async (
           },
         }),
     })
+      .populate('roomId')
       .sort({ [sortOrder]: direction })
       .limit(limitNumber)
       .skip(offsetNumber);
@@ -389,6 +390,8 @@ export const getSummary = async (
           },
         }),
     })
+      .populate('roomId')
+      .populate('participantId')
       .sort({ [sortOrder]: direction })
       .limit(limitNumber)
       .skip(offsetNumber);
