@@ -9,6 +9,10 @@ export interface RoomType {
   destroyed: Date | null;
 }
 
+export interface RoomTypeWithVirtuals extends RoomType {
+  participants: number;
+}
+
 const RoomSchemaDef: SchemaDefinition = {
   roomName: { type: String, index: true },
   roomJid: { type: String, index: true },
@@ -17,8 +21,19 @@ const RoomSchemaDef: SchemaDefinition = {
   destroyed: { type: Date, index: false },
 };
 
-const RoomSchema = new Schema(RoomSchemaDef, { timestamps: true });
+const RoomSchema = new Schema(RoomSchemaDef, {
+  toJSON: { virtuals: true }, // So `res.json()` and other `JSON.stringify()` functions include virtuals
+  toObject: { virtuals: true }, // So `console.log()` and other functions that use `toObject()` include virtuals
+  timestamps: true,
+});
 
-export type RoomDocument = Document & RoomType;
+RoomSchema.virtual('participants', {
+  ref: 'Participant',
+  localField: '_id',
+  foreignField: 'roomId',
+  count: true, // And only get the number of docs
+});
+
+export type RoomDocument = Document & RoomTypeWithVirtuals;
 
 export const Room = model<RoomDocument>('Room', RoomSchema);

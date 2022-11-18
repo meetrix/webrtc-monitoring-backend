@@ -117,7 +117,8 @@ export const getRoomStats = async (
       .limit(limitNumber)
       .skip(offsetNumber);
 
-    const totalDataCount = await Room.find().count({
+    const totalRooms = await Room.find({
+      ...(roomId && { _id: roomId as string }),
       ...(roomJid && { roomJid: roomJid as string }),
       ...(startTime &&
         endTime && {
@@ -126,11 +127,26 @@ export const getRoomStats = async (
             $lt: new Date(endTime as string),
           },
         }),
-    });
+    }).populate('participants');
+
+    let totalMinutes = 0;
+    let totalParticipants = 0;
+    for (const room of totalRooms) {
+      if (room.destroyed) {
+        totalMinutes +=
+          (room.destroyed.getTime() - room.created.getTime()) / 60000;
+        totalParticipants += room.participants;
+      }
+    }
 
     res.status(200).json({
       success: true,
-      data: { rooms: rooms, total: totalDataCount },
+      data: {
+        rooms,
+        total: totalRooms.length,
+        totalMinutes,
+        totalParticipants,
+      },
     });
   } catch (error) {
     console.log(error);
