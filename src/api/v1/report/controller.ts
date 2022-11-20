@@ -133,8 +133,9 @@ export const getRoomStats = async (
     let totalParticipants = 0;
     for (const room of totalRooms) {
       if (room.destroyed) {
-        totalMinutes +=
-          (room.destroyed.getTime() - room.created.getTime()) / 60000;
+        totalMinutes += Math.round(
+          (room.destroyed.getTime() - room.created.getTime()) / 60000
+        );
         totalParticipants += room.participants;
       }
     }
