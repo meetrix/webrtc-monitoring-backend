@@ -45,7 +45,7 @@ export const insertErrorEvents = async (data: StatType): Promise<void> => {
           eventSourceId: track.id,
           errorType: 'qualityLimitationFactor',
           errorValue: track.qualityLimitationReason,
-          timestamp: track.timestamp,
+          timestamp: new Date(track.timestamp),
         };
 
         const errorEvent = new ErrorEvent(payload);

@@ -115,7 +115,8 @@ export const getRoomStats = async (
     })
       .sort({ [sortOrder]: direction })
       .limit(limitNumber)
-      .skip(offsetNumber);
+      .skip(offsetNumber)
+      .populate('participants');
 
     const totalRooms = await Room.find({
       ...(roomId && { _id: roomId as string }),
@@ -127,7 +128,7 @@ export const getRoomStats = async (
             $lt: new Date(endTime as string),
           },
         }),
-    }).populate('participants');
+    });
 
     let totalMinutes = 0;
     let totalParticipants = 0;

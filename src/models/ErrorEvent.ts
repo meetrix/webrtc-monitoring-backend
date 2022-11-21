@@ -8,7 +8,7 @@ export interface ErrorEventType {
   eventSourceId: string;
   errorType: string;
   errorValue: string;
-  timestamp: string;
+  timestamp: Date;
 }
 
 const ErrorEventSchemaDef: SchemaDefinition = {
@@ -24,7 +24,7 @@ const ErrorEventSchemaDef: SchemaDefinition = {
   eventSourceId: { type: String, index: false },
   errorType: { type: String, index: false },
   errorValue: { type: String, index: false },
-  timestamp: { type: String, index: false },
+  timestamp: { type: Date, index: false },
 };
 
 const ErrorEventSchema = new Schema(ErrorEventSchemaDef, {
