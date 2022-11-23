@@ -398,9 +398,24 @@ export const getSummary = async (
       .limit(limitNumber)
       .skip(offsetNumber);
 
+    const totalDataCount = await ErrorEvent.find().count({
+      ...(participantId && {
+        participantId: participantId as string,
+      }),
+      ...(roomId && { roomId: roomId as string }),
+      ...(startTime &&
+        endTime && {
+          createdAt: {
+            $gte: new Date(startTime as string),
+            $lt: new Date(endTime as string),
+          },
+        }),
+    });
+
     res.status(200).json({
       success: true,
       data: participants,
+      totalDataCount,
     });
   } catch (error) {
     console.log(error);
