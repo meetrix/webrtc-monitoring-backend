@@ -287,6 +287,28 @@ export const postParticipantsStats = async (
 
       res.status(201).json({ success: true, data: null });
       return;
+    } else if (req.body.event == 'nick-change') {
+      const participant = await Participant.findOne({
+        participantJid: req.body.bareJid,
+        participantRoomJid: req.body.roomUserJid,
+      }).sort({
+        joined: 'desc',
+      });
+      if (!participant) {
+        res.status(401).json({
+          success: false,
+          data: null,
+          message: 'Participant not found',
+        });
+        return;
+      }
+      participant.participantName = req.body.displayName
+        ? req.body.displayName
+        : 'Felllow Jitster';
+      await participant.save();
+
+      res.status(201).json({ success: true, data: null });
+      return;
     } else {
       res.status(400).json({ success: false, error: 'Unidentified event' });
       console.log('Unidentified event', req.path, req.body);
