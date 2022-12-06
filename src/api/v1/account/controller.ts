@@ -8,13 +8,11 @@ import {
   AUTH_LANDING,
   API_BASE_URL,
   SUPPORT_URL,
-  S3_USER_META_BUCKET,
 } from '../../../config/settings';
 
 import { UserDocument, User } from '../../../models/User';
 import { formatError } from '../../../util/error';
 import { getSubscriptionStatus, signToken } from '../../../util/auth';
-import { AWS_ACCESS_KEY, AWS_ACCESS_KEY_SECRET } from '../../../config/secrets';
 import logger from '../../../util/logger';
 import { getMailOptions, getTransporter } from '../../../util/mail';
 const log = console.log;

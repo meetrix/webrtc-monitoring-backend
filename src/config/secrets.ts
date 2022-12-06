@@ -19,18 +19,6 @@ const requiredSecrets = [
   'REDIS_HOST',
   'REDIS_PORT',
 
-  'GOOGLE_ID',
-  'GOOGLE_SECRET',
-
-  'LINKEDIN_API_KEY',
-  'LINKEDIN_SECRET',
-
-  'FACEBOOK_ID',
-  'FACEBOOK_SECRET',
-
-  'AWS_ACCESS_KEY',
-  'AWS_ACCESS_KEY_SECRET',
-
   'CORS_REGEX',
 ];
 
@@ -54,16 +42,6 @@ export const MONGO_URI =
 export const REDIS_URI = `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`;
 
 export const SESSION_SECRET = process.env['SESSION_SECRET'];
-export const FACEBOOK_ID = process.env['FACEBOOK_ID'];
-export const FACEBOOK_SECRET = process.env['FACEBOOK_SECRET'];
-
-export const LINKEDIN_API_KEY = process.env['LINKEDIN_API_KEY'];
-export const LINKEDIN_SECRET = process.env['LINKEDIN_SECRET'];
-
-export const GOOGLE_ID = process.env['GOOGLE_ID'];
-export const GOOGLE_SECRET = process.env['GOOGLE_SECRET'];
-export const AWS_ACCESS_KEY = process.env['AWS_ACCESS_KEY'];
-export const AWS_ACCESS_KEY_SECRET = process.env['AWS_ACCESS_KEY_SECRET'];
 export const SMTP_HOST = process.env['SMTP_HOST'];
 
 export const SMTP_USER = process.env['SMTP_USER'];

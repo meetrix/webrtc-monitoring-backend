@@ -3,15 +3,6 @@ import passportLocal from 'passport-local';
 import { Express, Request } from 'express';
 import { User, UserDocument } from '../models/User';
 import logger from '../util/logger';
-import {
-  GOOGLE_ID,
-  GOOGLE_SECRET,
-  FACEBOOK_ID,
-  FACEBOOK_SECRET,
-  LINKEDIN_API_KEY,
-  LINKEDIN_SECRET,
-} from './secrets';
-import { API_BASE_URL } from './settings';
 
 export interface AuthAwareRequest extends Request {
   user: UserDocument;
@@ -84,7 +75,7 @@ const findUserOrCreateUser = async (
       accessToken,
       refreshToken,
     });
-    await user.save()
+    await user.save();
     return user;
   } catch (error) {
     throw error;
