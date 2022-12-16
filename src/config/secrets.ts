@@ -16,8 +16,8 @@ const requiredSecrets = [
   'MONGO_HOST',
   'MONGO_PORT',
 
-  'REDIS_HOST',
-  'REDIS_PORT',
+  // 'REDIS_HOST',
+  // 'REDIS_PORT',
 
   'CORS_REGEX',
 ];
@@ -39,7 +39,7 @@ export const MONGO_URI =
     ? `mongodb://${process.env.MONGO_USERNAME}:${process.env.MONGO_PASSWORD}@${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/${process.env.MONGO_DATABASE}?authSource=admin`
     : `mongodb://${process.env.MONGO_HOST}:${process.env.MONGO_PORT}/${process.env.MONGO_DATABASE}`;
 
-export const REDIS_URI = `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`;
+// export const REDIS_URI = `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`;
 
 export const SESSION_SECRET = process.env['SESSION_SECRET'];
 export const SMTP_HOST = process.env['SMTP_HOST'];

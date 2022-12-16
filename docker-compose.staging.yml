@@ -1,7 +1,7 @@
 version: '3.8'
 services:
-  redis:
-    restart: always
+  # redis:
+  #   restart: always
   server:
     build:
       context: ./
@@ -19,8 +19,8 @@ services:
       MONGO_PASSWORD: ${MONGO_PASSWORD}
       MONGO_HOST: ${MONGO_HOST}
       MONGO_PORT: ${MONGO_PORT}
-      REDIS_HOST: ${REDIS_HOST}
-      REDIS_PORT: ${REDIS_PORT}
+      # REDIS_HOST: ${REDIS_HOST}
+      # REDIS_PORT: ${REDIS_PORT}
       CORS_REGEX: ${CORS_REGEX}
       SMTP_HOST: ${SMTP_HOST}
       SMTP_USER: ${SMTP_USER}
@@ -33,6 +33,6 @@ services:
     volumes:
       - /usr/src/app/node_modules
       - /usr/src/app/dist
-    depends_on:
-      - redis
+    # depends_on:
+    #   - redis
     command: [ 'npm', 'start' ]

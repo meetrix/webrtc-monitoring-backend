@@ -22,7 +22,7 @@ export const APP_SOCKET_USER_SPACE = '/users';
 
 // Redis
 
-export const APP_REDIS_PLUGINS_CLIENT_IDS_ACTIVE = 'plugins:client_ids:active';
+// export const APP_REDIS_PLUGINS_CLIENT_IDS_ACTIVE = 'plugins:client_ids:active';
 export const UNSUBSCRIBE_LANDING = '';
 export const CONFIRMATION_LANDING = 'https://screenapp.io/auth';
 export const RECOVERY_LANDING = 'https://screenapp.io/auth';
