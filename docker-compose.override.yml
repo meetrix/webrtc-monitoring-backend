@@ -3,7 +3,7 @@ services:
   mongo:
     image: mongo:4.0
     container_name: webrtc-monitor-backend-mongodb
-    restart: on-failure
+    restart: 'no'
     volumes:
       - mongodata:/data/db
     ports:
@@ -11,7 +11,7 @@ services:
   mongo-express:
     image: mongo-express
     container_name: webrtc-monitor-backend-mongo-express
-    restart: on-failure
+    restart: 'no'
     environment:
       VIRTUAL_HOST: ${MONGO_EXPRESS_DOMAIN}
       ME_CONFIG_BASICAUTH_USERNAME: ${ME_CONFIG_BASICAUTH_USERNAME}
@@ -23,7 +23,7 @@ services:
   nginx:
     image: jwilder/nginx-proxy
     container_name: webrtc-monitor-backend-nginx
-    restart: on-failure
+    restart: 'no'
     ports:
       - ${PROXY_PORT}:80
     volumes:
@@ -36,7 +36,7 @@ services:
       context: ./coturn-docker
       dockerfile: Dockerfile
     container_name: webrtc-monitor-backend-coturn
-    restart: on-failure
+    restart: 'no'
     ports:
       - 3478:3478
       - 5349:5349
