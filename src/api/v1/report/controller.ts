@@ -54,9 +54,13 @@ export const postRoomStats = async (
       res.status(201).json({ success: true, data: saved });
       return;
     } else if (req.body.event == 'destroy') {
-      const room = await Room.findOne({ roomJid: req.body.roomJid }).sort({
-        created: 'desc',
-      });
+      const room = await Room.find({ roomJid: req.body.roomJid })
+        .sort({
+          created: 'desc',
+        })
+        .limit(1)
+        .cursor()
+        .next();
       if (!room) {
         res
           .status(401)
@@ -240,9 +244,13 @@ export const postParticipantsStats = async (
     }
 
     if (req.body.event == 'join') {
-      const room = await Room.findOne({ roomJid: req.body.roomJid }).sort({
-        created: 'desc',
-      });
+      const room = await Room.find({ roomJid: req.body.roomJid })
+        .sort({
+          created: 'desc',
+        })
+        .limit(1)
+        .cursor()
+        .next();
       if (!room) {
         res
           .status(401)
@@ -268,12 +276,16 @@ export const postParticipantsStats = async (
       res.status(201).json({ success: true, data: saved });
       return;
     } else if (req.body.event == 'leave') {
-      const participant = await Participant.findOne({
+      const participant = await Participant.find({
         participantJid: req.body.bareJid,
         participantRoomJid: req.body.roomUserJid,
-      }).sort({
-        joined: 'desc',
-      });
+      })
+        .sort({
+          joined: 'desc',
+        })
+        .limit(1)
+        .cursor()
+        .next();
       if (!participant) {
         res.status(401).json({
           success: false,
@@ -288,12 +300,16 @@ export const postParticipantsStats = async (
       res.status(201).json({ success: true, data: null });
       return;
     } else if (req.body.event == 'nick-change') {
-      const participant = await Participant.findOne({
+      const participant = await Participant.find({
         participantJid: req.body.bareJid,
         participantRoomJid: req.body.roomUserJid,
-      }).sort({
-        joined: 'desc',
-      });
+      })
+        .sort({
+          joined: 'desc',
+        })
+        .limit(1)
+        .cursor()
+        .next();
       if (!participant) {
         res.status(401).json({
           success: false,

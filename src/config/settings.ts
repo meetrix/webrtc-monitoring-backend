@@ -22,7 +22,7 @@ export const APP_SOCKET_USER_SPACE = '/users';
 
 // Redis
 
-export const APP_REDIS_PLUGINS_CLIENT_IDS_ACTIVE = 'plugins:client_ids:active';
+// export const APP_REDIS_PLUGINS_CLIENT_IDS_ACTIVE = 'plugins:client_ids:active';
 export const UNSUBSCRIBE_LANDING = '';
 export const CONFIRMATION_LANDING = 'https://screenapp.io/auth';
 export const RECOVERY_LANDING = 'https://screenapp.io/auth';
@@ -37,8 +37,6 @@ export const USER_ROLES = ['user', 'admin', 'owner'];
 export const USER_PACKAGES = ['FREE_LOGGEDIN', 'STANDARD', 'PREMIUM'];
 export const SUBSCRIPTION_STATUSES = ['pending', 'inactive', 'active']; // DO NOT CHANGE THE ORDER
 export const S3_CONTENT_BUCKET = 'starter-content';
-export const S3_USER_META_BUCKET = process.env['USER_META_BUCKET'];
-export const S3_USER_RECORDINGS_BUCKET = process.env['USER_RECORDINGS_BUCKET'];
 export const RECEIVER_EMAIL =
   process.env['RECEIVER_EMAIL'] || 'support@meetrix.io';
 export const SENDER_EMAIL = process.env['SENDER_EMAIL'] || 'hello@meetrix.io';

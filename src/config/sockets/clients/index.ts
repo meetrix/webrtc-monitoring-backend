@@ -8,10 +8,10 @@ import {
   SOCKET_MEDIA_INFO,
 } from '@meetrix/webrtc-monitoring-common-lib';
 import logger from '../../../util/logger';
-import {
-  addActivePluginClient,
-  removePluginClient,
-} from '../../../util/redis/plugins';
+// import {
+//   addActivePluginClient,
+//   removePluginClient,
+// } from '../../../util/redis/plugins';
 import {
   socketPluginAuth,
   SocketWithPluginAuthType,
@@ -90,10 +90,10 @@ export default async (io: Server): Promise<void> => {
       `plugin with domain: ${domain}, socketId: ${socket.id}, clientId: ${clientId} connected`
     );
     const room = socket.auth.clientId as string;
-    addActivePluginClient({
-      domain,
-      clientId,
-    });
+    // addActivePluginClient({
+    //   domain,
+    //   clientId,
+    // });
     userSpace.to(domain).emit(SOCKET_CLIENT_JOINED, {
       clientId,
       domain,
@@ -119,10 +119,10 @@ export default async (io: Server): Promise<void> => {
       dblogger(data);
     });
     socket.on('disconnect', () => {
-      removePluginClient({
-        domain,
-        clientId,
-      });
+      // removePluginClient({
+      //   domain,
+      //   clientId,
+      // });
       userSpace.to(domain).emit(SOCKET_CLIENT_LEFT, {
         clientId,
         domain,

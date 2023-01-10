@@ -3,17 +3,11 @@ import { MongoMemoryServer } from 'mongodb-memory-server';
 
 process.env.SESSION_SECRET = 'super_secret_key';
 
-process.env.FACEBOOK_ID = 'not_used';
-process.env.FACEBOOK_SECRET = 'not_used';
-
 process.env.MONGO_DATABASE = 'test-node-api-starter';
 process.env.MONGO_HOST = 'localhost';
 process.env.MONGO_PORT = '27018';
 process.env.MONGO_USERNAME = 'not_used';
 process.env.MONGO_PASSWORD = 'not_used';
-
-process.env.AWS_ACCESS_KEY = 'not_used';
-process.env.AWS_ACCESS_KEY_SECRET = 'not_used';
 
 process.env.CORS_REGEX = 'not_used';
 

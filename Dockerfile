@@ -13,6 +13,7 @@ RUN npm install
 RUN cd node_modules/@peermetrics/webrtc-stats && npm install && npm run build
 COPY . .
 RUN npm run build
+RUN rm ~/.git-credentials
 
 WORKDIR /usr/src/app/dist
 
