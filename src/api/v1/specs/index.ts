@@ -6,7 +6,7 @@ const options = {
   definition: {
     swagger: '2.0',
     info: {
-      title: 'ScreenApp',
+      title: 'Webrtc Monitor',
       version: '1.0.0',
     },
     basePath: '/v1',
