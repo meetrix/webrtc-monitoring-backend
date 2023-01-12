@@ -9,7 +9,7 @@
     "url": "https://github.com/feredean/node-api-starter"
   },
   "scripts": {
-    "start": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"tsc -w\" \"nodemon dist/server.js\"",
+    "start": "concurrently -k -p \"[{name}]\" -n \"TypeScript,Node\" -c \"yellow.bold,cyan.bold,green.bold\" \"tsc -w\" \"sleep 45 && nodemon dist/server.js\"",
     "clean": "rm -rf dist",
     "test": "jest --coverage --verbose",
     "test:watch": "npm run test -- --watchAll",
@@ -32,7 +32,7 @@
     "build-image": "docker-compose build --force-rm"
   },
   "dependencies": {
-    "@meetrix/webrtc-monitoring-common-lib": "^0.1.18",
+    "@meetrix/webrtc-monitoring-common-lib": "git+https://github.com/meetrix/webrtc-monitoring-common-lib",
     "@peermetrics/webrtc-stats": "github:buddhikajay/webrtc-stats",
     "@socket.io/redis-adapter": "^7.1.0",
     "@types/swagger-ui-express": "^4.1.2",
