@@ -417,7 +417,7 @@ export const getSummary = async (
     const offsetNumber = parseInt((offset as string) || '0', 10);
     const sortOrder = sortBy.toString();
 
-    const participants = await ErrorEvent.find({
+    const errorEvents = await ErrorEvent.find({
       ...(participantId && {
         participantId: participantId as string,
       }),
@@ -434,7 +434,33 @@ export const getSummary = async (
       .populate('participantId')
       .sort({ [sortOrder]: direction })
       .limit(limitNumber)
-      .skip(offsetNumber);
+      .skip(offsetNumber)
+      .lean();
+
+    for (const errorEvent of errorEvents) {
+      if (
+        errorEvent.errorType == 'qualityLimitationFactor' &&
+        errorEvent.errorValue == 'bandwidth'
+      ) {
+        errorEvent.errorDescription = [
+          'Goto menu->performance-> adjust for best performance',
+          'Change network to a better connection',
+          'Ensure no high bandwidth applications are running in parallel',
+          'Update your browser to the latest version',
+          'Use recommended browsers i.e. Chrome',
+        ];
+      } else if (
+        errorEvent.errorType == 'qualityLimitationFactor' &&
+        errorEvent.errorValue == 'cpu'
+      ) {
+        errorEvent.errorDescription = [
+          'Goto menu->performance-> adjust for best performance',
+          'Ensure no high CPU consuming applications are running in parallel',
+          'Update your browser to the latest version',
+          'Use recommended browsers i.e. Chrome',
+        ];
+      }
+    }
 
     const totalDataCount = await ErrorEvent.find().count({
       ...(participantId && {
@@ -452,7 +478,7 @@ export const getSummary = async (
 
     res.status(200).json({
       success: true,
-      data: participants,
+      data: errorEvents,
       totalDataCount,
     });
   } catch (error) {

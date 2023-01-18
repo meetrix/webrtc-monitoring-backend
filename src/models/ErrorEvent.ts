@@ -11,6 +11,10 @@ export interface ErrorEventType {
   timestamp: Date;
 }
 
+export interface ErrorEventTypeWithVirtuals extends ErrorEventType {
+  errorDescription: string[];
+}
+
 const ErrorEventSchemaDef: SchemaDefinition = {
   roomId: {
     type: Schema.Types.ObjectId,
@@ -28,10 +32,12 @@ const ErrorEventSchemaDef: SchemaDefinition = {
 };
 
 const ErrorEventSchema = new Schema(ErrorEventSchemaDef, {
+  toJSON: { virtuals: true }, // So `res.json()` and other `JSON.stringify()` functions include virtuals
+  toObject: { virtuals: true }, // So `console.log()` and other functions that use `toObject()` include virtuals
   timestamps: true,
 });
 
-export type ErrorEventDocument = Document & ErrorEventType;
+export type ErrorEventDocument = Document & ErrorEventTypeWithVirtuals;
 
 export const ErrorEvent = model<ErrorEventDocument>(
   'ErrorEvent',
