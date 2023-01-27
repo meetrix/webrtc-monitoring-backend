@@ -251,10 +251,34 @@ export const postParticipantsStats = async (
         .limit(1)
         .cursor()
         .next();
+
       if (!room) {
         res
           .status(401)
           .json({ success: false, data: null, message: 'Room not found' });
+        return;
+      }
+
+      const oneDaysBeforeNow = new Date(Date.now() - 1 * 24 * 60 * 60 * 1000);
+
+      const participant = await Participant.find({
+        participantJid: req.body.bareJid,
+        participantRoomJid: req.body.roomUserJid,
+        joined: { $gte: oneDaysBeforeNow },
+      })
+        .sort({
+          created: 'desc',
+        })
+        .limit(1)
+        .cursor()
+        .next();
+
+      if (participant) {
+        res.status(401).json({
+          success: false,
+          data: null,
+          message: 'Duplicate participant join event',
+        });
         return;
       }
 
